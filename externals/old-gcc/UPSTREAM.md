@@ -38,7 +38,8 @@ are disabled unless selected for a compilation:
 All three options accept only `on` or `off`, default to `off`, and use the last
 supplied value. Enabled compilations are scoped by
 `metadata/retail/ntsc-u-926/matching.json`; the CTC2 policy remains limited to
-the isolated rotation-composition/loader translation unit.
+the isolated rotation-composition/loader translation unit and the
+RenderBucket_InitDepthGTE unit.
 No function names or retail addresses select behavior inside the compiler.
 The patch SHA-256 is
 `bd7e26fc281eb104a2c40e5965aa7401de8515f364ca741cb87166d797091936`.
