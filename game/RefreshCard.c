@@ -39,6 +39,12 @@
 #ifndef REFRESHCARD_SCREEN_TEXT
 #define REFRESHCARD_SCREEN_TEXT sdata->mcScreenText
 #endif
+#ifndef REFRESHCARD_ADV_PROFILE_INDEX
+#define REFRESHCARD_ADV_PROFILE_INDEX sdata->advProfileIndex
+#endif
+#ifndef REFRESHCARD_MEMCARD_BUFFER2
+#define REFRESHCARD_MEMCARD_BUFFER2 ((struct MemcardProfile *)sdata->ptrToMemcardBuffer2)
+#endif
 
 
 s16 RefreshCard_CountGhostProfilesForLEV(s16 trackID)
@@ -466,75 +472,18 @@ void RefreshCard_GetNumGhostsTotal(void)
 }
 
 
-#ifdef CTR_NATIVE
+// NOTE: Retail saves ra after the buffer's first load; the matching unit names the buffer and the index as $gp
+// words of their own (tools/matching/namespaces/refresh-card-unknown3), which lets GCC 2.8.1 schedule them so.
 void RefreshCard_GameProgressAndOptions(void)
 {
-	struct MemcardProfile *memcard;
+	REFRESHCARD_UNK_8008D95C = 1;
+	REFRESHCARD_UNK_8008D928 = 1;
+	REFRESHCARD_ADV_PROFILE_INDEX = -1;
 
-	sdata->unk8008d95c = 1;
-	sdata->unk_memcardRelated_8008d928 = 1;
-	sdata->advProfileIndex = -1;
-
-	GAMEPROG_SyncGameAndCard(&((struct MemcardProfile *)sdata->ptrToMemcardBuffer2)->gameSave.progress, &GAME_SAVE.progress);
-	memcard = (struct MemcardProfile *)sdata->ptrToMemcardBuffer2;
-	memcpy(&GAME_SAVE, &memcard->gameSave, sizeof(struct GameSave));
+	GAMEPROG_SyncGameAndCard(&REFRESHCARD_MEMCARD_BUFFER2->gameSave.progress, &GAME_SAVE.progress);
+	GAME_SAVE = REFRESHCARD_MEMCARD_BUFFER2->gameSave;
 	RaceConfig_LoadGameOptions();
 }
-#else
-// NOTE(aalhendi): GCC 2.8.1 saves s0/ra before the first two card-state
-// stores; retail interleaves those saves with argument setup. The native
-// implementation above retains the same buffer and 16-bit index semantics.
-__asm__(".section .RefreshCard_GameProgressAndOptions,\"ax\",@progbits\n"
-        ".align 2\n"
-        ".ent RefreshCard_GameProgressAndOptions\n"
-        ".set\tnoreorder\n"
-        ".globl RefreshCard_GameProgressAndOptions\n"
-        "RefreshCard_GameProgressAndOptions:\n"
-        "addiu $sp,$sp,-24\n"
-        "li $v0,1\n"
-        "sh $v0,2544($gp)\n"
-        "sh $v0,2492($gp)\n"
-        "li $v0,-1\n"
-        "sw $s0,16($sp)\n"
-        "lui $s0,%hi(sdata_static+6012)\n"
-        "addiu $s0,$s0,%lo(sdata_static+6012)\n"
-        "lw $a0,1288($gp)\n"
-        "move $a1,$s0\n"
-        "sw $ra,20($sp)\n"
-        "sh $v0,2560($gp)\n"
-        "jal GAMEPROG_SyncGameAndCard\n"
-        "addiu $a0,$a0,324\n"
-        "lw $v0,1288($gp)\n"
-        "nop\n"
-        "addiu $v1,$v0,324\n"
-        "addiu $v0,$v0,5620\n"
-        ".LRefreshCard_GameProgress_copy:\n"
-        "lw $a2,0($v1)\n"
-        "lw $a3,4($v1)\n"
-        "lw $t0,8($v1)\n"
-        "lw $t1,12($v1)\n"
-        "sw $a2,0($s0)\n"
-        "sw $a3,4($s0)\n"
-        "sw $t0,8($s0)\n"
-        "sw $t1,12($s0)\n"
-        "addiu $v1,$v1,16\n"
-        "bne $v1,$v0,.LRefreshCard_GameProgress_copy\n"
-        "addiu $s0,$s0,16\n"
-        "lw $a2,0($v1)\n"
-        "lw $a3,4($v1)\n"
-        "lw $t0,8($v1)\n"
-        "sw $a2,0($s0)\n"
-        "sw $a3,4($s0)\n"
-        "jal RaceConfig_LoadGameOptions\n"
-        "sw $t0,8($s0)\n"
-        "lw $ra,20($sp)\n"
-        "lw $s0,16($sp)\n"
-        "jr $ra\n"
-        "addiu $sp,$sp,24\n"
-        ".end RefreshCard_GameProgressAndOptions\n"
-        ".set\treorder\n"
-        ".text\n");
-#endif
 
 
 static __inline__ void RefreshCard_QueueGetInfo(void)
