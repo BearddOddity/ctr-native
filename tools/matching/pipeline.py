@@ -366,6 +366,13 @@ def require_tool(path: Path, description: str, expected_hash: str) -> Path:
 
 
 def resolve_toolchain(manifest: dict[str, Any]) -> Toolchain:
+    if not sys.platform.startswith("linux"):
+        # The vendored GCC 2.8.1, maspsx's assembler and binutils are 32-bit Linux ELF programs: Windows can't start
+        # them (WinError 193) and WSL can't run them from a Windows drive (GCC 2.8.1 gets EOVERFLOW on /mnt/<drive>).
+        raise MatchError(
+            "the vendored PSX toolchain runs on Linux only; on Windows run this in WSL, "
+            "from a checkout in WSL's own file system (for example ~/ctr-native), not /mnt/<drive>"
+        )
     config = manifest["toolchain"]
     compiler = config["compiler"]
     gcc_dir = repository_path(compiler["directory"])
@@ -399,7 +406,10 @@ def resolve_toolchain(manifest: dict[str, Any]) -> Toolchain:
             expected_hash,
         )
 
-    compiler_banner = command_output([str(gcc), "--version"]).splitlines()[0]
+    try:
+        compiler_banner = command_output([str(gcc), "--version"]).splitlines()[0]
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise MatchError(f"vendored GCC {compiler['version']} does not run here: {exc}") from exc
     if compiler_banner != compiler["version"]:
         raise MatchError(
             f"vendored GCC reports {compiler_banner}, expected {compiler['version']}"
@@ -496,7 +506,8 @@ def compile_c(
     ]
     if dependency_file is not None:
         command.append(f"-Wp,-MD,{dependency_file}")
-    command.extend(f"-I{path}" for path in include_directories)
+    # GNU as runs on Linux (or WSL): forward slashes on every host.
+    command.extend(f"-I{Path(path).as_posix()}" for path in include_directories)
     for path in forced_includes:
         command.extend(["-include", str(path)])
     command.append(str(source))
@@ -539,7 +550,8 @@ def assemble_mips_source(
         str(toolchain.binutils["as"]),
         f"-G{small_data_limit}",
     ]
-    command.extend(f"-I{path}" for path in include_directories)
+    # GNU as runs on Linux (or WSL): forward slashes on every host.
+    command.extend(f"-I{Path(path).as_posix()}" for path in include_directories)
     if dependency_file is not None:
         command.extend(["--MD", str(dependency_file)])
     command.extend(["-o", str(object_file), str(source)])

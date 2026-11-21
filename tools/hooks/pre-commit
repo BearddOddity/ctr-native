@@ -1,8 +1,9 @@
 #!/bin/sh
 # CTR regression gate. Install once per clone:  git config core.hooksPath tools/hooks
-# Runs the matching unit tests and the match lock (tools/matching/lock.py) when a commit touches game code,
-# headers, the matching tools or their metadata. Skip once with: git commit --no-verify
-changed=$(git diff --cached --name-only -- game include tools/matching metadata)
+# Runs the matching unit tests, the match lock (tools/matching/lock.py) and the function map check
+# (tools/gen_function_map.py) when a commit touches game code, headers, the matching tools, their metadata or the map.
+# Skip once with: git commit --no-verify
+changed=$(git diff --cached --name-only -- game include tools/matching metadata platform/native_function_map.inc)
 [ -z "$changed" ] && exit 0
 PY=$(command -v python3 || command -v python)
 if [ -z "$PY" ]; then

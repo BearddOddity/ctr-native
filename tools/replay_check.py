@@ -31,6 +31,9 @@ BAD = re.compile(
     r"|invalid replay|AddressSanitizer|LeakSanitizer|runtime error:|ERROR: |\[CTR Ledger\] possible leak"
 )
 FINISHED = re.compile(r"replay finished after (\d+) frames")
+# A checkpoint another build wrote: what its restore could not translate by name (shown, not failed: harmless when
+# nothing reads it, and the per-frame state comparison catches it when something does).
+NOTE = re.compile(r"\[CTR State\] (checkpoint from another build.*|  (code pointer|pointer kept).*)")
 SPEED = re.compile(r"([\d.]+) s wall, ([\d.]+) game frames/s")
 
 
@@ -45,7 +48,8 @@ def run_one(exe: Path, replay: Path, fast: bool, timeout: int, extra: list[str])
     command = [str(exe), "--replay", str(replay), "--replay-bypass-header", *(["--replay-fast"] if fast else []), *extra]
     started = time.monotonic()
     env = dict(os.environ)
-    env.setdefault("ASAN_OPTIONS", "detect_leaks=1:abort_on_error=0")
+    # LeakSanitizer runs on Linux only: Windows ASan refuses detect_leaks ("not supported on this platform").
+    env.setdefault("ASAN_OPTIONS", "detect_leaks=1:abort_on_error=0" if sys.platform.startswith("linux") else "abort_on_error=0")
     env.setdefault("UBSAN_OPTIONS", "print_stacktrace=1")
     try:
         done = subprocess.run(command, cwd=exe.parent, capture_output=True, text=True, errors="replace",
@@ -58,8 +62,10 @@ def run_one(exe: Path, replay: Path, fast: bool, timeout: int, extra: list[str])
     bad = next((line.strip() for line in output.splitlines() if BAD.search(line)), None)
     finished = FINISHED.search(output)
     speed = SPEED.search(output)
+    notes = [m.group(1).strip() for m in map(NOTE.search, output.splitlines()) if m]
     result = {
         "replay": str(replay),
+        "notes": notes,
         "exit": code,
         "frames": int(finished.group(1)) if finished else None,
         "seconds": round(time.monotonic() - started, 2),
@@ -105,6 +111,8 @@ def main(argv: list[str] | None = None) -> int:
         status = "PASS" if result["ok"] else "FAIL"
         print(f"{status}  {replay.relative_to(folder)}: {frames}, {result['seconds']} s{fps}"
               + (f"  ({result['why']})" if result["why"] else ""))
+        for note in result.get("notes", []):
+            print(f"      {note}")
     if args.json:
         args.json.write_text(json.dumps(results, indent=1) + "\n")
     failed = sum(not r["ok"] for r in results)

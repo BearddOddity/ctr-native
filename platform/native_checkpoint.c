@@ -8,6 +8,9 @@
 #include "platform/native_memory.h"
 #include "platform/native_state.h"
 
+#include "platform/native_log.h"
+
+#include <stdlib.h>
 #include <string.h>
 
 #define NATIVE_CHECKPOINT_FOURCC(a, b, c, d) ((u32)(a) | ((u32)(b) << 8) | ((u32)(c) << 16) | ((u32)(d) << 24))
@@ -16,11 +19,13 @@
 // and retail globals are defined, so they can snapshot the same process-local
 // regions the game mutates.
 #define NATIVE_CHECKPOINT_MAGIC              NATIVE_CHECKPOINT_FOURCC('C', 'T', 'R', 'C')
-#define NATIVE_CHECKPOINT_VERSION            5u
+// 6: the FMAP region (function addresses by name), so a checkpoint restores in another build.
+#define NATIVE_CHECKPOINT_VERSION            6u
 #define NATIVE_CHECKPOINT_ADDRESS_RANGE_CAP  19u
 #define NATIVE_CHECKPOINT_POINTER_SLOT_CAP   65536u
 #define NATIVE_CHECKPOINT_CREDITS_STRING_CAP 4096u
 #define NATIVE_CHECKPOINT_LNG_STRING_CAP     4096u
+#define NATIVE_CHECKPOINT_FUNCTION_CAP       4096u
 
 enum NativeCheckpointRegionKind
 {
@@ -45,6 +50,7 @@ enum NativeCheckpointRegionKind
 	NATIVE_CHECKPOINT_REGION_SCRP = NATIVE_CHECKPOINT_FOURCC('S', 'C', 'R', 'P'),  // PS1 scratchpad RAM
 	NATIVE_CHECKPOINT_REGION_PMAP = NATIVE_CHECKPOINT_FOURCC('P', 'M', 'A', 'P'),  // native pointer-map relocation slots
 	NATIVE_CHECKPOINT_REGION_NATS = NATIVE_CHECKPOINT_FOURCC('N', 'A', 'T', 'S'),  // native subsystem state bundle
+	NATIVE_CHECKPOINT_REGION_FMAP = NATIVE_CHECKPOINT_FOURCC('F', 'M', 'A', 'P'),  // the writing build's function addresses
 };
 
 struct NativeCheckpointRegion
@@ -103,11 +109,67 @@ struct NativeCheckpointHeader
 	u32 addressRangeCount;
 	u32 codeAnchor;
 	struct NativeCheckpointAddressRange addressRanges[NATIVE_CHECKPOINT_ADDRESS_RANGE_CAP];
-	struct NativeCheckpointRegion regions[14];
+	struct NativeCheckpointRegion regions[15];
 };
 
 global_variable void *s_nativeCheckpointPointerSlots[NATIVE_CHECKPOINT_POINTER_SLOT_CAP];
 global_variable u32 s_nativeCheckpointPointerSlotCount;
+
+// Function addresses by name. Another build (a newer commit, the sanitizer build) puts every function elsewhere, so a
+// checkpoint carries the writing build's (name hash, address) for every game function, and a restore turns each
+// function pointer it holds into this build's address of the same function. tools/gen_function_map.py writes the list.
+struct NativeCheckpointFunctionEntry
+{
+	u32 nameHash;
+	u32 address;
+};
+
+struct NativeCheckpointFunctionMap
+{
+	u32 count;
+	u32 reserved[3];
+	struct NativeCheckpointFunctionEntry entries[NATIVE_CHECKPOINT_FUNCTION_CAP];
+};
+
+struct NativeFunctionId
+{
+	u32 nameHash;
+	void (*function)(void);
+};
+
+#define NATIVE_FUNCTION_ID(hash, name) {hash, (void (*)(void))&name},
+global_variable const struct NativeFunctionId s_nativeFunctionIds[] = {
+#include "native_function_map.inc" // beside this file
+};
+#undef NATIVE_FUNCTION_ID
+_Static_assert(len(s_nativeFunctionIds) <= NATIVE_CHECKPOINT_FUNCTION_CAP, "raise NATIVE_CHECKPOINT_FUNCTION_CAP");
+
+// One restore's translation: the old build's functions by address, the words already turned into live values (so
+// none is relocated twice: a live function address can equal another function's old one), and what was done.
+struct NativeCheckpointVisitedRegion
+{
+	u8 *start;
+	u32 size;
+	u32 *bits;
+};
+
+struct NativeCheckpointTranslation
+{
+	b32 active;
+	b32 moved;
+	struct NativeCheckpointFunctionEntry *oldByAddress;
+	u32 oldCount;
+	struct NativeCheckpointVisitedRegion visited[10];
+	u32 visitedCount;
+	u32 functionsByName;
+	u32 functionsByAnchor;
+	u32 functionsInData;
+	u32 pointersOutside;
+	u32 firstOutside[4];
+	u32 firstAnchor[4];
+};
+
+global_variable struct NativeCheckpointTranslation s_translation;
 
 internal int NativeCheckpoint_InitHeader(struct NativeCheckpointHeader *header);
 
@@ -140,11 +202,49 @@ internal b32 NativeCheckpoint_ReadU32Slot(const void *slot, u32 *out)
 	return 1;
 }
 
+internal u32 *NativeCheckpoint_VisitedBit(const void *slot, u32 *maskOut)
+{
+	const u8 *at = (const u8 *)slot;
+
+	if (!s_translation.active)
+	{
+		return NULL;
+	}
+	for (u32 i = 0; i < s_translation.visitedCount; i++)
+	{
+		const struct NativeCheckpointVisitedRegion *region = &s_translation.visited[i];
+
+		if ((region->bits != NULL) && (at >= region->start) && (at < region->start + region->size))
+		{
+			const u32 word = (u32)(at - region->start) / 4u;
+
+			*maskOut = 1u << (word & 31u);
+			return &region->bits[word >> 5];
+		}
+	}
+	return NULL;
+}
+
+internal b32 NativeCheckpoint_SlotVisited(const void *slot)
+{
+	u32 mask = 0;
+	const u32 *bits = NativeCheckpoint_VisitedBit(slot, &mask);
+
+	return (bits != NULL) && ((*bits & mask) != 0);
+}
+
 internal void NativeCheckpoint_WriteU32Slot(void *slot, u32 value)
 {
 	if (slot != NULL)
 	{
+		u32 mask = 0;
+		u32 *bits = NativeCheckpoint_VisitedBit(slot, &mask);
+
 		memcpy(slot, &value, sizeof(value));
+		if (bits != NULL)
+		{
+			*bits |= mask;
+		}
 	}
 }
 
@@ -238,6 +338,8 @@ internal int NativeCheckpoint_GetRegionSize(u32 kind)
 		return (int)sizeof(struct NativeCheckpointPointerSlotState);
 	case NATIVE_CHECKPOINT_REGION_NATS:
 		return NativeState_GetSize();
+	case NATIVE_CHECKPOINT_REGION_FMAP:
+		return (int)sizeof(struct NativeCheckpointFunctionMap);
 	}
 
 	return 0;
@@ -452,12 +554,89 @@ internal int NativeCheckpoint_IsLivePointer(const struct NativeCheckpointHeader 
 	return NativeCheckpoint_FindAddressOwner(liveHeader, address, NULL) != NULL;
 }
 
+internal const struct NativeCheckpointFunctionEntry *NativeCheckpoint_FindOldFunction(u32 oldAddress)
+{
+	u32 low = 0;
+	u32 high = s_translation.oldCount;
+
+	while (low < high)
+	{
+		const u32 mid = low + (high - low) / 2u;
+		const u32 address = s_translation.oldByAddress[mid].address;
+
+		if (address == oldAddress)
+		{
+			return &s_translation.oldByAddress[mid];
+		}
+		if (address < oldAddress)
+		{
+			low = mid + 1u;
+		}
+		else
+		{
+			high = mid;
+		}
+	}
+	return NULL;
+}
+
+internal b32 NativeCheckpoint_LiveFunction(u32 nameHash, u32 *addressOut)
+{
+	u32 low = 0;
+	u32 high = (u32)len(s_nativeFunctionIds);
+
+	while (low < high)
+	{
+		const u32 mid = low + (high - low) / 2u;
+		const u32 hash = s_nativeFunctionIds[mid].nameHash;
+
+		if (hash == nameHash)
+		{
+			return NativeCheckpoint_PtrToU32((const void *)(uintptr_t)s_nativeFunctionIds[mid].function, addressOut);
+		}
+		if (hash < nameHash)
+		{
+			low = mid + 1u;
+		}
+		else
+		{
+			high = mid;
+		}
+	}
+	return false;
+}
+
+// The writing build's address of a game function -> this build's address of the same function.
+internal b32 NativeCheckpoint_TranslateFunction(u32 oldAddress, u32 *newAddressOut)
+{
+	const struct NativeCheckpointFunctionEntry *entry;
+
+	if ((oldAddress == 0) || (s_translation.oldCount == 0))
+	{
+		return false;
+	}
+	entry = NativeCheckpoint_FindOldFunction(oldAddress);
+	return (entry != NULL) && NativeCheckpoint_LiveFunction(entry->nameHash, newAddressOut);
+}
+
+internal void NativeCheckpoint_NoteOutside(u32 *first, u32 *count, const void *slot, u32 value)
+{
+	u32 slotAddress = 0;
+
+	(void)value;
+	if ((*count < 4u) && NativeCheckpoint_PtrToU32(slot, &slotAddress))
+	{
+		first[*count] = slotAddress;
+	}
+	(*count)++;
+}
+
 internal void NativeCheckpoint_RelocatePointerSlot(const struct NativeCheckpointHeader *oldHeader, const struct NativeCheckpointHeader *liveHeader, void *slot)
 {
 	u32 oldAddress;
 	u32 newAddress;
 
-	if (!NativeCheckpoint_ReadU32Slot(slot, &oldAddress))
+	if (NativeCheckpoint_SlotVisited(slot) || !NativeCheckpoint_ReadU32Slot(slot, &oldAddress))
 	{
 		return;
 	}
@@ -465,6 +644,12 @@ internal void NativeCheckpoint_RelocatePointerSlot(const struct NativeCheckpoint
 	if (NativeCheckpoint_RelocateAddress(oldHeader, liveHeader, oldAddress, &newAddress))
 	{
 		NativeCheckpoint_WriteU32Slot(slot, newAddress);
+	}
+	else if (s_translation.active && s_translation.moved && (oldAddress != 0) && (oldAddress < 0xfffffff0u))
+	{
+		// A pointer slot whose value is in no region this checkpoint knows (host heap, the exe's string literals, or
+		// not a pointer at that moment): kept as it was, which is only right in the build that wrote it.
+		NativeCheckpoint_NoteOutside(s_translation.firstOutside, &s_translation.pointersOutside, slot, oldAddress);
 	}
 }
 
@@ -477,12 +662,26 @@ internal void NativeCheckpoint_RelocateImagePointerSlot(const struct NativeCheck
 	{
 		return;
 	}
-	if (!NativeCheckpoint_ReadU32Slot(slot, &oldAddress) || (oldAddress == 0) || (oldAddress == 0xffffffffu) || (oldAddress == 0xfffffffeu))
+	if (NativeCheckpoint_SlotVisited(slot) || !NativeCheckpoint_ReadU32Slot(slot, &oldAddress) || (oldAddress == 0) ||
+	    (oldAddress == 0xffffffffu) || (oldAddress == 0xfffffffeu))
 	{
 		return;
 	}
 
-	u32 newAddress = oldAddress + (liveHeader->codeAnchor - oldHeader->codeAnchor);
+	u32 newAddress;
+	if (NativeCheckpoint_TranslateFunction(oldAddress, &newAddress))
+	{
+		s_translation.functionsByName++;
+	}
+	else
+	{
+		// Not a game function (a platform callback): the code anchor's shift is right only in the build that wrote it.
+		newAddress = oldAddress + (liveHeader->codeAnchor - oldHeader->codeAnchor);
+		if (s_translation.moved)
+		{
+			NativeCheckpoint_NoteOutside(s_translation.firstAnchor, &s_translation.functionsByAnchor, slot, oldAddress);
+		}
+	}
 	NativeCheckpoint_WriteU32Slot(slot, newAddress);
 }
 
@@ -492,7 +691,7 @@ internal void NativeCheckpoint_RelocatePointerOrImageSlot(const struct NativeChe
 	u32 oldAddress;
 	u32 newAddress;
 
-	if (!NativeCheckpoint_ReadU32Slot(slot, &oldAddress))
+	if (NativeCheckpoint_SlotVisited(slot) || !NativeCheckpoint_ReadU32Slot(slot, &oldAddress))
 	{
 		return;
 	}
@@ -1448,6 +1647,27 @@ internal void NativeCheckpoint_RelocateHowlLists(const struct NativeCheckpointHe
 	{
 		NativeCheckpoint_RelocateItemLinks(oldHeader, liveHeader, &sdata_static.channelStatsPrev[i].link.item);
 	}
+	// The pause backup of the channels keeps their links too, and is copied back on unpause.
+	for (u32 i = 0; i < len(sdata_static.channelStatsCurr); i++)
+	{
+		NativeCheckpoint_RelocateItemLinks(oldHeader, liveHeader, &sdata_static.channelStatsCurr[i].link.item);
+	}
+
+	// Each music sequence reads its notes through pointers into the song data (Channel_ParseSongToChannels), and
+	// each song in the pool lists its sequences.
+	for (u32 i = 0; i < len(sdata_static.songSeq); i++)
+	{
+		NativeCheckpoint_RelocatePointerSlot(oldHeader, liveHeader, &sdata_static.songSeq[i].firstNote);
+		NativeCheckpoint_RelocatePointerSlot(oldHeader, liveHeader, &sdata_static.songSeq[i].currNote);
+	}
+	for (u32 i = 0; i < len(sdata_static.songPool); i++)
+	{
+		for (u32 j = 0; j < len(sdata_static.songPool[i].CseqSequences); j++)
+		{
+			NativeCheckpoint_RelocatePointerSlot(oldHeader, liveHeader, &sdata_static.songPool[i].CseqSequences[j]);
+		}
+	}
+	NativeCheckpoint_RelocatePointerSlot(oldHeader, liveHeader, &sdata_static.advHubSongSet.ptrSongSetBits);
 
 	NativeCheckpoint_RelocateLinkedList(oldHeader, liveHeader, &sdata_static.Voiceline1);
 	NativeCheckpoint_RelocateLinkedList(oldHeader, liveHeader, &sdata_static.Voiceline2);
@@ -1971,11 +2191,157 @@ internal void NativeCheckpoint_RelocateMempackPointers(const struct NativeCheckp
 	}
 }
 
+internal int NativeCheckpoint_CaptureFunctionMap(void *dst, int dstSize)
+{
+	struct NativeCheckpointFunctionMap *map = (struct NativeCheckpointFunctionMap *)dst;
+
+	if ((dst == NULL) || (dstSize != (int)sizeof(*map)))
+	{
+		return 0;
+	}
+
+	memset(map, 0, sizeof(*map));
+	for (u32 i = 0; i < len(s_nativeFunctionIds); i++)
+	{
+		struct NativeCheckpointFunctionEntry *entry = &map->entries[map->count];
+
+		entry->nameHash = s_nativeFunctionIds[i].nameHash;
+		if (NativeCheckpoint_PtrToU32((const void *)(uintptr_t)s_nativeFunctionIds[i].function, &entry->address))
+		{
+			map->count++;
+		}
+	}
+	return 1;
+}
+
+internal int NativeCheckpoint_CompareFunctionAddress(const void *a, const void *b)
+{
+	const u32 x = ((const struct NativeCheckpointFunctionEntry *)a)->address;
+	const u32 y = ((const struct NativeCheckpointFunctionEntry *)b)->address;
+
+	return (x > y) - (x < y);
+}
+
+// The words of the restored static regions that hold one of the old build's function addresses are function
+// pointers (an exact function entry; game data never holds one by chance there): each becomes this build's address.
+// MPAK and the scratchpad hold level data and scratch values, not scanned: their function pointers (threads,
+// instances) are relocated field by field.
+internal void NativeCheckpoint_TranslateStaticFunctions(void)
+{
+	for (u32 r = 0; r < s_translation.visitedCount; r++)
+	{
+		const struct NativeCheckpointVisitedRegion *region = &s_translation.visited[r];
+
+		for (u32 offset = 0; offset + 4u <= region->size; offset += 4u)
+		{
+			u32 value;
+			u32 newAddress;
+
+			memcpy(&value, &region->start[offset], sizeof(value));
+			if ((value != 0) && NativeCheckpoint_TranslateFunction(value, &newAddress))
+			{
+				NativeCheckpoint_WriteU32Slot(&region->start[offset], newAddress);
+				s_translation.functionsInData++;
+			}
+		}
+	}
+}
+
+internal b32 NativeCheckpoint_BeginTranslation(const struct NativeCheckpointHeader *oldHeader, const struct NativeCheckpointHeader *liveHeader,
+                                               const void *mapBytes, int mapSize)
+{
+	local_persist const u32 staticKinds[] = {
+	    NATIVE_CHECKPOINT_REGION_RDATA, NATIVE_CHECKPOINT_REGION_DATA, NATIVE_CHECKPOINT_REGION_SDATA, NATIVE_CHECKPOINT_REGION_D230,
+	    NATIVE_CHECKPOINT_REGION_V230,  NATIVE_CHECKPOINT_REGION_D231, NATIVE_CHECKPOINT_REGION_D232,  NATIVE_CHECKPOINT_REGION_D233,
+	    NATIVE_CHECKPOINT_REGION_GAR3,  NATIVE_CHECKPOINT_REGION_CRD3,
+	};
+	_Static_assert(len(staticKinds) <= len(s_translation.visited), "visited regions");
+	struct NativeCheckpointFunctionMap map;
+
+	memset(&s_translation, 0, sizeof(s_translation));
+	if ((mapBytes == NULL) || (mapSize != (int)sizeof(map)))
+	{
+		return false;
+	}
+	memcpy(&map, mapBytes, sizeof(map));
+	if (map.count > NATIVE_CHECKPOINT_FUNCTION_CAP)
+	{
+		return false;
+	}
+
+	s_translation.moved = oldHeader->codeAnchor != liveHeader->codeAnchor;
+	for (u32 i = 0; i < oldHeader->addressRangeCount; i++)
+	{
+		s_translation.moved |= oldHeader->addressRanges[i].start != liveHeader->addressRanges[i].start;
+	}
+
+	if (map.count != 0)
+	{
+		s_translation.oldByAddress = (struct NativeCheckpointFunctionEntry *)malloc(sizeof(map.entries[0]) * map.count);
+		if (s_translation.oldByAddress == NULL)
+		{
+			return false;
+		}
+		memcpy(s_translation.oldByAddress, map.entries, sizeof(map.entries[0]) * map.count);
+		qsort(s_translation.oldByAddress, map.count, sizeof(map.entries[0]), NativeCheckpoint_CompareFunctionAddress);
+		s_translation.oldCount = map.count;
+	}
+
+	for (u32 i = 0; i < len(staticKinds); i++)
+	{
+		struct NativeCheckpointVisitedRegion *region = &s_translation.visited[s_translation.visitedCount];
+		const int size = NativeCheckpoint_GetRegionSize(staticKinds[i]);
+
+		region->start = (u8 *)NativeCheckpoint_GetRegionPtr(staticKinds[i]);
+		region->size = size > 0 ? (u32)size : 0u;
+		region->bits = (u32 *)calloc((region->size / 4u + 31u) / 32u + 1u, sizeof(u32));
+		if ((region->start == NULL) || (region->bits == NULL))
+		{
+			free(region->bits);
+			continue;
+		}
+		s_translation.visitedCount++;
+	}
+
+	s_translation.active = true;
+	NativeCheckpoint_TranslateStaticFunctions();
+	return true;
+}
+
+internal void NativeCheckpoint_EndTranslation(void)
+{
+	if (s_translation.active && s_translation.moved)
+	{
+		Platform_Log("[CTR State] checkpoint from another build or load address: %u function pointer(s) in fields and %u in "
+		             "static data found by name, %u not a game function (code anchor shift), %u pointer(s) outside every region\n",
+		             s_translation.functionsByName, s_translation.functionsInData, s_translation.functionsByAnchor,
+		             s_translation.pointersOutside);
+		for (u32 i = 0; (i < s_translation.functionsByAnchor) && (i < len(s_translation.firstAnchor)); i++)
+		{
+			Platform_Log("[CTR State]   code pointer by anchor shift at 0x%08x\n", s_translation.firstAnchor[i]);
+		}
+		for (u32 i = 0; (i < s_translation.pointersOutside) && (i < len(s_translation.firstOutside)); i++)
+		{
+			Platform_Log("[CTR State]   pointer kept as written at 0x%08x\n", s_translation.firstOutside[i]);
+		}
+	}
+	for (u32 i = 0; i < s_translation.visitedCount; i++)
+	{
+		free(s_translation.visited[i].bits);
+	}
+	free(s_translation.oldByAddress);
+	memset(&s_translation, 0, sizeof(s_translation));
+}
+
 internal int NativeCheckpoint_CaptureRegion(u32 kind, void *dst, int dstSize)
 {
 	if (kind == NATIVE_CHECKPOINT_REGION_PMAP)
 	{
 		return NativeCheckpoint_CapturePointerSlotState(dst, dstSize);
+	}
+	if (kind == NATIVE_CHECKPOINT_REGION_FMAP)
+	{
+		return NativeCheckpoint_CaptureFunctionMap(dst, dstSize);
 	}
 	if (kind == NATIVE_CHECKPOINT_REGION_NATS)
 	{
@@ -2012,7 +2378,7 @@ internal int NativeCheckpoint_InitHeader(struct NativeCheckpointHeader *header)
 	    NATIVE_CHECKPOINT_REGION_RDATA, NATIVE_CHECKPOINT_REGION_DATA, NATIVE_CHECKPOINT_REGION_SDATA, NATIVE_CHECKPOINT_REGION_D230,
 	    NATIVE_CHECKPOINT_REGION_V230,  NATIVE_CHECKPOINT_REGION_D231, NATIVE_CHECKPOINT_REGION_D232,  NATIVE_CHECKPOINT_REGION_D233,
 	    NATIVE_CHECKPOINT_REGION_GAR3,  NATIVE_CHECKPOINT_REGION_CRD3, NATIVE_CHECKPOINT_REGION_MPAK,  NATIVE_CHECKPOINT_REGION_SCRP,
-	    NATIVE_CHECKPOINT_REGION_PMAP,  NATIVE_CHECKPOINT_REGION_NATS,
+	    NATIVE_CHECKPOINT_REGION_PMAP,  NATIVE_CHECKPOINT_REGION_NATS, NATIVE_CHECKPOINT_REGION_FMAP,
 	};
 
 	memset(header, 0, sizeof(*header));
@@ -2168,7 +2534,9 @@ int NativeCheckpoint_Restore(const void *src, int srcSize)
 	const u8 *bytes = (const u8 *)src;
 	const struct NativeCheckpointRegion *nativeStateRegion = NULL;
 	const struct NativeCheckpointRegion *pointerMapRegion = NULL;
+	const struct NativeCheckpointRegion *functionMapRegion = NULL;
 	struct NativeCheckpointHeader liveHeader;
+	int ok = 0;
 
 	if (!NativeCheckpoint_ValidateHeader(header, srcSize))
 	{
@@ -2195,6 +2563,10 @@ int NativeCheckpoint_Restore(const void *src, int srcSize)
 		{
 			pointerMapRegion = region;
 		}
+		else if (region->kind == NATIVE_CHECKPOINT_REGION_FMAP)
+		{
+			functionMapRegion = region;
+		}
 		else
 		{
 			if (!NativeCheckpoint_RestoreRegion(region->kind, &bytes[region->offset], (int)region->size))
@@ -2206,13 +2578,20 @@ int NativeCheckpoint_Restore(const void *src, int srcSize)
 
 	PSX_BIOS_SetRandSeed(header->psxRandSeed);
 	Platform_ConfigureMempackArena();
-	NativeCheckpoint_RelocateMempackPointers(header, &liveHeader);
-	NativeCheckpoint_RelocateRuntimePointers(header, &liveHeader);
-	if (pointerMapRegion == NULL)
+	if ((pointerMapRegion == NULL) || (functionMapRegion == NULL))
 	{
 		return 0;
 	}
-	if (!NativeCheckpoint_ApplyPointerSlotState(header, &liveHeader, &bytes[pointerMapRegion->offset], (int)pointerMapRegion->size))
+	if (!NativeCheckpoint_BeginTranslation(header, &liveHeader, &bytes[functionMapRegion->offset], (int)functionMapRegion->size))
+	{
+		NativeCheckpoint_EndTranslation();
+		return 0;
+	}
+	NativeCheckpoint_RelocateMempackPointers(header, &liveHeader);
+	NativeCheckpoint_RelocateRuntimePointers(header, &liveHeader);
+	ok = NativeCheckpoint_ApplyPointerSlotState(header, &liveHeader, &bytes[pointerMapRegion->offset], (int)pointerMapRegion->size);
+	NativeCheckpoint_EndTranslation();
+	if (!ok)
 	{
 		return 0;
 	}
@@ -2228,4 +2607,89 @@ int NativeCheckpoint_Restore(const void *src, int srcSize)
 	}
 
 	return 1;
+}
+
+// --checkpoint-selftest (ctest ctr_checkpoint_translation, no disc needed): a checkpoint as another build wrote it,
+// with every region and every function 16 MiB away, restores here. A note pointer and a song set pointer come back
+// by their regions, a game function's address by its name, in a callback field and in a static word no field list
+// names, and a word the static scan already turned is not turned a second time by its field's relocation.
+int NativeCheckpoint_SelfTest(void)
+{
+	const u32 shift = 0x01000000u;
+	struct NativeCheckpointHeader live;
+	struct NativeCheckpointHeader old;
+	struct NativeCheckpointFunctionMap *map;
+	u32 liveFn = 0, liveNote = 0, liveBits = 0, value = 0;
+	int failures = 0;
+
+	if (!NativeCheckpoint_InitHeader(&live) || (len(s_nativeFunctionIds) == 0))
+	{
+		printf("checkpoint self-test: no checkpoint layout\n");
+		return 1;
+	}
+	old = live;
+	old.codeAnchor += shift;
+	for (u32 i = 0; i < old.addressRangeCount; i++)
+	{
+		old.addressRanges[i].start += shift;
+	}
+
+	map = (struct NativeCheckpointFunctionMap *)calloc(1, sizeof(*map));
+	if ((map == NULL) || !NativeCheckpoint_CaptureFunctionMap(map, (int)sizeof(*map)) || (map->count != len(s_nativeFunctionIds)))
+	{
+		printf("checkpoint self-test: the function map did not capture\n");
+		free(map);
+		return 1;
+	}
+	for (u32 i = 0; i < map->count; i++)
+	{
+		map->entries[i].address += shift;
+	}
+
+	NativeCheckpoint_PtrToU32((const void *)(uintptr_t)s_nativeFunctionIds[len(s_nativeFunctionIds) / 2].function, &liveFn);
+	NativeCheckpoint_PtrToU32((u8 *)Platform_GetMempackBacking() + 0x2000, &liveNote);
+	NativeCheckpoint_PtrToU32(&data.advHubSongSetBytes[0], &liveBits);
+
+	// What the other build left behind.
+	NativeCheckpoint_WriteU32Slot(&sdata_static.songSeq[0].currNote, liveNote + shift);
+	NativeCheckpoint_WriteU32Slot(&sdata_static.advHubSongSet.ptrSongSetBits, liveBits + shift);
+	NativeCheckpoint_WriteU32Slot(&sdata_static.MainDrawCb_DrawSyncPtr, liveFn + shift);
+	NativeCheckpoint_WriteU32Slot(&sdata_static.unk_hole1, liveFn + shift);
+
+	if (!NativeCheckpoint_BeginTranslation(&old, &live, map, (int)sizeof(*map)))
+	{
+		printf("checkpoint self-test: the translation did not start\n");
+		free(map);
+		return 1;
+	}
+	NativeCheckpoint_RelocateHowlLists(&old, &live);
+	NativeCheckpoint_RelocateImagePointerSlot(&old, &live, &sdata_static.MainDrawCb_DrawSyncPtr);
+	const u32 byName = s_translation.functionsInData;
+	NativeCheckpoint_EndTranslation();
+	free(map);
+
+#define NATIVE_CHECKPOINT_EXPECT(slot, want, what)                                                                   \
+	NativeCheckpoint_ReadU32Slot(&(slot), &value);                                                                    \
+	if (value != (want))                                                                                              \
+	{                                                                                                                 \
+		printf("checkpoint self-test: %s is 0x%08x, expected 0x%08x\n", what, value, (want));                        \
+		failures++;                                                                                                   \
+	}
+	NATIVE_CHECKPOINT_EXPECT(sdata_static.songSeq[0].currNote, liveNote, "a music note pointer");
+	NATIVE_CHECKPOINT_EXPECT(sdata_static.advHubSongSet.ptrSongSetBits, liveBits, "the hub song set");
+	NATIVE_CHECKPOINT_EXPECT(sdata_static.MainDrawCb_DrawSyncPtr, liveFn, "a callback field");
+	NATIVE_CHECKPOINT_EXPECT(sdata_static.unk_hole1, liveFn, "a function address in static data");
+#undef NATIVE_CHECKPOINT_EXPECT
+
+	memset(&sdata_static.songSeq[0], 0, sizeof(sdata_static.songSeq[0]));
+	sdata_static.advHubSongSet.ptrSongSetBits = &data.advHubSongSetBytes[0];
+	sdata_static.MainDrawCb_DrawSyncPtr = NULL;
+	sdata_static.unk_hole1 = 0;
+	if (failures != 0)
+	{
+		printf("checkpoint self-test: %d failure(s)\n", failures);
+		return 1;
+	}
+	printf("checkpoint self-test: passed (%u game functions mapped, %u found in static data)\n", (u32)len(s_nativeFunctionIds), byName);
+	return 0;
 }

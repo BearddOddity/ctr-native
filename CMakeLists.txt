@@ -12,10 +12,22 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     )
 endif()
 
+# Sanitizers for regression and leak hunting: -DCTR_NATIVE_SANITIZE="address;undefined" (GCC/Clang; "leak" too where
+# LeakSanitizer runs: Linux), or "address" with MSVC/clang-cl. Off by default; tools/check.py --sanitize builds them.
+set(CTR_NATIVE_SANITIZE "" CACHE STRING "Sanitizers for ctr_native and its tests (address, undefined, leak)")
+
 set(CTR_NATIVE_MSVC_FRONTEND OFF)
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC" OR CMAKE_C_SIMULATE_ID STREQUAL "MSVC")
     set(CTR_NATIVE_MSVC_FRONTEND ON)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    if("address" IN_LIST CTR_NATIVE_SANITIZE)
+        # AddressSanitizer on Windows runs on the DLL C runtime (/MD; its runtime is built against the release CRT),
+        # and /RTC run-time checks can't go with it. Every target, SDL too, takes the same CRT.
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+        string(REGEX REPLACE "/RTC[1csu]*" "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+        string(REGEX REPLACE "/RTC[1csu]*" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    else()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif()
 endif()
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE NEVER)
@@ -135,17 +147,49 @@ else()
 endif()
 target_link_libraries(ctr_native SDL3::SDL3)
 
-# Sanitizers for regression and leak hunting: -DCTR_NATIVE_SANITIZE="address;undefined" (GCC/Clang; "leak" too where
-# LeakSanitizer runs: Linux), or "address" with MSVC/clang-cl. Off by default; tools/check.py --sanitize builds them.
-set(CTR_NATIVE_SANITIZE "" CACHE STRING "Sanitizers for ctr_native and its tests (address, undefined, leak)")
+# clang-cl leaves AddressSanitizer's runtime to its own link step, but CMake links with lld-link or link.exe directly:
+# name the 32-bit runtime and its CRT thunk. LLVM's Windows installer has only 64-bit ones; Visual Studio's x86
+# environment (vcvars32) has MSVC's on LIB, and their DLL on PATH.
+if(CTR_NATIVE_MSVC_FRONTEND AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND "address" IN_LIST CTR_NATIVE_SANITIZE)
+    execute_process(
+        COMMAND ${CMAKE_C_COMPILER} /clang:-print-resource-dir
+        OUTPUT_VARIABLE ctr_clang_resource_dir
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    find_library(CTR_NATIVE_ASAN_RUNTIME NAMES clang_rt.asan_dynamic-i386.lib
+        HINTS "${ctr_clang_resource_dir}/lib/windows" ENV LIB)
+    find_library(CTR_NATIVE_ASAN_THUNK NAMES clang_rt.asan_dynamic_runtime_thunk-i386.lib
+        HINTS "${ctr_clang_resource_dir}/lib/windows" ENV LIB)
+    if(NOT CTR_NATIVE_ASAN_RUNTIME OR NOT CTR_NATIVE_ASAN_THUNK)
+        message(FATAL_ERROR
+            "AddressSanitizer with clang-cl needs clang_rt.asan_dynamic-i386.lib and "
+            "clang_rt.asan_dynamic_runtime_thunk-i386.lib. Configure from Visual Studio's x86 environment "
+            "(vcvars32.bat; tools/check.py does), which has MSVC's on LIB.")
+    endif()
+    get_filename_component(ctr_asan_lib_dir "${CTR_NATIVE_ASAN_RUNTIME}" DIRECTORY)
+    find_file(CTR_NATIVE_ASAN_DLL NAMES clang_rt.asan_dynamic-i386.dll
+        HINTS "${ctr_asan_lib_dir}" "${ctr_asan_lib_dir}/../../bin/Hostx86/x86" "${ctr_asan_lib_dir}/../../bin/Hostx64/x86"
+              "${ctr_clang_resource_dir}/lib/windows" ENV PATH)
+endif()
+
 function(ctr_native_sanitize target)
     if(NOT CTR_NATIVE_SANITIZE)
         return()
     endif()
     if(CTR_NATIVE_MSVC_FRONTEND)
         if("address" IN_LIST CTR_NATIVE_SANITIZE)
-            target_compile_options(${target} PRIVATE /fsanitize=address /Zi)
+            target_compile_options(${target} PRIVATE /fsanitize=address /Z7)
             target_link_options(${target} PRIVATE /INCREMENTAL:NO /DEBUG)
+            if(CTR_NATIVE_ASAN_RUNTIME)
+                # Link options, not target_link_libraries: ctr_native already uses its plain signature.
+                target_link_options(${target} PRIVATE "${CTR_NATIVE_ASAN_RUNTIME}" "/WHOLEARCHIVE:${CTR_NATIVE_ASAN_THUNK}")
+            endif()
+            if(CTR_NATIVE_ASAN_DLL)
+                # The exe then starts from any folder (a replay check, the launcher), not only from vcvars32's PATH.
+                add_custom_command(TARGET ${target} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CTR_NATIVE_ASAN_DLL}" "$<TARGET_FILE_DIR:${target}>")
+            endif()
         endif()
     else()
         string(REPLACE ";" "," sanitizers "${CTR_NATIVE_SANITIZE}")
@@ -186,6 +230,8 @@ include(CTest)
 if(BUILD_TESTING)
     add_test(NAME ctr_native_version COMMAND $<TARGET_FILE:ctr_native> --version)
     set_tests_properties(ctr_native_version PROPERTIES PASS_REGULAR_EXPRESSION "^CTR Native ")
+    # A checkpoint another build wrote (other addresses) restores its function and data pointers here.
+    add_test(NAME ctr_checkpoint_translation COMMAND $<TARGET_FILE:ctr_native> --checkpoint-selftest)
 
     add_executable(ctr_native_config_test tests/native_config_test.c platform/native_config.c)
     set_target_properties(ctr_native_config_test PROPERTIES
