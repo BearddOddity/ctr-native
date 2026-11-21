@@ -197,6 +197,17 @@ if(BUILD_TESTING)
     ctr_native_sanitize(ctr_native_config_test)
     add_test(NAME ctr_native_config COMMAND $<TARGET_FILE:ctr_native_config_test>)
 
+    add_executable(ctr_prim_arena_test tests/prim_arena_test.c)
+    set_target_properties(ctr_prim_arena_test PROPERTIES
+        C_STANDARD 17
+        C_STANDARD_REQUIRED ON
+        C_EXTENSIONS OFF
+    )
+    target_include_directories(ctr_prim_arena_test PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    target_compile_definitions(ctr_prim_arena_test PRIVATE CTR_NATIVE)
+    ctr_native_sanitize(ctr_prim_arena_test)
+    add_test(NAME ctr_prim_arena COMMAND $<TARGET_FILE:ctr_prim_arena_test>)
+
     add_executable(ctr_visibility_raw_copy_regression tests/visibility_raw_copy_regression.c)
     set_target_properties(ctr_visibility_raw_copy_regression PROPERTIES
         C_STANDARD 17

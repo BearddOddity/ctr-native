@@ -112,6 +112,24 @@ The split is intentional:
 The pressure mode is useful for finding native paths that silently rely on more dynamic memory than retail had.
 The PS1 path does not call the platform arena hook; it computes the allocator window from retail overlay symbols.
 
+## Native Primitive Memory
+
+Retail gives each of the two draw buffers a primitive arena sized per level by `MainInit_PrimMem` (95 to 150 KiB) and
+drops every draw that no longer fits once the cursor reaches `guardEnd`. Native keeps that MEMPACK allocation, so the
+allocator's layout and every later allocation stay retail's, then `NativePrimMem_Bind` (platform/native_memory.c)
+points both buffers at the window's low bytes, below the MEMPACK start, where the PS1 holds the executable and native
+holds nothing: 371 KiB per buffer. That memory is part of the checkpointed window, so the prims are saved and their
+pointers relocate like any MEMPACK pointer. The GPU link bridge maps the whole buffer.
+
+Every run ends with how much was used:
+
+```text
+[CTR Prim] 5400 frames: peak 140.2 KiB (level 12, where the PS1 buffer holds 119.8 KiB); 37 frame(s) drew more than the PS1 buffer would hold (up to 20.4 KiB more), 0 came within 1 KiB of the end
+```
+
+`--ps1-prim-limit` keeps retail's buffers; its report counts the frames that came within 1 KiB of the end, where the
+PS1 drops draws. `tests/prim_arena_test.c` checks the layout.
+
 ## Native VRAM
 
 Native keeps the PS1-visible VRAM contract at `1024x512x16`, but the platform layer owns the host backing and presentation path.

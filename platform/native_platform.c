@@ -8,6 +8,7 @@
 #include "platform/native_gpu.h"
 #include "platform/native_input.h"
 #include "platform/native_log.h"
+#include "platform/native_memory.h"
 #include "platform/native_perf.h"
 #include "platform/native_renderer.h"
 #include "platform/native_replay_scheduler.h"
@@ -291,6 +292,7 @@ void Platform_Shutdown(void)
 	NativePerf_Shutdown();
 	NativeReplayScheduler_Shutdown();
 #endif
+	NativePrimMem_Report();
 	Platform_InputShutdown();
 	NativeAudio_Shutdown();
 	NativeRenderer_Shutdown();
