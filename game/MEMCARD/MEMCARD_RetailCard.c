@@ -55,53 +55,27 @@ s32 MEMCARD_GetInfo(int slotIdx)
 	MEMCARD_FILEIO_RETRIES = 8;
 	return MC_RETURN_PENDING;
 }
-// NOTE(aalhendi): Retail checks the card stage before the stack prologue,
-// requires format() to return exactly 1, and stores the new stage before
-// calling MEMCARD_SkipEvents. GCC 2.8.1 moves the load and delay-slot store.
-__asm__(".section .MEMCARD_Format,\"ax\",@progbits\n"
-        ".align 2\n"
-        ".ent\tMEMCARD_Format\n"
-        ".set\tnoreorder\n"
-        ".globl MEMCARD_Format\n"
-        "MEMCARD_Format:\n"
-        "lw $v0,1176($gp)\n"
-        "addiu $sp,$sp,-24\n"
-        "sw $s0,16($sp)\n"
-        "move $s0,$a0\n"
-        "bnez $v0,.LMemcardFormatBusy\n"
-        "sw $ra,20($sp)\n"
-        "move $a0,$s0\n"
-        "jal MEMCARD_StringInit\n"
-        "move $a1,$zero\n"
-        "jal format\n"
-        "move $a0,$v0\n"
-        "addiu $v1,$zero,1\n"
-        "bne $v0,$v1,.LMemcardFormatDone\n"
-        "addiu $v0,$zero,1\n"
-        "addiu $v0,$zero,2\n"
-        "sw $s0,2380($gp)\n"
-        "sw $v0,1176($gp)\n"
-        "jal MEMCARD_SkipEvents\n"
-        "addiu $s0,$zero,1\n"
-        ".LMemcardFormatPoll:\n"
-        "lw $a0,2380($gp)\n"
-        "jal _card_load\n"
-        "nop\n"
-        "bne $v0,$s0,.LMemcardFormatPoll\n"
-        "addiu $v0,$zero,8\n"
-        "sw $v0,1188($gp)\n"
-        "j .LMemcardFormatDone\n"
-        "addiu $v0,$zero,7\n"
-        ".LMemcardFormatBusy:\n"
-        "addiu $v0,$zero,1\n"
-        ".LMemcardFormatDone:\n"
-        "lw $ra,20($sp)\n"
-        "lw $s0,16($sp)\n"
-        "jr $ra\n"
-        "addiu $sp,$sp,24\n"
-        ".end MEMCARD_Format\n"
-        ".set\treorder\n"
-        ".text\n");
+// NOTE: Retail checks the card stage before the stack prologue and requires format() to return exactly 1. The
+// early return and the stage, slot and retry count as their own $gp words (memcard-card namespace) keep GCC 2.8.1
+// from moving the load and the delay-slot store.
+s32 MEMCARD_Format(int slotIdx)
+{
+	if (MEMCARD_FILEIO_STAGE != MC_STAGE_IDLE)
+		return MC_RETURN_TIMEOUT;
+
+	if (format(MEMCARD_StringInit(slotIdx, 0)) == 1)
+	{
+		MEMCARD_FILEIO_SLOT = slotIdx;
+		MEMCARD_FILEIO_STAGE = MC_STAGE_NEWCARD;
+		MEMCARD_SkipEvents();
+		while (_card_load(MEMCARD_FILEIO_SLOT) != 1)
+		{
+		}
+		MEMCARD_FILEIO_RETRIES = 8;
+		return MC_RETURN_PENDING;
+	}
+	return MC_RETURN_TIMEOUT;
+}
 
 int MEMCARD_IsFile(int slotIdx, char *save_name)
 {
