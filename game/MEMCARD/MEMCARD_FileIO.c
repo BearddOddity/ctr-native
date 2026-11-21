@@ -50,7 +50,7 @@ int MEMCARD_ReadFile(int start_offset, int size)
 	return MC_RETURN_TIMEOUT;
 }
 
-u8 MEMCARD_WriteFile(int start_offset, const u8 *data, int size)
+int MEMCARD_WriteFile(int start_offset, const u8 *data, int size)
 {
 	if (lseek(MEMCARD_FILEIO_FD, start_offset, 0) != -1 && write(MEMCARD_FILEIO_FD, (void *)data, size) != -1)
 	{

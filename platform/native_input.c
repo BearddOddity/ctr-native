@@ -1,4 +1,5 @@
 #include <platform/native_input.h>
+#include <platform/native_config.h>
 
 #include <macros.h>
 #include "psx/libpad.h"
@@ -470,7 +471,7 @@ internal u16 NativeInput_ReadKeyboard(void)
 	const struct NativeInputKeyboardMapping *mapping = &s_keyboardMapping;
 	u16 buttons = 0xffff;
 
-	if (s_keyboardState == NULL)
+	if ((s_keyboardState == NULL) || (g_nativeConfig.keyboard == 0))
 	{
 		return buttons;
 	}
@@ -663,19 +664,41 @@ internal void NativeInput_CloseController(s32 slot)
 	}
 }
 
-internal void NativeInput_OpenController(SDL_JoystickID instanceId, s32 slot)
+// The launcher's controller settings: controller support on or off, and which
+// families (Xbox, PlayStation) the game opens. Other pads follow `controller`.
+internal s32 NativeInput_ControllerAllowed(SDL_JoystickID instanceId)
 {
-	if (s_nativeOptions.gamepad == 0)
+	if (g_nativeConfig.controller == 0)
 	{
-		return;
+		return 0;
 	}
 
+	const SDL_GamepadType type = SDL_GetGamepadTypeForID(instanceId);
+
+	if ((type == SDL_GAMEPAD_TYPE_XBOX360) || (type == SDL_GAMEPAD_TYPE_XBOXONE))
+	{
+		return g_nativeConfig.xboxControllers != 0;
+	}
+	if ((type == SDL_GAMEPAD_TYPE_PS3) || (type == SDL_GAMEPAD_TYPE_PS4) || (type == SDL_GAMEPAD_TYPE_PS5))
+	{
+		return g_nativeConfig.playstationControllers != 0;
+	}
+	return 1;
+}
+
+internal void NativeInput_OpenController(SDL_JoystickID instanceId, s32 slot)
+{
 	if ((slot < 0) || (slot >= NATIVE_INPUT_MAX_CONTROLLERS))
 	{
 		return;
 	}
 
 	if (SDL_IsGamepad(instanceId) == 0)
+	{
+		return;
+	}
+
+	if (NativeInput_ControllerAllowed(instanceId) == 0)
 	{
 		return;
 	}
@@ -738,6 +761,17 @@ int Platform_InputInit(void)
 	s_installedSnapshotsActive = 0;
 	s_keyboardState = SDL_GetKeyboardState(NULL);
 
+	if (g_nativeConfig.playstationControllers != 0)
+	{
+		// DualShock 4 / DualSense through HIDAPI: full button set, rumble and the light bar.
+		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4, "1");
+		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "1");
+	}
+	if (g_nativeConfig.xboxControllers != 0)
+	{
+		SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "1");
+	}
+
 	if (SDL_InitSubSystem(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC) == 0)
 	{
 		fprintf(stderr, "[CTR Native] Failed to initialise SDL input subsystem: %s\n", SDL_GetError());
@@ -792,7 +826,7 @@ void Platform_InputUpdate(void)
 	}
 
 	SDL_PumpEvents();
-	u16 keyboardButtons = ((s_nativeOptions.keyboard == 0) || NativeInput_KeyboardSuppressed()) ? 0xffff : NativeInput_ReadKeyboard();
+	u16 keyboardButtons = NativeInput_KeyboardSuppressed() ? 0xffff : NativeInput_ReadKeyboard();
 
 	for (s32 slot = 0; slot < NATIVE_INPUT_MAX_CONTROLLERS; slot++)
 	{
@@ -1044,7 +1078,8 @@ void Platform_InputPadVibrate(int port, unsigned char *table, int len)
 		slot = physicalSlot;
 	}
 
-	if ((slot < 0) || (slot >= NATIVE_INPUT_MAX_CONTROLLERS) || (table == NULL) || (len <= 0))
+	if ((slot < 0) || (slot >= NATIVE_INPUT_MAX_CONTROLLERS) || (table == NULL) || (len <= 0) ||
+		(g_nativeConfig.vibration == 0))
 	{
 		return;
 	}

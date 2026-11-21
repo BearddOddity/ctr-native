@@ -1,359 +1,269 @@
 #include <common.h>
 
-#define MC_STRINGIFY_IMPL(value) #value
-#define MC_STRINGIFY(value) MC_STRINGIFY_IMPL(value)
-#define MC_GP(field) MC_STRINGIFY(CTR_MEMCARD_GP_##field) "($gp)"
+// NOTE: Matching units name the card's resident storage by retail's own addressing
+// (tools/matching/namespaces/memcard-event/retail_symbols.h); any other build uses the live sdata fields.
+#ifndef MEMCARD_FILEIO_STAGE
+#define MEMCARD_FILEIO_STAGE   sdata->memcard_stage
+#define MEMCARD_FILEIO_BUFFER  sdata->memcard_ptrStart
+#define MEMCARD_FILEIO_RETRIES sdata->memcard_remainingAttempts
+#define MEMCARD_FILEIO_SIZE    sdata->memcardFileSize
+#define MEMCARD_FILEIO_SLOT    sdata->memcardSlot
+#endif
+#ifndef MEMCARD_CARD_FREE_BYTES
+#define MEMCARD_CARD_FREE_BYTES sdata->memoryCard_SizeRemaining
+#endif
+#ifndef MEMCARD_CARD_STATUS_FLAGS
+#define MEMCARD_CARD_STATUS_FLAGS sdata->memcardStatusFlags
+#endif
+#ifndef MEMCARD_EVENT_ICON_SIZE
+#define MEMCARD_EVENT_ICON_SIZE       sdata->memcardIconSize
+#define MEMCARD_EVENT_CHECKSUM_INDEX  sdata->crc16_checkpoint_byteIndex
+#define MEMCARD_EVENT_CHECKSUM_STATUS sdata->crc16_checkpoint_status
+#define MEMCARD_EVENT_ICON_HAND       data.memcardIcon_PsyqHand
+#endif
 
-// NOTE(aalhendi): GCC 2.8.1 schedules this state machine differently. Retail
-// needs the stage load before its prologue and specific call delay slots.
-// The jump table uses symbolic code labels, not copied retail data bytes.
-// GP displacements and the icon address are checked against the shared layouts.
-__asm__(".section .MEMCARD_HandleEvent,\"ax\",@progbits\n"
-        ".align 2\n"
-        ".ent\tMEMCARD_HandleEvent\n"
-        ".set\tnoreorder\n"
-        ".globl MEMCARD_HandleEvent\n"
-        "MEMCARD_HandleEvent:\n"
-        "lw $v0," MC_GP(STAGE) "\n"
-        "addiu $sp,$sp,-24\n"
-        "sw $ra,20($sp)\n"
-        "addiu $v1,$v0,-1\n"
-        "sltiu $v0,$v1,14\n"
-        "beqz $v0,.LMemcardDefaultTimeout\n"
-        "sw $s0,16($sp)\n"
-        "lui $v0,%hi(.LMemcardHandleEventTable)\n"
-        "addiu $v0,$v0,%lo(.LMemcardHandleEventTable)\n"
-        "sll $v1,$v1,0x2\n"
-        "addu $v1,$v1,$v0\n"
-        "lw $v0,0($v1)\n"
-        "nop\n"
-        "jr $v0\n"
-        "nop\n"
-        ".LMemcardGetInfo:\n"
-        "jal MEMCARD_GetNextSwEvent\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "bnez $s0,.LMemcardGetInfoCheckOtherEvent\n"
-        "addiu $v0,$zero,3\n"
-        "lw $v1," MC_GP(STATUS_FLAGS) "\n"
-        "nop\n"
-        "andi $v0,$v1,0x1\n"
-        "beqz $v0,.LMemcardGetInfoCheckUnformatted\n"
-        "addiu $v0,$zero,2\n"
-        "sw $v0," MC_GP(STAGE) "\n"
-        "jal MEMCARD_SkipEvents\n"
-        "addiu $s0,$zero,1\n"
-        ".LMemcardGetInfoPollLoad:\n"
-        "lw $a0," MC_GP(SLOT) "\n"
-        "jal _card_load\n"
-        "nop\n"
-        "bne $v0,$s0,.LMemcardGetInfoPollLoad\n"
-        "nop\n"
-        "j .LMemcardReturnSavedEvent\n"
-        "addiu $s0,$zero,7\n"
-        ".LMemcardGetInfoCheckUnformatted:\n"
-        "andi $v0,$v1,0x2\n"
-        "bnez $v0,.LMemcardResetStage\n"
-        "nop\n"
-        "sw $zero," MC_GP(FREE_BYTES) "\n"
-        "j .LMemcardResetStage\n"
-        "addiu $s0,$zero,5\n"
-        ".LMemcardGetInfoCheckOtherEvent:\n"
-        "bne $s0,$v0,.LMemcardGetInfoReturnOrReset\n"
-        "addiu $v0,$zero,7\n"
-        "jal MEMCARD_SkipEvents\n"
-        "addiu $s0,$zero,1\n"
-        ".LMemcardGetInfoPollClear:\n"
-        "lw $a0," MC_GP(SLOT) "\n"
-        "jal _card_clear\n"
-        "nop\n"
-        "bne $v0,$s0,.LMemcardGetInfoPollClear\n"
-        "nop\n"
-        "jal MEMCARD_WaitForHwEvent\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "bnez $s0,.LMemcardResetStage\n"
-        "addiu $v0,$zero,2\n"
-        "sw $v0," MC_GP(STAGE) "\n"
-        "jal MEMCARD_SkipEvents\n"
-        "addiu $s0,$zero,1\n"
-        ".LMemcardGetInfoPollReload:\n"
-        "lw $a0," MC_GP(SLOT) "\n"
-        "jal _card_load\n"
-        "nop\n"
-        "bne $v0,$s0,.LMemcardGetInfoPollReload\n"
-        "nop\n"
-        "j .LMemcardReturnSavedEvent\n"
-        "addiu $s0,$zero,7\n"
-        ".LMemcardGetInfoReturnOrReset:\n"
-        "beq $s0,$v0,.LMemcardReturnSavedEvent\n"
-        "addu $v0,$s0,$zero\n"
-        "sw $zero," MC_GP(STAGE) "\n"
-        "sw $zero," MC_GP(FREE_BYTES) "\n"
-        "j .LMemcardReturn\n"
-        "nop\n"
-        ".LMemcardNewCard:\n"
-        "jal MEMCARD_GetNextSwEvent\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "bnez $s0,.LMemcardNewCardCheckEvent\n"
-        "addiu $v0,$zero,3\n"
-        "lw $a0," MC_GP(SLOT) "\n"
-        "lw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "addiu $v1,$zero,-2\n"
-        "sw $zero," MC_GP(STAGE) "\n"
-        "ori $v0,$v0,0x2\n"
-        "and $v0,$v0,$v1\n"
-        "sw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "jal MEMCARD_GetFreeBytes\n"
-        "addiu $s0,$zero,3\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardNewCardCheckEvent:\n"
-        "bne $s0,$v0,.LMemcardNewCardReturnOrReset\n"
-        "addiu $v0,$zero,7\n"
-        "addiu $s0,$zero,5\n"
-        "lw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "addiu $v1,$zero,-4\n"
-        "sw $zero," MC_GP(STAGE) "\n"
-        "and $v0,$v0,$v1\n"
-        ".LMemcardStoreStatusReturn:\n"
-        "sw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardNewCardReturnOrReset:\n"
-        "beq $s0,$v0,.LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardResetStage:\n"
-        "sw $zero," MC_GP(STAGE) "\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardLoadPart0Start:\n"
-        "jal MEMCARD_GetNextSwEvent\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "bnez $s0,.LMemcardLoadStartRetryOrClose\n"
-        "addiu $v0,$zero,7\n"
-        "lw $v0," MC_GP(BUFFER) "\n"
-        "lw $a1," MC_GP(FILE_SIZE) "\n"
-        "lbu $a0,2($v0)\n"
-        "addiu $v0,$zero,4\n"
-        "sw $v0," MC_GP(STAGE) "\n"
-        "andi $a0,$a0,0xf\n"
-        "addiu $a0,$a0,1\n"
-        "sll $a0,$a0,0x7\n"
-        "sw $a0," MC_GP(ICON_SIZE) "\n"
-        "jal MEMCARD_ReadFile\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "lw $a1," MC_GP(ICON_SIZE) "\n"
-        "lw $a0," MC_GP(FILE_SIZE) "\n"
-        "lw $v1," MC_GP(BUFFER) "\n"
-        "addu $v0,$a1,$a0\n"
-        "addiu $v0,$v0,8191\n"
-        "lbu $v1,3($v1)\n"
-        "sra $v0,$v0,0xd\n"
-        "slt $v0,$v0,$v1\n"
-        "beqz $v0,.LMemcardLoadMarkNoBackup\n"
-        "sll $v0,$a0,0x1\n"
-        "addu $v0,$a1,$v0\n"
-        "addiu $v0,$v0,8191\n"
-        "sra $v0,$v0,0xd\n"
-        "slti $v0,$v0,2\n"
-        "bnez $v0,.LMemcardLoadMarkNoBackup\n"
-        "addiu $v1,$zero,-5\n"
-        "lw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "j .LMemcardStoreStatusReturn\n"
-        "and $v0,$v0,$v1\n"
-        ".LMemcardLoadMarkNoBackup:\n"
-        "lw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "nop\n"
-        "ori $v0,$v0,0x4\n"
-        "sw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardLoadStartRetryOrClose:\n"
-        "beq $s0,$v0,.LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        "lw $v0," MC_GP(RETRIES) "\n"
-        "nop\n"
-        "blez $v0,.LMemcardCloseFileReturn\n"
-        "addiu $v0,$v0,-1\n"
-        "sw $v0," MC_GP(RETRIES) "\n"
-        "addu $a0,$zero,$zero\n"
-        "addiu $a1,$zero,128\n"
-        ".LMemcardReadFileReturn:\n"
-        "jal MEMCARD_ReadFile\n"
-        "nop\n"
-        "j .LMemcardReturnSavedEvent\n"
-        "addu $s0,$v0,$zero\n"
-        ".LMemcardLoadPart3Or5Check:\n"
-        "lw $a0," MC_GP(BUFFER) "\n"
-        "lw $a1," MC_GP(FILE_SIZE) "\n"
-        "jal MEMCARD_ChecksumLoad\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "beqz $s0,.LMemcardCloseFileReturn\n"
-        "addiu $v0,$zero,7\n"
-        "beq $s0,$v0,.LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        "lw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "nop\n"
-        "andi $v0,$v0,0x4\n"
-        "bnez $v0,.LMemcardCloseFileReturn\n"
-        "nop\n"
-        "lw $v1," MC_GP(STAGE) "\n"
-        "nop\n"
-        "slti $v0,$v1,7\n"
-        "beqz $v0,.LMemcardCloseFileReturn\n"
-        "addiu $v0,$v1,-3\n"
-        "lw $a1," MC_GP(FILE_SIZE) "\n"
-        "nop\n"
-        "mult $v0,$a1\n"
-        "lw $a0," MC_GP(ICON_SIZE) "\n"
-        "addiu $v0,$v1,1\n"
-        "sw $v0," MC_GP(STAGE) "\n"
-        "mflo $a3\n"
-        "j .LMemcardReadFileReturn\n"
-        "addu $a0,$a0,$a3\n"
-        ".LMemcardLoadPart2Or4Read:\n"
-        "jal MEMCARD_GetNextSwEvent\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "bnez $s0,.LMemcardLoadReadRetryOrClose\n"
-        "addiu $v0,$zero,7\n"
-        "lw $v0," MC_GP(STAGE) "\n"
-        "lw $v1," MC_GP(STATUS_FLAGS) "\n"
-        "sw $zero," MC_GP(CHECKSUM_INDEX) "\n"
-        "sw $zero," MC_GP(CHECKSUM_STATUS) "\n"
-        "addiu $v0,$v0,1\n"
-        "andi $v1,$v1,0x8\n"
-        "sw $v0," MC_GP(STAGE) "\n"
-        "bnez $v1,.LMemcardLoadPart3Or5Check\n"
-        "addiu $s0,$zero,7\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardLoadReadRetryOrClose:\n"
-        "beq $s0,$v0,.LMemcardReturnSavedEvent\n"
-        "nop\n"
-        "lw $v1," MC_GP(RETRIES) "\n"
-        "nop\n"
-        "blez $v1,.LMemcardCloseFileReturn\n"
-        "nop\n"
-        "lw $v0," MC_GP(STAGE) "\n"
-        "lw $a1," MC_GP(FILE_SIZE) "\n"
-        "addiu $v0,$v0,-4\n"
-        "mult $v0,$a1\n"
-        "lw $a0," MC_GP(ICON_SIZE) "\n"
-        "addiu $v0,$v1,-1\n"
-        "sw $v0," MC_GP(RETRIES) "\n"
-        "mflo $a3\n"
-        "j .LMemcardReadFileReturn\n"
-        "addu $a0,$a0,$a3\n"
-        ".LMemcardSaveParts:\n"
-        "jal MEMCARD_GetNextSwEvent\n"
-        "nop\n"
-        "addu $s0,$v0,$zero\n"
-        "bnez $s0,.LMemcardSaveRetryOrClose\n"
-        "addiu $v0,$zero,7\n"
-        "lw $v1," MC_GP(STAGE) "\n"
-        "addiu $v0,$zero,9\n"
-        "beq $v1,$v0,.LMemcardSaveWriteNextPart\n"
-        "slti $v0,$v1,11\n"
-        "beqz $v0,.LMemcardSaveFinish\n"
-        "nop\n"
-        "lw $v0," MC_GP(STATUS_FLAGS) "\n"
-        "nop\n"
-        "andi $v0,$v0,0x4\n"
-        "bnez $v0,.LMemcardSaveFinish\n"
-        "nop\n"
-        ".LMemcardSaveWriteNextPart:\n"
-        "lw $a2," MC_GP(FILE_SIZE) "\n"
-        "addiu $v0,$v1,-9\n"
-        "mult $v0,$a2\n"
-        "lw $a1," MC_GP(BUFFER) "\n"
-        "lw $a0," MC_GP(ICON_SIZE) "\n"
-        "addiu $v0,$v1,1\n"
-        "sw $v0," MC_GP(STAGE) "\n"
-        "j .LMemcardSaveCurrentPartOffset\n"
-        "nop\n"
-        ".LMemcardSaveFinish:\n"
-        "jal MEMCARD_CloseFile\n"
-        "nop\n"
-        "lw $a0," MC_GP(SLOT) "\n"
-        "jal MEMCARD_GetFreeBytes\n"
-        "nop\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardSaveRetryOrClose:\n"
-        "beq $s0,$v0,.LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        "lw $v0," MC_GP(RETRIES) "\n"
-        "nop\n"
-        "blez $v0,.LMemcardCloseFileReturn\n"
-        "addiu $v0,$v0,-1\n"
-        "lw $v1," MC_GP(STAGE) "\n"
-        "sw $v0," MC_GP(RETRIES) "\n"
-        "addiu $v0,$zero,9\n"
-        "bne $v1,$v0,.LMemcardSaveRetryData\n"
-        "addiu $v0,$v1,-10\n"
-        "addu $a0,$zero,$zero\n"
-        "lw $a2," MC_GP(ICON_SIZE) "\n"
-        "lui $a1,%hi(data+" MC_STRINGIFY(CTR_MEMCARD_ICON_HAND_DATA_OFFSET) ")\n"
-        "j .LMemcardWriteFileReturn\n"
-        "addiu $a1,$a1,%lo(data+" MC_STRINGIFY(CTR_MEMCARD_ICON_HAND_DATA_OFFSET) ")\n"
-        ".LMemcardSaveRetryData:\n"
-        "lw $a2," MC_GP(FILE_SIZE) "\n"
-        "nop\n"
-        "mult $v0,$a2\n"
-        "lw $a1," MC_GP(BUFFER) "\n"
-        "lw $a0," MC_GP(ICON_SIZE) "\n"
-        ".LMemcardSaveCurrentPartOffset:\n"
-        "mflo $a3\n"
-        "addu $a0,$a0,$a3\n"
-        ".LMemcardWriteFileReturn:\n"
-        "jal MEMCARD_WriteFile\n"
-        "nop\n"
-        "j .LMemcardReturnSavedEvent\n"
-        "addu $s0,$v0,$zero\n"
-        ".LMemcardCloseFileReturn:\n"
-        "jal MEMCARD_CloseFile\n"
-        "nop\n"
-        ".LMemcardReturnSavedEvent:\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$s0,$zero\n"
-        ".LMemcardEraseFail:\n"
-        "sw $zero," MC_GP(STAGE) "\n"
-        "j .LMemcardReturn\n"
-        "addiu $v0,$zero,1\n"
-        ".LMemcardErasePass:\n"
-        "sw $zero," MC_GP(STAGE) "\n"
-        "j .LMemcardReturn\n"
-        "addu $v0,$zero,$zero\n"
-        ".LMemcardDefaultTimeout:\n"
-        "addiu $v0,$zero,1\n"
-        ".LMemcardReturn:\n"
-        "lw $ra,20($sp)\n"
-        "lw $s0,16($sp)\n"
-        "jr $ra\n"
-        "addiu $sp,$sp,24\n"
-        ".end MEMCARD_HandleEvent\n"
-        ".set\treorder\n"
-        ".section .rdata,\"a\",@progbits\n"
-        ".align 3\n"
-        ".LMemcardHandleEventTable:\n"
-        ".word .LMemcardGetInfo\n"
-        ".word .LMemcardNewCard\n"
-        ".word .LMemcardLoadPart0Start\n"
-        ".word .LMemcardLoadPart2Or4Read\n"
-        ".word .LMemcardLoadPart3Or5Check\n"
-        ".word .LMemcardLoadPart2Or4Read\n"
-        ".word .LMemcardLoadPart3Or5Check\n"
-        ".word .LMemcardDefaultTimeout\n"
-        ".word .LMemcardSaveParts\n"
-        ".word .LMemcardSaveParts\n"
-        ".word .LMemcardSaveParts\n"
-        ".word .LMemcardDefaultTimeout\n"
-        ".word .LMemcardEraseFail\n"
-        ".word .LMemcardErasePass\n"
-        ".text\n");
+// NOTE: The card's file is the icon block (128 bytes per icon frame, the frame count in the header's third byte),
+// then the save data at file-size steps. A load reads the data, checksums it, then reads and checks the next part.
+// Retail's register and block choices need a few constraints: the load paths share their ReadFile call with the
+// first part's retry (two entries, so GCC 2.8.1 keeps the check's and the retry's own offset arithmetic instead of
+// cross-jumping one into the other), the call's size stays in $a1 and each offset's icon size loads into $a0.
+int MEMCARD_HandleEvent(void)
+{
+	int event;
+	int stage;
+	u32 status;
+	u32 flags;
+	u32 mask;
+	int offset;
+	register int size CTR_PSX_REGISTER("$5");
+
+	switch (MEMCARD_FILEIO_STAGE)
+	{
+	case MC_STAGE_GETINFO:
+		event = MEMCARD_GetNextSwEvent();
+		if (event == MC_RETURN_IOE)
+		{
+			status = MEMCARD_CARD_STATUS_FLAGS;
+			if ((status & 1) != 0)
+			{
+				MEMCARD_FILEIO_STAGE = MC_STAGE_NEWCARD;
+				MEMCARD_SkipEvents();
+				while (_card_load(MEMCARD_FILEIO_SLOT) != 1)
+				{
+				}
+				event = MC_RETURN_PENDING;
+				goto done;
+			}
+			if ((status & 2) == 0)
+			{
+				MEMCARD_CARD_FREE_BYTES = 0;
+				event = MC_RETURN_UNFORMATTED;
+			}
+			MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+			goto done;
+		}
+		if (event == MC_RETURN_NEWCARD)
+		{
+			MEMCARD_SkipEvents();
+			while (_card_clear(MEMCARD_FILEIO_SLOT) != 1)
+			{
+			}
+			event = MEMCARD_WaitForHwEvent();
+			if (event != MC_RETURN_IOE)
+			{
+				MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+				goto done;
+			}
+			MEMCARD_FILEIO_STAGE = MC_STAGE_NEWCARD;
+			MEMCARD_SkipEvents();
+			while (_card_load(MEMCARD_FILEIO_SLOT) != 1)
+			{
+			}
+			event = MC_RETURN_PENDING;
+			goto done;
+		}
+		if (event != MC_RETURN_PENDING)
+		{
+			MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+			MEMCARD_CARD_FREE_BYTES = 0;
+		}
+		goto done;
+
+	case MC_STAGE_NEWCARD:
+		event = MEMCARD_GetNextSwEvent();
+		if (event == MC_RETURN_IOE)
+		{
+			MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+			MEMCARD_CARD_STATUS_FLAGS = (MEMCARD_CARD_STATUS_FLAGS | 2) & ~1;
+			MEMCARD_GetFreeBytes(MEMCARD_FILEIO_SLOT);
+			event = MC_RETURN_NEWCARD;
+			goto done;
+		}
+		if (event == MC_RETURN_NEWCARD)
+		{
+			event = MC_RETURN_UNFORMATTED;
+			flags = MEMCARD_CARD_STATUS_FLAGS;
+			mask = ~3;
+			MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+		store_flags:
+			MEMCARD_CARD_STATUS_FLAGS = flags & mask;
+			goto done;
+		}
+		if (event != MC_RETURN_PENDING)
+		{
+			MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+		}
+		goto done;
+
+	case MC_STAGE_LOAD_PART0_START:
+		event = MEMCARD_GetNextSwEvent();
+		if (event == MC_RETURN_IOE)
+		{
+			MEMCARD_EVENT_ICON_SIZE = ((MEMCARD_FILEIO_BUFFER[2] & 0xf) + 1) << 7;
+			MEMCARD_FILEIO_STAGE = MC_STAGE_LOAD_PART2_READ;
+			event = MEMCARD_ReadFile(MEMCARD_EVENT_ICON_SIZE, MEMCARD_FILEIO_SIZE);
+			// Bit 4: the card's file has no room for the second copy (its block count, 8 KB blocks).
+			if ((((MEMCARD_EVENT_ICON_SIZE + MEMCARD_FILEIO_SIZE + 0x1fff) >> 13) < MEMCARD_FILEIO_BUFFER[3]) &&
+			    (((MEMCARD_EVENT_ICON_SIZE + MEMCARD_FILEIO_SIZE * 2 + 0x1fff) >> 13) >= 2))
+			{
+				mask = ~4;
+				flags = MEMCARD_CARD_STATUS_FLAGS;
+				goto store_flags;
+			}
+			else
+			{
+				MEMCARD_CARD_STATUS_FLAGS |= 4;
+			}
+			goto done;
+		}
+		if (event == MC_RETURN_PENDING)
+		{
+			goto done;
+		}
+		if (MEMCARD_FILEIO_RETRIES <= 0)
+		{
+			goto close;
+		}
+		MEMCARD_FILEIO_RETRIES--;
+		offset = 0;
+		size = 0x80;
+	read_next_part:
+		CTR_PSX_MEMORY_BARRIER();
+	read_retry:
+		event = MEMCARD_ReadFile(offset, size);
+		goto done;
+
+	case MC_STAGE_LOAD_PART3_CHECK:
+	case MC_STAGE_LOAD_PART5_CHECK:
+	check:
+		event = MEMCARD_ChecksumLoad(MEMCARD_FILEIO_BUFFER, MEMCARD_FILEIO_SIZE);
+		if (event == MC_RETURN_IOE)
+		{
+			goto close;
+		}
+		if (event == MC_RETURN_PENDING)
+		{
+			goto done;
+		}
+		if ((MEMCARD_CARD_STATUS_FLAGS & 4) != 0)
+		{
+			goto close;
+		}
+		if (MEMCARD_FILEIO_STAGE >= MC_STAGE_LOAD_PART5_CHECK)
+		{
+			goto close;
+		}
+		stage = MEMCARD_FILEIO_STAGE;
+		{
+			int icon CTR_PSX_LOCAL_REGISTER_HINT("$4") = MEMCARD_EVENT_ICON_SIZE;
+			offset = icon + (stage - 3) * MEMCARD_FILEIO_SIZE;
+		}
+		size = MEMCARD_FILEIO_SIZE;
+		MEMCARD_FILEIO_STAGE = stage + 1;
+		goto read_next_part;
+
+	case MC_STAGE_LOAD_PART2_READ:
+	case MC_STAGE_LOAD_PART4_READ:
+		event = MEMCARD_GetNextSwEvent();
+		if (event == MC_RETURN_IOE)
+		{
+			MEMCARD_EVENT_CHECKSUM_INDEX = 0;
+			MEMCARD_EVENT_CHECKSUM_STATUS = 0;
+			MEMCARD_FILEIO_STAGE++;
+			event = MC_RETURN_PENDING;
+			if ((MEMCARD_CARD_STATUS_FLAGS & 8) != 0)
+			{
+				goto check;
+			}
+			goto done;
+		}
+		if (event == MC_RETURN_PENDING)
+		{
+			goto done;
+		}
+		if (MEMCARD_FILEIO_RETRIES <= 0)
+		{
+			goto close;
+		}
+		MEMCARD_FILEIO_RETRIES--;
+		size = MEMCARD_FILEIO_SIZE;
+		{
+			int icon CTR_PSX_LOCAL_REGISTER_HINT("$4") = MEMCARD_EVENT_ICON_SIZE;
+			offset = icon + (MEMCARD_FILEIO_STAGE - 4) * size;
+		}
+		goto read_retry;
+
+	case MC_STAGE_SAVE_PART0_START:
+	case MC_STAGE_SAVE_PART1_ICON:
+	case MC_STAGE_SAVE_PART2_WRITE:
+		event = MEMCARD_GetNextSwEvent();
+		if (event == MC_RETURN_IOE)
+		{
+			stage = MEMCARD_FILEIO_STAGE;
+			if ((stage == MC_STAGE_SAVE_PART0_START) ||
+			    ((stage < MC_STAGE_SAVE_PART2_WRITE) && ((MEMCARD_CARD_STATUS_FLAGS & 4) == 0)))
+			{
+				MEMCARD_FILEIO_STAGE = stage + 1;
+				event = MEMCARD_WriteFile(MEMCARD_EVENT_ICON_SIZE + (stage - 9) * MEMCARD_FILEIO_SIZE, MEMCARD_FILEIO_BUFFER,
+				                          MEMCARD_FILEIO_SIZE);
+				goto done;
+			}
+			MEMCARD_CloseFile();
+			MEMCARD_GetFreeBytes(MEMCARD_FILEIO_SLOT);
+			goto done;
+		}
+		if (event == MC_RETURN_PENDING)
+		{
+			goto done;
+		}
+		if (MEMCARD_FILEIO_RETRIES <= 0)
+		{
+			goto close;
+		}
+		MEMCARD_FILEIO_RETRIES--;
+		if (MEMCARD_FILEIO_STAGE == MC_STAGE_SAVE_PART0_START)
+		{
+			event = MEMCARD_WriteFile(0, (const u8 *)MEMCARD_EVENT_ICON_HAND, MEMCARD_EVENT_ICON_SIZE);
+			goto done;
+		}
+		event = MEMCARD_WriteFile(MEMCARD_EVENT_ICON_SIZE + (MEMCARD_FILEIO_STAGE - 10) * MEMCARD_FILEIO_SIZE,
+		                          MEMCARD_FILEIO_BUFFER, MEMCARD_FILEIO_SIZE);
+		goto done;
+
+	close:
+		MEMCARD_CloseFile();
+	done:
+		return event;
+
+	case MC_STAGE_ERASE_FAIL:
+		MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+		return MC_RETURN_TIMEOUT;
+
+	case MC_STAGE_ERASE_PASS:
+		MEMCARD_FILEIO_STAGE = MC_STAGE_IDLE;
+		return MC_RETURN_IOE;
+
+	default:
+		return MC_RETURN_TIMEOUT;
+	}
+}

@@ -48,6 +48,10 @@ void MainDB_PrimMem(struct PrimMem *primMem, u32 sizeInput)
 	end = allocation + size;
 	primMem->end = end;
 	primMem->guardEnd = end - 0x100;
+#ifdef CTR_NATIVE
+	// NOTE: Native draws into a bigger buffer of its own; the allocation above stays retail's.
+	NativePrimMem_Bind(primMem);
+#endif
 }
 
 void MainDB_OTMem(struct OTMem *otMem, u32 sizeInput)

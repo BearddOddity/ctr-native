@@ -4,6 +4,8 @@
 #include <platform/native_renderer_types.h>
 
 int NativeRenderer_InitialiseRender(char *windowName, int width, int height, int fullscreen);
+// The aspect the PSX frame is shown at (the window's own by default); bars fill the rest.
+void NativeRenderer_SetAspect(int width, int height);
 int NativeRenderer_InitialisePSX(void);
 void NativeRenderer_Shutdown(void);
 void NativeRenderer_ResetDevice(void);

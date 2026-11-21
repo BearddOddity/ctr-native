@@ -62,8 +62,6 @@ s32 MEMCARD_Save(int slotIdx, char *name, char *title, u8 *ptrMemcard, int memca
 	register int i CTR_PSX_REGISTER("$4");
 	register u8 *evenByte CTR_PSX_REGISTER("$2");
 	u8 *oddByte;
-	u8 writeResult;
-	int result;
 	u32 pathPage;
 
 	if (MEMCARD_TRANSFER_STAGE != MC_STAGE_IDLE)
@@ -126,8 +124,5 @@ s32 MEMCARD_Save(int slotIdx, char *name, char *title, u8 *ptrMemcard, int memca
 		return MC_RETURN_FULL;
 	}
 	MEMCARD_TRANSFER_STAGE = MC_STAGE_SAVE_PART0_START;
-	writeResult = MEMCARD_WriteFile(0, (u8 *)MEMCARD_TRANSFER_ICON_HAND, MEMCARD_TRANSFER_ICON_SIZE);
-	// NOTE(aalhendi): Retail forwards the complete return register from the u8 helper.
-	CTR_PSX_CAPTURE_REGISTER(result, writeResult);
-	return result;
+	return MEMCARD_WriteFile(0, (u8 *)MEMCARD_TRANSFER_ICON_HAND, MEMCARD_TRANSFER_ICON_SIZE);
 }

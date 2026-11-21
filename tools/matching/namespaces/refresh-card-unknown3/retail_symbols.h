@@ -13,6 +13,8 @@
 #define REFRESHCARD_PROFILES_CHECKED ctr_refreshCardProfilesChecked
 #define REFRESHCARD_SLOTS_ICON       ctr_refreshCardSlotsIcon
 #define REFRESHCARD_GHOST_FILENAME   ctr_refreshCardFinalName
+#define REFRESHCARD_ADV_PROFILE_INDEX ctr_refreshCardAdvProfileIndex
+#define REFRESHCARD_MEMCARD_BUFFER2  ctr_refreshCardMemcardBuffer2
 #include "../../retail_bindings.h"
 
 // NOTE(aalhendi): Individual resident symbols preserve GCC 2.8.1 GP scheduling.
@@ -30,4 +32,7 @@ extern b16 ctr_refreshCardUnk8008d95c asm("2544($28)");
 extern b16 ctr_refreshCardProfilesChecked asm("2556($28)");
 extern u8 ctr_refreshCardSlotsIcon[0x38] asm("data+20568");
 extern char ctr_refreshCardFinalName[0x20] asm("sdata_static+49944");
+extern __typeof__(sdata->advProfileIndex) ctr_refreshCardAdvProfileIndex asm("2560($28)");
+// The second card buffer, typed as the profile it holds (RefreshCard_GameProgressAndOptions).
+extern struct MemcardProfile *ctr_refreshCardMemcardBuffer2 asm("1288($28)");
 #endif

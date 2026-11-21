@@ -12,6 +12,7 @@
 #include "platform/native_glad.h"
 #include "platform/native_log.h"
 #include "platform/native_perf.h"
+#include "platform/native_config.h"
 #include "platform/native_renderer.h"
 
 #include <assert.h>
@@ -106,10 +107,12 @@ struct NativeRenderTarget
 };
 
 global_variable struct NativeRenderTarget s_mainRenderTarget;
-// Internal resolution: the main target is the PS1 display size times this (CTR_NATIVE_RENDER_SCALE, 1 = the
+// Internal resolution: the main target is the PS1 display size times g_nativeConfig.renderScale (1 = the
 // PlayStation's own). s_boundTargetScale is the scale of the framebuffer drawn to now: scissor and clear boxes
-// are given in PS1 display pixels and are multiplied by it.
+// are given in PS1 display pixels and are multiplied by it. s_presentMainTarget: the frame being presented is the
+// main target at that scale, not its PS1-sized VRAM copy.
 global_variable int s_boundTargetScale = 1;
+global_variable int s_presentMainTarget = 0;
 global_variable struct NativeRenderTarget s_offscreenRenderTarget;
 
 global_variable TextureID s_whiteTexture = (TextureID)-1;
@@ -162,6 +165,7 @@ internal void NativeRenderer_EnsureRenderTarget(struct NativeRenderTarget *targe
 internal void NativeRenderer_BindMainRenderTarget(void);
 internal void NativeRenderer_DrawVRAMRegion(int x, int y, int width, int height);
 internal void NativeRenderer_LoadRenderTargetFromVRAM(struct NativeRenderTarget *target, int x, int y);
+internal void NativeRenderer_DestroyPostFx(void);
 #if defined(CTR_INTERNAL)
 internal void NativeRenderer_ResolveGpuMeasurements(b32 waitForResults);
 #endif
@@ -247,10 +251,6 @@ int NativeRenderer_InitialiseRender(char *windowName, int width, int height, int
 	g_windowWidth = width;
 	g_windowHeight = height;
 	NativeRenderer_SetPresentationAspect(width, height);
-	if (s_nativeOptions.aspectW > 0)
-	{
-		NativeRenderer_SetPresentationAspect(s_nativeOptions.aspectW, s_nativeOptions.aspectH);
-	}
 
 	// Due to debugging in fullscreen
 	SDL_SetHint(SDL_HINT_WINDOW_ALLOW_TOPMOST, "0");
@@ -287,6 +287,7 @@ void NativeRenderer_Shutdown(void)
 	NativeRenderer_DestroyTexture(s_whiteTexture);
 	NativeRenderer_DestroyTexture(s_rgLutTexture);
 	glDeleteProgram(s_packShader);
+	NativeRenderer_DestroyPostFx();
 	glDeleteProgram(s_presentVramShader);
 	glDeleteVertexArrays(1, &s_vramQuadVAO);
 	glDeleteBuffers(1, &s_vramQuadVBO);
@@ -323,7 +324,11 @@ internal void NativeRenderer_ResolveGpuMeasurements(b32 waitForResults)
 
 void NativeRenderer_UpdateSwapIntervalState(int swapInterval)
 {
-	SDL_GL_SetSwapInterval(swapInterval);
+	// VSync on: adaptive where the driver has it (no stall on a late frame), else plain.
+	if ((swapInterval == 0) || !SDL_GL_SetSwapInterval(-1))
+	{
+		SDL_GL_SetSwapInterval(swapInterval);
+	}
 }
 
 void NativeRenderer_BeginScene(void)
@@ -455,6 +460,12 @@ internal void NativeRenderer_SetPresentationAspect(int width, int height)
 	s_presentAspectH = height / divisor;
 }
 
+void NativeRenderer_SetAspect(int width, int height)
+{
+	NativeRenderer_SetPresentationAspect(width, height);
+	NativeRenderer_UpdatePresentationViewport();
+}
+
 internal void NativeRenderer_UpdatePresentationViewport(void)
 {
 	if ((g_windowWidth <= 0) || (g_windowHeight <= 0) || (s_presentAspectW <= 0) || (s_presentAspectH <= 0))
@@ -473,6 +484,19 @@ internal void NativeRenderer_UpdatePresentationViewport(void)
 	{
 		viewportH = g_windowHeight;
 		viewportW = (viewportH * s_presentAspectW) / s_presentAspectH;
+	}
+
+	if (g_nativeConfig.integerScale)
+	{
+		// Whole PSX lines per frame line: every scanline the same height.
+		const int lines = (activeDispEnv.disp.h > 0) ? activeDispEnv.disp.h : 240;
+		const int scale = viewportH / lines;
+
+		if (scale >= 1)
+		{
+			viewportH = scale * lines;
+			viewportW = (viewportH * s_presentAspectW) / s_presentAspectH;
+		}
 	}
 
 	if (viewportW < 1)
@@ -572,22 +596,7 @@ internal void NativeRenderer_BindMainRenderTarget(void)
 
 int NativeRenderer_GetRenderScale(void)
 {
-	return s_nativeOptions.renderScale > 1 ? s_nativeOptions.renderScale : 1;
-}
-
-// The frame as drawn at the internal resolution, straight to the window. With scale 1 the game presents from
-// VRAM as the PlayStation does; above 1 the VRAM copy (kept for screen-copy effects) is PS1-sized, so the main
-// target is shown instead.
-void NativeRenderer_PresentMainTarget(void)
-{
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, s_mainRenderTarget.framebuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	NativeRenderer_SetScissorState(0);
-	glBlitFramebuffer(0, 0, s_mainRenderTarget.width, s_mainRenderTarget.height, s_presentViewport.x, s_presentViewport.y,
-	                  s_presentViewport.x + s_presentViewport.w, s_presentViewport.y + s_presentViewport.h,
-	                  GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	s_boundTargetScale = 1;
+	return g_nativeConfig.renderScale > 1 ? g_nativeConfig.renderScale : 1;
 }
 
 internal void NativeRenderer_DrawVRAMRegion(int x, int y, int width, int height)
@@ -694,7 +703,7 @@ internal void NativeRenderer_ClearPresentationBars(void)
 void NativeRenderer_ResetDevice(void)
 {
 	NativeRenderer_UpdatePresentationViewport();
-	NativeRenderer_UpdateSwapIntervalState(0);
+	NativeRenderer_UpdateSwapIntervalState(g_nativeConfig.vsync);
 }
 
 typedef struct
@@ -2136,6 +2145,420 @@ void NativeRenderer_UpdateVRAM(void)
 	NativePerf_EndScope(NATIVE_PERF_BUCKET_RENDERER_UPDATE_VRAM);
 }
 
+//----------------------------------------------------------------------------------------
+// Presentation effects (the launcher's Graphics settings): the PSX frame is decoded
+// from VRAM at its own size, optionally anti-aliased (FXAA), upscaled to the window
+// (nearest, bilinear, or AMD FidelityFX Super Resolution 1: EASU then RCAS), then
+// given an optional CRT look and a brightness curve. With every setting at its
+// default the frame goes straight from VRAM to the window as before.
+
+struct NativePostTarget
+{
+	GLuint texture;
+	GLuint framebuffer;
+	int width;
+	int height;
+};
+
+global_variable struct NativePostTarget s_postSource;
+global_variable struct NativePostTarget s_postAntialiased;
+global_variable struct NativePostTarget s_postUpscaled;
+global_variable int s_postFxState; // 0 not built yet, 1 ready, -1 failed (fall back to the plain path)
+
+global_variable GLuint s_postFxaaShader;
+global_variable GLint s_postFxaaTexelLoc = -1;
+global_variable GLuint s_postEasuShader;
+global_variable GLint s_postEasuInSizeLoc = -1;
+global_variable GLint s_postEasuOutSizeLoc = -1;
+global_variable GLuint s_postFinalShader;
+global_variable GLint s_postFinalInSizeLoc = -1;
+global_variable GLint s_postFinalSrcSizeLoc = -1;
+global_variable GLint s_postFinalRcasLoc = -1;
+global_variable GLint s_postFinalCrtLoc = -1;
+global_variable GLint s_postFinalGammaLoc = -1;
+
+#define NATIVE_POST_VERTEX                              \
+	"#ifdef VERTEX\n"                                   \
+	"attribute vec2 a_position;\n"                      \
+	"varying vec2 v_uv;\n"                              \
+	"void main() {\n"                                   \
+	"\tv_uv = a_position * 0.5 + 0.5;\n"                \
+	"\tgl_Position = vec4(a_position, 0.0, 1.0);\n"     \
+	"}\n"                                               \
+	"#endif\n"
+
+// FXAA (Timothy Lottes' algorithm, the compact public-domain form).
+global_variable const char *ctr_post_fxaa_shader = NATIVE_POST_VERTEX
+	"#ifdef FRAGMENT\n"
+	"varying vec2 v_uv;\n"
+	"uniform sampler2D s_texture;\n"
+	"uniform vec2 texel;\n"
+	"float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }\n"
+	"void main() {\n"
+	"\tvec3 rgbNW = texture2D(s_texture, v_uv + vec2(-1.0, -1.0) * texel).rgb;\n"
+	"\tvec3 rgbNE = texture2D(s_texture, v_uv + vec2(1.0, -1.0) * texel).rgb;\n"
+	"\tvec3 rgbSW = texture2D(s_texture, v_uv + vec2(-1.0, 1.0) * texel).rgb;\n"
+	"\tvec3 rgbSE = texture2D(s_texture, v_uv + vec2(1.0, 1.0) * texel).rgb;\n"
+	"\tvec3 rgbM = texture2D(s_texture, v_uv).rgb;\n"
+	"\tfloat lumaNW = luma(rgbNW), lumaNE = luma(rgbNE), lumaSW = luma(rgbSW), lumaSE = luma(rgbSE), lumaM = luma(rgbM);\n"
+	"\tfloat lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));\n"
+	"\tfloat lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));\n"
+	"\tvec2 dir = vec2(-((lumaNW + lumaNE) - (lumaSW + lumaSE)), (lumaNW + lumaSW) - (lumaNE + lumaSE));\n"
+	"\tfloat dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * (1.0 / 8.0)), 1.0 / 128.0);\n"
+	"\tfloat rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);\n"
+	"\tdir = clamp(dir * rcpDirMin, vec2(-8.0), vec2(8.0)) * texel;\n"
+	"\tvec3 rgbA = 0.5 * (texture2D(s_texture, v_uv + dir * (1.0 / 3.0 - 0.5)).rgb +\n"
+	"\t                   texture2D(s_texture, v_uv + dir * (2.0 / 3.0 - 0.5)).rgb);\n"
+	"\tvec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(s_texture, v_uv + dir * -0.5).rgb +\n"
+	"\t                                 texture2D(s_texture, v_uv + dir * 0.5).rgb);\n"
+	"\tfloat lumaB = luma(rgbB);\n"
+	"\tfragColor = vec4(((lumaB < lumaMin) || (lumaB > lumaMax)) ? rgbA : rgbB, 1.0);\n"
+	"}\n"
+	"#endif\n";
+
+// FSR 1 EASU (Edge Adaptive Spatial Upsampling), after AMD's ffx_fsr1.h (MIT):
+// a 12-tap Lanczos-2 shaped along the local edge direction, clamped to the
+// four nearest texels. Taps are fetched one by one (no textureGather in GLSL 1.40).
+global_variable const char *ctr_post_easu_shader = NATIVE_POST_VERTEX
+	"#ifdef FRAGMENT\n"
+	"uniform sampler2D s_texture;\n"
+	"uniform vec2 inSize;\n"
+	"uniform vec2 outSize;\n"
+	"vec3 tap(ivec2 p) { return texelFetch(s_texture, clamp(p, ivec2(0), ivec2(inSize) - 1), 0).rgb; }\n"
+	"float lumaOf(vec3 c) { return c.b * 0.5 + (c.r * 0.5 + c.g); }\n"
+	"float rcpLo(float x) { return 1.0 / max(x, 1.0e-8); }\n"
+	"void easuSet(inout vec2 dir, inout float len, float w, float lA, float lB, float lC, float lD, float lE) {\n"
+	"\t// 0 A 0 / B C D / 0 E 0\n"
+	"\tfloat dc = lD - lC, cb = lC - lB;\n"
+	"\tfloat lenX = rcpLo(max(abs(dc), abs(cb)));\n"
+	"\tfloat dirX = lD - lB;\n"
+	"\tdir.x += dirX * w;\n"
+	"\tlenX = clamp(abs(dirX) * lenX, 0.0, 1.0);\n"
+	"\tlen += lenX * lenX * w;\n"
+	"\tfloat ec = lE - lC, ca = lC - lA;\n"
+	"\tfloat lenY = rcpLo(max(abs(ec), abs(ca)));\n"
+	"\tfloat dirY = lE - lA;\n"
+	"\tdir.y += dirY * w;\n"
+	"\tlenY = clamp(abs(dirY) * lenY, 0.0, 1.0);\n"
+	"\tlen += lenY * lenY * w;\n"
+	"}\n"
+	"void easuTap(inout vec3 aC, inout float aW, vec2 off, vec2 dir, vec2 len, float lob, float clp, vec3 c) {\n"
+	"\tvec2 v = vec2(off.x * dir.x + off.y * dir.y, off.x * -dir.y + off.y * dir.x) * len;\n"
+	"\tfloat d2 = min(v.x * v.x + v.y * v.y, clp);\n"
+	"\tfloat wB = 2.0 / 5.0 * d2 - 1.0;\n"
+	"\tfloat wA = lob * d2 - 1.0;\n"
+	"\twB *= wB;\n"
+	"\twA *= wA;\n"
+	"\twB = 25.0 / 16.0 * wB - (25.0 / 16.0 - 1.0);\n"
+	"\tfloat w = wB * wA;\n"
+	"\taC += c * w;\n"
+	"\taW += w;\n"
+	"}\n"
+	"void main() {\n"
+	"\tvec2 pp = (floor(gl_FragCoord.xy) + 0.5) * (inSize / outSize) - 0.5;\n"
+	"\tvec2 fp = floor(pp);\n"
+	"\tpp -= fp;\n"
+	"\tivec2 f0 = ivec2(fp);\n"
+	"\t//    b c\n"
+	"\t//  e f g h\n"
+	"\t//  i j k l\n"
+	"\t//    n o\n"
+	"\tvec3 b = tap(f0 + ivec2(0, -1)), c = tap(f0 + ivec2(1, -1));\n"
+	"\tvec3 e = tap(f0 + ivec2(-1, 0)), f = tap(f0), g = tap(f0 + ivec2(1, 0)), h = tap(f0 + ivec2(2, 0));\n"
+	"\tvec3 i = tap(f0 + ivec2(-1, 1)), j = tap(f0 + ivec2(0, 1)), k = tap(f0 + ivec2(1, 1)), l = tap(f0 + ivec2(2, 1));\n"
+	"\tvec3 n = tap(f0 + ivec2(0, 2)), o = tap(f0 + ivec2(1, 2));\n"
+	"\tfloat bL = lumaOf(b), cL = lumaOf(c), eL = lumaOf(e), fL = lumaOf(f), gL = lumaOf(g), hL = lumaOf(h);\n"
+	"\tfloat iL = lumaOf(i), jL = lumaOf(j), kL = lumaOf(k), lL = lumaOf(l), nL = lumaOf(n), oL = lumaOf(o);\n"
+	"\tvec2 dir = vec2(0.0);\n"
+	"\tfloat len = 0.0;\n"
+	"\teasuSet(dir, len, (1.0 - pp.x) * (1.0 - pp.y), bL, eL, fL, gL, jL);\n"
+	"\teasuSet(dir, len, pp.x * (1.0 - pp.y), cL, fL, gL, hL, kL);\n"
+	"\teasuSet(dir, len, (1.0 - pp.x) * pp.y, fL, iL, jL, kL, nL);\n"
+	"\teasuSet(dir, len, pp.x * pp.y, gL, jL, kL, lL, oL);\n"
+	"\tvec2 dir2 = dir * dir;\n"
+	"\tfloat dirR = dir2.x + dir2.y;\n"
+	"\tbool zro = dirR < (1.0 / 32768.0);\n"
+	"\tdirR = zro ? 1.0 : inversesqrt(dirR);\n"
+	"\tdir.x = zro ? 1.0 : dir.x;\n"
+	"\tdir *= vec2(dirR);\n"
+	"\tlen = len * 0.5;\n"
+	"\tlen *= len;\n"
+	"\tfloat stretch = (dir.x * dir.x + dir.y * dir.y) * rcpLo(max(abs(dir.x), abs(dir.y)));\n"
+	"\tvec2 len2 = vec2(1.0 + (stretch - 1.0) * len, 1.0 - 0.5 * len);\n"
+	"\tfloat lob = 0.5 + ((1.0 / 4.0 - 0.04) - 0.5) * len;\n"
+	"\tfloat clp = 1.0 / lob;\n"
+	"\tvec3 min4 = min(min(f, g), min(j, k));\n"
+	"\tvec3 max4 = max(max(f, g), max(j, k));\n"
+	"\tvec3 aC = vec3(0.0);\n"
+	"\tfloat aW = 0.0;\n"
+	"\teasuTap(aC, aW, vec2(0.0, -1.0) - pp, dir, len2, lob, clp, b);\n"
+	"\teasuTap(aC, aW, vec2(1.0, -1.0) - pp, dir, len2, lob, clp, c);\n"
+	"\teasuTap(aC, aW, vec2(-1.0, 1.0) - pp, dir, len2, lob, clp, i);\n"
+	"\teasuTap(aC, aW, vec2(0.0, 1.0) - pp, dir, len2, lob, clp, j);\n"
+	"\teasuTap(aC, aW, vec2(0.0, 0.0) - pp, dir, len2, lob, clp, f);\n"
+	"\teasuTap(aC, aW, vec2(-1.0, 0.0) - pp, dir, len2, lob, clp, e);\n"
+	"\teasuTap(aC, aW, vec2(1.0, 1.0) - pp, dir, len2, lob, clp, k);\n"
+	"\teasuTap(aC, aW, vec2(2.0, 1.0) - pp, dir, len2, lob, clp, l);\n"
+	"\teasuTap(aC, aW, vec2(2.0, 0.0) - pp, dir, len2, lob, clp, h);\n"
+	"\teasuTap(aC, aW, vec2(1.0, 0.0) - pp, dir, len2, lob, clp, g);\n"
+	"\teasuTap(aC, aW, vec2(1.0, 2.0) - pp, dir, len2, lob, clp, o);\n"
+	"\teasuTap(aC, aW, vec2(0.0, 2.0) - pp, dir, len2, lob, clp, n);\n"
+	"\tfragColor = vec4(min(max4, max(min4, aC / max(aW, 1.0e-8))), 1.0);\n"
+	"}\n"
+	"#endif\n";
+
+// The last pass, into the window: FSR 1 RCAS sharpening (when upscaled with
+// EASU), the CRT look, and brightness.
+global_variable const char *ctr_post_final_shader = NATIVE_POST_VERTEX
+	"#ifdef FRAGMENT\n"
+	"varying vec2 v_uv;\n"
+	"uniform sampler2D s_texture;\n"
+	"uniform vec2 inSize;\n"  // the texture read here
+	"uniform vec2 srcSize;\n" // the PSX frame (for scanlines)
+	"uniform float rcas;\n"   // 0 off, else exp2(-sharpness stops)
+	"uniform int crt;\n"      // 0 off, 1 scanlines, 2 curved
+	"uniform float gamma;\n"
+	"vec3 load(ivec2 p) { return texelFetch(s_texture, clamp(p, ivec2(0), ivec2(inSize) - 1), 0).rgb; }\n"
+	"vec3 sharpened(vec2 uv) {\n"
+	"\t// FSR 1 RCAS (Robust Contrast Adaptive Sharpening), after AMD's ffx_fsr1.h (MIT).\n"
+	"\tivec2 p = ivec2(floor(uv * inSize));\n"
+	"\tvec3 b = load(p + ivec2(0, -1)), d = load(p + ivec2(-1, 0)), e = load(p);\n"
+	"\tvec3 f = load(p + ivec2(1, 0)), h = load(p + ivec2(0, 1));\n"
+	"\tvec3 mn4 = min(min(b, d), min(f, h));\n"
+	"\tvec3 mx4 = max(max(b, d), max(f, h));\n"
+	"\tvec3 hitMin = mn4 / max(4.0 * mx4, vec3(1.0e-5));\n"
+	"\tvec3 hitMax = (vec3(1.0) - mx4) / min(4.0 * mn4 - 4.0, vec3(-1.0e-5));\n"
+	"\tvec3 lobeRGB = max(-hitMin, hitMax);\n"
+	"\tfloat lobe = max(-(0.25 - (1.0 / 16.0)), min(max(lobeRGB.r, max(lobeRGB.g, lobeRGB.b)), 0.0)) * rcas;\n"
+	"\treturn (lobe * (b + d + f + h) + e) / (4.0 * lobe + 1.0);\n"
+	"}\n"
+	"void main() {\n"
+	"\tvec2 uv = v_uv;\n"
+	"\tif (crt == 2) {\n"
+	"\t\tvec2 c = uv * 2.0 - 1.0;\n"
+	"\t\tc.x *= 1.0 + c.y * c.y * 0.045;\n"
+	"\t\tc.y *= 1.0 + c.x * c.x * 0.065;\n"
+	"\t\tuv = c * 0.5 + 0.5;\n"
+	"\t\tif (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) { fragColor = vec4(0.0, 0.0, 0.0, 1.0); return; }\n"
+	"\t}\n"
+	"\tvec3 color = (rcas > 0.0) ? sharpened(uv) : texture2D(s_texture, uv).rgb;\n"
+	"\tif (crt != 0) {\n"
+	"\t\tfloat line = fract(uv.y * srcSize.y) - 0.5;\n"
+	"\t\tfloat strength = (crt == 2) ? 0.5 : 0.35;\n"
+	"\t\tcolor *= 1.0 - strength * (4.0 * line * line);\n"
+	"\t\tcolor *= 1.0 + strength * 0.45;\n"
+	"\t\tif (crt == 2) {\n"
+	"\t\t\tint m = int(mod(gl_FragCoord.x, 3.0));\n"
+	"\t\t\tvec3 mask = vec3(0.86);\n"
+	"\t\t\tif (m == 0) mask.r = 1.08; else if (m == 1) mask.g = 1.08; else mask.b = 1.08;\n"
+	"\t\t\tcolor *= mask;\n"
+	"\t\t\tfloat vig = 16.0 * uv.x * uv.y * (1.0 - uv.x) * (1.0 - uv.y);\n"
+	"\t\t\tcolor *= pow(clamp(vig, 0.0, 1.0), 0.18);\n"
+	"\t\t}\n"
+	"\t}\n"
+	"\tcolor = pow(clamp(color, 0.0, 1.0), vec3(gamma));\n"
+	"\tfragColor = vec4(color, 1.0);\n"
+	"}\n"
+	"#endif\n";
+
+internal int NativeRenderer_PostFxWanted(void)
+{
+	return (g_nativeConfig.upscale != NATIVE_UPSCALE_SHARP) || (g_nativeConfig.antialias != NATIVE_AA_OFF) ||
+		(g_nativeConfig.crt != NATIVE_CRT_OFF) || (g_nativeConfig.brightness != 0);
+}
+
+internal int NativeRenderer_ProgramLinked(GLuint program)
+{
+	GLint linked = 0;
+
+	if (program == 0)
+	{
+		return 0;
+	}
+	glGetProgramiv(program, GL_LINK_STATUS, &linked);
+	return linked != 0;
+}
+
+internal void NativeRenderer_PostTarget(struct NativePostTarget *target, int width, int height, GLint filter)
+{
+	if (target->framebuffer == 0)
+	{
+		glGenTextures(1, &target->texture);
+		glGenFramebuffers(1, &target->framebuffer);
+		target->width = 0;
+		target->height = 0;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, target->texture);
+	if ((target->width != width) || (target->height != height))
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glBindFramebuffer(GL_FRAMEBUFFER, target->framebuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target->texture, 0);
+		target->width = width;
+		target->height = height;
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+internal int NativeRenderer_InitPostFx(void)
+{
+	if (s_postFxState != 0)
+	{
+		return s_postFxState > 0;
+	}
+
+	s_postFxaaShader = NativeRenderer_Shader_Compile(ctr_post_fxaa_shader, false);
+	s_postEasuShader = NativeRenderer_Shader_Compile(ctr_post_easu_shader, false);
+	s_postFinalShader = NativeRenderer_Shader_Compile(ctr_post_final_shader, false);
+	if (!NativeRenderer_ProgramLinked(s_postFxaaShader) || !NativeRenderer_ProgramLinked(s_postEasuShader) ||
+		!NativeRenderer_ProgramLinked(s_postFinalShader))
+	{
+		NATIVE_RENDERER_ERROR("%s\n", "graphics effects unavailable on this GPU; showing the plain picture");
+		s_postFxState = -1;
+		return 0;
+	}
+
+	s_postFxaaTexelLoc = glGetUniformLocation(s_postFxaaShader, "texel");
+	s_postEasuInSizeLoc = glGetUniformLocation(s_postEasuShader, "inSize");
+	s_postEasuOutSizeLoc = glGetUniformLocation(s_postEasuShader, "outSize");
+	s_postFinalInSizeLoc = glGetUniformLocation(s_postFinalShader, "inSize");
+	s_postFinalSrcSizeLoc = glGetUniformLocation(s_postFinalShader, "srcSize");
+	s_postFinalRcasLoc = glGetUniformLocation(s_postFinalShader, "rcas");
+	s_postFinalCrtLoc = glGetUniformLocation(s_postFinalShader, "crt");
+	s_postFinalGammaLoc = glGetUniformLocation(s_postFinalShader, "gamma");
+	s_postFxState = 1;
+	NATIVE_RENDERER_LOG("graphics effects: upscale %d, aa %d, crt %d, brightness %d\n", g_nativeConfig.upscale,
+		g_nativeConfig.antialias, g_nativeConfig.crt, g_nativeConfig.brightness);
+	return 1;
+}
+
+internal void NativeRenderer_PostPass(GLuint program, GLuint input, GLuint framebuffer, int x, int y, int w, int h)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glViewport(x, y, w, h);
+	glUseProgram(program);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, input);
+	glBindVertexArray(s_vramQuadVAO);
+	NativeRenderer_DrawTriangles(0, 2);
+}
+
+// Returns 0 when the plain path should draw the frame instead.
+internal int NativeRenderer_PresentPostFx(int displayX, int displayY, int displayW, int displayH)
+{
+	local_persist const float sharpnessStops[3] = {1.0f, 0.5f, 0.1f};
+	const int psxW = displayW;
+	const int psxH = displayH;
+	if (s_presentMainTarget)
+	{
+		displayW = s_mainRenderTarget.width;
+		displayH = s_mainRenderTarget.height;
+	}
+	const int viewW = s_presentViewport.w;
+	const int viewH = s_presentViewport.h;
+	const int fsr = (g_nativeConfig.upscale == NATIVE_UPSCALE_FSR) && ((viewW > displayW) || (viewH > displayH));
+	GLuint frame;
+	int frameW = displayW;
+	int frameH = displayH;
+	GLint finalFilter;
+
+	if (!NativeRenderer_PostFxWanted() || (viewW <= 0) || (viewH <= 0) || !NativeRenderer_InitPostFx())
+	{
+		return 0;
+	}
+
+	glDisable(GL_STENCIL_TEST);
+
+	// 1. The PSX frame, decoded from VRAM at its own size, or the main target at the internal resolution.
+	if (s_presentMainTarget)
+	{
+		frame = s_mainRenderTarget.texture;
+	}
+	else
+	{
+		NativeRenderer_PostTarget(&s_postSource, displayW, displayH, GL_LINEAR);
+		glBindFramebuffer(GL_FRAMEBUFFER, s_postSource.framebuffer);
+		glViewport(0, 0, displayW, displayH);
+		NativeRenderer_DrawVRAMRegion(displayX, displayY, displayW, displayH);
+		frame = s_postSource.texture;
+	}
+
+	// 2. Anti-aliasing at the frame's size.
+	if (g_nativeConfig.antialias == NATIVE_AA_FXAA)
+	{
+		NativeRenderer_PostTarget(&s_postAntialiased, displayW, displayH, GL_LINEAR);
+		glUseProgram(s_postFxaaShader);
+		glUniform2f(s_postFxaaTexelLoc, 1.0f / (float)displayW, 1.0f / (float)displayH);
+		NativeRenderer_PostPass(s_postFxaaShader, frame, s_postAntialiased.framebuffer, 0, 0, displayW, displayH);
+		frame = s_postAntialiased.texture;
+	}
+
+	// 3. FSR 1 EASU up to the window's size (RCAS follows in the last pass).
+	if (fsr)
+	{
+		NativeRenderer_PostTarget(&s_postUpscaled, viewW, viewH, GL_NEAREST);
+		glUseProgram(s_postEasuShader);
+		glUniform2f(s_postEasuInSizeLoc, (float)displayW, (float)displayH);
+		glUniform2f(s_postEasuOutSizeLoc, (float)viewW, (float)viewH);
+		NativeRenderer_PostPass(s_postEasuShader, frame, s_postUpscaled.framebuffer, 0, 0, viewW, viewH);
+		frame = s_postUpscaled.texture;
+		frameW = viewW;
+		frameH = viewH;
+	}
+
+	// 4. Into the window.
+	finalFilter = (fsr || (g_nativeConfig.upscale == NATIVE_UPSCALE_SHARP)) ? GL_NEAREST : GL_LINEAR;
+	glBindTexture(GL_TEXTURE_2D, frame);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, finalFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, finalFilter);
+	glUseProgram(s_postFinalShader);
+	glUniform2f(s_postFinalInSizeLoc, (float)frameW, (float)frameH);
+	glUniform2f(s_postFinalSrcSizeLoc, (float)psxW, (float)psxH);
+	glUniform1f(s_postFinalRcasLoc, fsr ? SDL_powf(2.0f, -sharpnessStops[g_nativeConfig.sharpness % 3]) : 0.0f);
+	glUniform1i(s_postFinalCrtLoc, g_nativeConfig.crt);
+	glUniform1f(s_postFinalGammaLoc, 1.0f - 0.12f * (float)g_nativeConfig.brightness);
+	NativeRenderer_PostPass(s_postFinalShader, frame, 0, s_presentViewport.x, s_presentViewport.y, viewW, viewH);
+
+	if (frame == s_mainRenderTarget.texture)
+	{
+		// the VRAM pack samples it next frame and needs NEAREST to keep each packed pixel whole
+		glBindTexture(GL_TEXTURE_2D, frame);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	}
+	s_boundTargetScale = 1;
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glEnable(GL_STENCIL_TEST);
+	return 1;
+}
+
+internal void NativeRenderer_DestroyPostFx(void)
+{
+	struct NativePostTarget *targets[3] = {&s_postSource, &s_postAntialiased, &s_postUpscaled};
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (targets[i]->framebuffer != 0)
+		{
+			glDeleteFramebuffers(1, &targets[i]->framebuffer);
+			glDeleteTextures(1, &targets[i]->texture);
+		}
+		SDL_memset(targets[i], 0, sizeof(*targets[i]));
+	}
+	if (s_postFxState > 0)
+	{
+		glDeleteProgram(s_postFxaaShader);
+		glDeleteProgram(s_postEasuShader);
+		glDeleteProgram(s_postFinalShader);
+	}
+	s_postFxState = 0;
+}
+
 void NativeRenderer_PresentVRAMRect(int displayX, int displayY, int displayW, int displayH)
 {
 	if (displayW <= 0 || displayH <= 0)
@@ -2145,19 +2568,44 @@ void NativeRenderer_PresentVRAMRect(int displayX, int displayY, int displayW, in
 
 	NativeRenderer_UpdateVRAM();
 
-	NativeRenderer_SetViewPort(s_presentViewport.x, s_presentViewport.y, s_presentViewport.w, s_presentViewport.h);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	s_boundTargetScale = 1;
-
 	NativeRenderer_SetScissorState(0);
 	NativeRenderer_EnableDepth(0);
 	NativeRenderer_SetBlendMode(BM_NONE);
 
-	NativeRenderer_DrawVRAMRegion(displayX, displayY, displayW, displayH);
+	if (!NativeRenderer_PresentPostFx(displayX, displayY, displayW, displayH))
+	{
+		if (s_presentMainTarget)
+		{
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, s_mainRenderTarget.framebuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glBlitFramebuffer(0, 0, s_mainRenderTarget.width, s_mainRenderTarget.height, s_presentViewport.x,
+			                  s_presentViewport.y, s_presentViewport.x + s_presentViewport.w,
+			                  s_presentViewport.y + s_presentViewport.h, GL_COLOR_BUFFER_BIT,
+			                  g_nativeConfig.upscale == NATIVE_UPSCALE_SHARP ? GL_NEAREST : GL_LINEAR);
+		}
+		else
+		{
+			NativeRenderer_SetViewPort(s_presentViewport.x, s_presentViewport.y, s_presentViewport.w, s_presentViewport.h);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			NativeRenderer_DrawVRAMRegion(displayX, displayY, displayW, displayH);
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		s_boundTargetScale = 1;
+	}
 	glBindVertexArray(0);
 
 	s_previousShader = (ShaderID)-1;
 	s_lastBoundTexture = (TextureID)-1;
+}
+
+// The frame as drawn at the internal resolution, through the same graphics effects. With scale 1 the game
+// presents from VRAM as the PlayStation does; above 1 the VRAM copy (kept for screen-copy effects) is PS1-sized,
+// so the main target is shown instead.
+void NativeRenderer_PresentMainTarget(void)
+{
+	s_presentMainTarget = 1;
+	NativeRenderer_PresentVRAMRect(activeDispEnv.disp.x, activeDispEnv.disp.y, activeDispEnv.disp.w, activeDispEnv.disp.h);
+	s_presentMainTarget = 0;
 }
 
 void NativeRenderer_PresentVRAMDisplay(void)

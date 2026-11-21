@@ -1,114 +1,46 @@
 #include <common.h>
 
-// NOTE(aalhendi): Retail stores each OpenEvent handle before the next call,
-// then fills that call's delay slot with the zero callback argument. GCC 2.8.1
-// moves the handle store into the delay slot, changing the instruction stream.
-// gp offsets for SwCARD: IOE 2408, ERROR 2392, TIMOUT 2420, NEW 2388.
-// gp offsets for HwCARD: IOE 2396, ERROR 2376, TIMOUT 2416, NEW 2384.
-// 2400(gp) is memcardStatusFlags, initialized for the first card-info event.
-__asm__(".section .MEMCARD_InitCard,\"ax\",@progbits\n"
-        ".align 2\n"
-        ".ent\tMEMCARD_InitCard\n"
-        ".set\tnoreorder\n"
-        ".globl MEMCARD_InitCard\n"
-        "MEMCARD_InitCard:\n"
-        "addiu $sp,$sp,-24\n"
-        "sw $ra,16($sp)\n"
-        "jal EnterCriticalSection\n"
-        "nop\n"
-        "lui $a0,0xf400\n"
-        "ori $a0,$a0,1\n"
-        "addiu $a1,$zero,4\n"
-        "addiu $a2,$zero,8192\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lui $a0,0xf400\n"
-        "ori $a0,$a0,1\n"
-        "ori $a1,$zero,32768\n"
-        "addiu $a2,$zero,8192\n"
-        "sw $v0,2408($gp)\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lui $a0,0xf400\n"
-        "ori $a0,$a0,1\n"
-        "addiu $a1,$zero,256\n"
-        "addiu $a2,$zero,8192\n"
-        "sw $v0,2392($gp)\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lui $a0,0xf400\n"
-        "ori $a0,$a0,1\n"
-        "addiu $a1,$zero,8192\n"
-        "move $a2,$a1\n"
-        "sw $v0,2420($gp)\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lui $a0,0xf000\n"
-        "ori $a0,$a0,17\n"
-        "addiu $a1,$zero,4\n"
-        "addiu $a2,$zero,8192\n"
-        "sw $v0,2388($gp)\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lui $a0,0xf000\n"
-        "ori $a0,$a0,17\n"
-        "ori $a1,$zero,32768\n"
-        "addiu $a2,$zero,8192\n"
-        "sw $v0,2396($gp)\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lui $a0,0xf000\n"
-        "ori $a0,$a0,17\n"
-        "addiu $a1,$zero,256\n"
-        "addiu $a2,$zero,8192\n"
-        "sw $v0,2376($gp)\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lui $a0,0xf000\n"
-        "ori $a0,$a0,17\n"
-        "addiu $a1,$zero,8192\n"
-        "move $a2,$a1\n"
-        "sw $v0,2416($gp)\n"
-        "jal OpenEvent\n"
-        "move $a3,$zero\n"
-        "lw $a0,2408($gp)\n"
-        "sw $v0,2384($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "lw $a0,2392($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "lw $a0,2420($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "lw $a0,2388($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "lw $a0,2396($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "lw $a0,2376($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "lw $a0,2416($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "lw $a0,2384($gp)\n"
-        "jal EnableEvent\n"
-        "nop\n"
-        "jal ExitCriticalSection\n"
-        "nop\n"
-        "jal InitCARD\n"
-        "move $a0,$zero\n"
-        "jal StartCARD\n"
-        "nop\n"
-        "jal _bu_init\n"
-        "nop\n"
-        "lw $ra,16($sp)\n"
-        "addiu $v0,$zero,1\n"
-        "sw $v0,2400($gp)\n"
-        "jr $ra\n"
-        "addiu $sp,$sp,24\n"
-        ".end MEMCARD_InitCard\n"
-        ".set\treorder\n"
-        ".text\n");
+// NOTE: Retail stores each OpenEvent handle after the next call's arguments are set up and fills that call's delay
+// slot with the zero callback argument. With the handles named as $gp words of their own (the matching unit forces
+// in tools/matching/namespaces/memcard-card/retail_symbols.h) GCC 2.8.1 schedules them that way; other builds use
+// the live sdata fields.
+#ifndef MEMCARD_CARD_SW_IOE
+#define MEMCARD_CARD_SW_IOE       sdata->SwCARD_EvSpIOE
+#define MEMCARD_CARD_SW_ERROR     sdata->SwCARD_EvSpERROR
+#define MEMCARD_CARD_SW_TIMOUT    sdata->SwCARD_EvSpTIMOUT
+#define MEMCARD_CARD_SW_NEW       sdata->SwCARD_EvSpNEW
+#define MEMCARD_CARD_HW_IOE       sdata->HwCARD_EvSpIOE
+#define MEMCARD_CARD_HW_ERROR     sdata->HwCARD_EvSpERROR
+#define MEMCARD_CARD_HW_TIMOUT    sdata->HwCARD_EvSpTIMOUT
+#define MEMCARD_CARD_HW_NEW       sdata->HwCARD_EvSpNEW
+#define MEMCARD_CARD_STATUS_FLAGS sdata->memcardStatusFlags
+#endif
+
+void MEMCARD_InitCard(void)
+{
+	EnterCriticalSection();
+	MEMCARD_CARD_SW_IOE = OpenEvent(SwCARD, EvSpIOE, EvMdNOINTR, NULL);
+	MEMCARD_CARD_SW_ERROR = OpenEvent(SwCARD, EvSpERROR, EvMdNOINTR, NULL);
+	MEMCARD_CARD_SW_TIMOUT = OpenEvent(SwCARD, EvSpTIMOUT, EvMdNOINTR, NULL);
+	MEMCARD_CARD_SW_NEW = OpenEvent(SwCARD, EvSpNEW, EvMdNOINTR, NULL);
+	MEMCARD_CARD_HW_IOE = OpenEvent(HwCARD, EvSpIOE, EvMdNOINTR, NULL);
+	MEMCARD_CARD_HW_ERROR = OpenEvent(HwCARD, EvSpERROR, EvMdNOINTR, NULL);
+	MEMCARD_CARD_HW_TIMOUT = OpenEvent(HwCARD, EvSpTIMOUT, EvMdNOINTR, NULL);
+	MEMCARD_CARD_HW_NEW = OpenEvent(HwCARD, EvSpNEW, EvMdNOINTR, NULL);
+	EnableEvent(MEMCARD_CARD_SW_IOE);
+	EnableEvent(MEMCARD_CARD_SW_ERROR);
+	EnableEvent(MEMCARD_CARD_SW_TIMOUT);
+	EnableEvent(MEMCARD_CARD_SW_NEW);
+	EnableEvent(MEMCARD_CARD_HW_IOE);
+	EnableEvent(MEMCARD_CARD_HW_ERROR);
+	EnableEvent(MEMCARD_CARD_HW_TIMOUT);
+	EnableEvent(MEMCARD_CARD_HW_NEW);
+	ExitCriticalSection();
+
+	InitCARD(0);
+	StartCARD();
+	_bu_init();
+	// NOTE(aalhendi): Bit 0 makes the first successful card-info event enter
+	// the new-card path; with both bits 0 and 1 clear it is unformatted.
+	MEMCARD_CARD_STATUS_FLAGS = 1;
+}

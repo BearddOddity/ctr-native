@@ -4147,9 +4147,9 @@ CTR_STATIC_ASSERT(sizeof(struct MetaDataMODEL) == 0xC);
 #define OFFSETOF_SDATA(ELEMENT)           ((u32)0x8008cf6c + OFFSETOF(struct sData, ELEMENT))
 #define OFFSETOF_DATA(ELEMENT)            ((u32)0x800809a0 + OFFSETOF(struct Data, ELEMENT))
 
-// NOTE(aalhendi): The retail memcard assembly uses $gp-relative operands.
-// Keep their displacements tied to the shared layouts, including the icon's
-// data-relative address, so a layout edit cannot silently change their meaning.
+// NOTE(aalhendi): The memcard matching units name these $gp words and the icon's
+// data-relative address directly (tools/matching/namespaces/memcard-*). Keep the
+// displacements tied to the shared layouts so a layout edit cannot silently change their meaning.
 #define CTR_MEMCARD_GP_STAGE              1176
 #define CTR_MEMCARD_GP_BUFFER             1180
 #define CTR_MEMCARD_GP_RETRIES            1188

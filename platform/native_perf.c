@@ -16,10 +16,15 @@
 #if defined(_WIN32)
 #include <direct.h>
 #include <sys/stat.h>
+#include "platform/native_win32.h"
+#include <psapi.h>
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #endif
+
+internal void NativeLedger_Summary(void);
 
 #define NATIVE_PERF_PATH_MAX         1024
 #define NATIVE_PERF_DEFAULT_DIR      "debug/perf/perf-latest"
@@ -443,6 +448,8 @@ int NativePerf_IsEnabled(void)
 
 void NativePerf_Shutdown(void)
 {
+	NativeLedger_Summary();
+
 	if (!s_enabled)
 	{
 		return;
@@ -502,8 +509,125 @@ void NativePerf_RecordGpuFrame(u32 frameIndex, f64 gpuMs)
 	}
 }
 
+// Memory ledger (internal builds, always on): the process's own memory each time a level finishes loading. CTR's
+// game heap (MEMPACK) is a fixed arena that every level resets, so memory that keeps growing when the same level is
+// entered again is a host-side leak (renderer, audio, video, files). It says so in the log, which
+// tools/replay_check.py fails on, and prints a summary at exit.
+#define NATIVE_LEDGER_LEVELS       128
+#define NATIVE_LEDGER_GROWTH_BYTES (32ull * 1024ull * 1024ull)
+
+global_variable u64 s_ledgerLevelBytes[NATIVE_LEDGER_LEVELS];
+global_variable u32 s_ledgerLevelVisits[NATIVE_LEDGER_LEVELS];
+global_variable s32 s_ledgerLevel = -1;
+global_variable s32 s_ledgerLoading = 1;
+global_variable u64 s_ledgerStartBytes;
+global_variable u64 s_ledgerPeakBytes;
+global_variable u64 s_ledgerLastBytes;
+global_variable u32 s_ledgerEntries;
+global_variable u32 s_ledgerWarnings;
+
+internal u64 NativeLedger_ProcessBytes(void)
+{
+#if defined(_WIN32)
+	PROCESS_MEMORY_COUNTERS_EX counters;
+
+	memset(&counters, 0, sizeof(counters));
+	if (K32GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS *)&counters, sizeof(counters)))
+	{
+		return (u64)counters.PrivateUsage;
+	}
+	return 0;
+#elif defined(__linux__)
+	unsigned long pages = 0;
+	unsigned long resident = 0;
+	FILE *statm = fopen("/proc/self/statm", "r");
+
+	if (statm == NULL)
+	{
+		return 0;
+	}
+	if (fscanf(statm, "%lu %lu", &pages, &resident) != 2)
+	{
+		resident = 0;
+	}
+	fclose(statm);
+	return (u64)resident * (u64)sysconf(_SC_PAGESIZE);
+#else
+	return 0;
+#endif
+}
+
+internal f64 NativeLedger_MiB(u64 bytes)
+{
+	return (f64)bytes / (1024.0 * 1024.0);
+}
+
+internal void NativeLedger_OnFrame(const struct NativePerfFrameInfo *info)
+{
+	const s32 loading = info->loadingStage != LOAD_IDLE;
+
+	if (loading || ((s_ledgerLoading == 0) && (info->levelID == s_ledgerLevel)))
+	{
+		s_ledgerLoading = loading;
+		return;
+	}
+
+	// A level just finished loading (or the first frame): sample once.
+	s_ledgerLoading = 0;
+	s_ledgerLevel = info->levelID;
+	const u64 bytes = NativeLedger_ProcessBytes();
+	if (bytes == 0)
+	{
+		return;
+	}
+	if (s_ledgerEntries == 0)
+	{
+		s_ledgerStartBytes = bytes;
+	}
+	s_ledgerEntries++;
+	s_ledgerLastBytes = bytes;
+	if (bytes > s_ledgerPeakBytes)
+	{
+		s_ledgerPeakBytes = bytes;
+	}
+	if ((info->levelID < 0) || (info->levelID >= NATIVE_LEDGER_LEVELS))
+	{
+		return;
+	}
+
+	const u32 visit = ++s_ledgerLevelVisits[info->levelID];
+	if (visit == 1)
+	{
+		s_ledgerLevelBytes[info->levelID] = bytes;
+	}
+	else if (bytes > s_ledgerLevelBytes[info->levelID] + NATIVE_LEDGER_GROWTH_BYTES)
+	{
+		s_ledgerWarnings++;
+		Platform_Log("[CTR Ledger] possible leak: %.1f MiB more than when level %d was first entered (visit %u, now %.1f MiB)\n",
+		             NativeLedger_MiB(bytes - s_ledgerLevelBytes[info->levelID]), info->levelID, visit, NativeLedger_MiB(bytes));
+		s_ledgerLevelBytes[info->levelID] = bytes;
+	}
+}
+
+internal void NativeLedger_Summary(void)
+{
+	if (s_ledgerEntries == 0)
+	{
+		return;
+	}
+	Platform_Log("[CTR Ledger] %u level entries: process memory %.1f MiB at the first, %.1f MiB peak, %.1f MiB at the last, %u leak warning(s)\n",
+	             s_ledgerEntries, NativeLedger_MiB(s_ledgerStartBytes), NativeLedger_MiB(s_ledgerPeakBytes), NativeLedger_MiB(s_ledgerLastBytes),
+	             s_ledgerWarnings);
+	s_ledgerEntries = 0;
+}
+
 void NativePerf_BeginFrame(const struct NativePerfFrameInfo *info)
 {
+	if (info != NULL)
+	{
+		NativeLedger_OnFrame(info);
+	}
+
 	if (!s_enabled || (info == NULL))
 	{
 		return;
