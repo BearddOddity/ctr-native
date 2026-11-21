@@ -1,5 +1,45 @@
 #include <common.h>
 
+// NOTE(aalhendi): The resident ABI gives these fields individual symbols; native
+// accesses their canonical aggregate storage. Symbolic GP stores retain retail
+// scheduling under GCC 2.8.1.
+#ifndef REFRESHCARD_SLOTS_ICON
+#define REFRESHCARD_SLOTS_ICON data.memcardIcon_HeaderSLOTS
+#endif
+#ifndef REFRESHCARD_GHOST_FILENAME
+#define REFRESHCARD_GHOST_FILENAME sdata_static.ghostFileNameFinal
+#endif
+#ifndef REFRESHCARD_MC_START
+#define REFRESHCARD_MC_START sdata->mcStart
+#endif
+#ifndef REFRESHCARD_ERROR_FLAG
+#define REFRESHCARD_ERROR_FLAG sdata->boolError
+#endif
+#ifndef REFRESHCARD_DATA_OUTDATED
+#define REFRESHCARD_DATA_OUTDATED sdata->boolMemcardDataOutdated
+#endif
+#ifndef REFRESHCARD_ACTION_MODE
+#define REFRESHCARD_ACTION_MODE sdata->memcardAction
+#endif
+#ifndef REFRESHCARD_UNK_8008D928
+#define REFRESHCARD_UNK_8008D928 sdata->unk_memcardRelated_8008d928
+#endif
+#ifndef REFRESHCARD_HUMAN_GHOST
+#define REFRESHCARD_HUMAN_GHOST sdata->boolReplayHumanGhost
+#endif
+#ifndef REFRESHCARD_UNK_8008D964
+#define REFRESHCARD_UNK_8008D964 sdata->unk8008d964
+#endif
+#ifndef REFRESHCARD_UNK_8008D95C
+#define REFRESHCARD_UNK_8008D95C sdata->unk8008d95c
+#endif
+#ifndef REFRESHCARD_PROFILES_CHECKED
+#define REFRESHCARD_PROFILES_CHECKED sdata->boolAdvProfilesChecked
+#endif
+#ifndef REFRESHCARD_SCREEN_TEXT
+#define REFRESHCARD_SCREEN_TEXT sdata->mcScreenText
+#endif
+
 
 s16 RefreshCard_CountGhostProfilesForLEV(s16 trackID)
 {
@@ -404,47 +444,20 @@ void RefreshCard_SetScreenText(int screenText)
 }
 
 
-#ifdef CTR_NATIVE
+// NOTE: Retail checks the halfword before the stack prologue and saves ra in the branch delay slot; the matching
+// unit names these flags as $gp halfwords of their own (refresh-card-unknown3/retail_symbols.h), which lets GCC 2.8.1
+// schedule them that way.
 void RefreshCard_Unknown2(void)
 {
-	if (sdata->boolAdvProfilesChecked == 0)
+	if (REFRESHCARD_PROFILES_CHECKED == 0)
 	{
 		GAMEPROG_InitFullMemcard((struct MemcardProfile *)sdata->ptrToMemcardBuffer2);
-		sdata->boolAdvProfilesChecked = 1;
+		REFRESHCARD_PROFILES_CHECKED = 1;
 	}
 
-	sdata->unk8008d95c = 1;
-	sdata->unk_memcardRelated_8008d928 = 0;
+	REFRESHCARD_UNK_8008D95C = 1;
+	REFRESHCARD_UNK_8008D928 = 0;
 }
-#else
-// NOTE(aalhendi): Retail checks the halfword before the stack prologue and
-// saves ra in the branch delay slot. GCC 2.8.1 does not emit that order here;
-// ASPSX supplies the nop after jal, so there is no source nop at that point.
-__asm__(".section .RefreshCard_Unknown2,\"ax\",@progbits\n"
-        ".align 2\n"
-        ".ent RefreshCard_Unknown2\n"
-        ".set noreorder\n"
-        ".globl RefreshCard_Unknown2\n"
-        "RefreshCard_Unknown2:\n"
-        "lh $2,2556($28)\n"
-        "addiu $29,$29,-24\n"
-        "bnez $2,.LRefreshCard_Unknown2_resetFlags\n"
-        "sw $31,16($29)\n"
-        "lw $4,1288($28)\n"
-        "jal GAMEPROG_InitFullMemcard\n"
-        "li $2,1\n"
-        "sh $2,2556($28)\n"
-        ".LRefreshCard_Unknown2_resetFlags:\n"
-        "lw $31,16($29)\n"
-        "li $2,1\n"
-        "sh $2,2544($28)\n"
-        "sh $0,2492($28)\n"
-        "jr $31\n"
-        "addiu $29,$29,24\n"
-        ".end RefreshCard_Unknown2\n"
-        ".set reorder\n"
-        ".text\n");
-#endif
 
 
 void RefreshCard_GetNumGhostsTotal(void)
@@ -523,46 +536,6 @@ __asm__(".section .RefreshCard_GameProgressAndOptions,\"ax\",@progbits\n"
         ".text\n");
 #endif
 
-
-// NOTE(aalhendi): The resident ABI gives these fields individual symbols; native
-// accesses their canonical aggregate storage. Symbolic GP stores retain retail
-// scheduling under GCC 2.8.1.
-#ifndef REFRESHCARD_SLOTS_ICON
-#define REFRESHCARD_SLOTS_ICON data.memcardIcon_HeaderSLOTS
-#endif
-#ifndef REFRESHCARD_GHOST_FILENAME
-#define REFRESHCARD_GHOST_FILENAME sdata_static.ghostFileNameFinal
-#endif
-#ifndef REFRESHCARD_MC_START
-#define REFRESHCARD_MC_START sdata->mcStart
-#endif
-#ifndef REFRESHCARD_ERROR_FLAG
-#define REFRESHCARD_ERROR_FLAG sdata->boolError
-#endif
-#ifndef REFRESHCARD_DATA_OUTDATED
-#define REFRESHCARD_DATA_OUTDATED sdata->boolMemcardDataOutdated
-#endif
-#ifndef REFRESHCARD_ACTION_MODE
-#define REFRESHCARD_ACTION_MODE sdata->memcardAction
-#endif
-#ifndef REFRESHCARD_UNK_8008D928
-#define REFRESHCARD_UNK_8008D928 sdata->unk_memcardRelated_8008d928
-#endif
-#ifndef REFRESHCARD_HUMAN_GHOST
-#define REFRESHCARD_HUMAN_GHOST sdata->boolReplayHumanGhost
-#endif
-#ifndef REFRESHCARD_UNK_8008D964
-#define REFRESHCARD_UNK_8008D964 sdata->unk8008d964
-#endif
-#ifndef REFRESHCARD_UNK_8008D95C
-#define REFRESHCARD_UNK_8008D95C sdata->unk8008d95c
-#endif
-#ifndef REFRESHCARD_PROFILES_CHECKED
-#define REFRESHCARD_PROFILES_CHECKED sdata->boolAdvProfilesChecked
-#endif
-#ifndef REFRESHCARD_SCREEN_TEXT
-#define REFRESHCARD_SCREEN_TEXT sdata->mcScreenText
-#endif
 
 static __inline__ void RefreshCard_QueueGetInfo(void)
 {
