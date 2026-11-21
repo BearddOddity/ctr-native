@@ -85,8 +85,17 @@ def elf_sections(raw: bytes) -> dict[str, dict[str, Any]]:
 R_MIPS_32, R_MIPS_26, R_MIPS_HI16, R_MIPS_LO16 = 2, 4, 5, 6
 
 
+def readonly_name(name: str) -> str:
+    """One name for read-only data: hand-written `__asm__` puts it in `.rdata`, GCC's own output in `.rodata` (GNU as
+    turns the `.rdata` directive into `.rodata`), and the pipeline links either at the target's rodata address."""
+    if name == ".rdata" or name.startswith(".rdata."):
+        return ".rodata" + name[len(".rdata"):]
+    return name
+
+
 def address_of(name: str, symbols: dict[str, int]) -> int | None:
     """A relocation's retail address: its symbol's, or a function section's function's (`.NAME` -> NAME)."""
+    name = readonly_name(name)
     if name in symbols:
         return symbols[name]
     if name.startswith(".") and name[1:] in symbols:
@@ -101,10 +110,10 @@ def linked(section: dict[str, Any], symbols: dict[str, int]) -> tuple[bytes, lis
     rows = section["relocs"]
     left = []
     word = lambda off: struct.unpack_from("<I", data, off)[0]
-    for i, (off, kind, name, _addend) in enumerate(rows):
+    for i, (off, kind, name, addend) in enumerate(rows):
         target = address_of(name, symbols)
         if target is None or section["nobits"] or off + 4 > len(data):
-            left.append(rows[i])
+            left.append((off, kind, readonly_name(name), addend))
             continue
         insn = word(off)
         if kind == R_MIPS_32:
@@ -115,7 +124,7 @@ def linked(section: dict[str, Any], symbols: dict[str, int]) -> tuple[bytes, lis
         elif kind == R_MIPS_HI16:
             lo = next((r for r in rows[i + 1:] if r[1] == R_MIPS_LO16 and r[2] == name), None)
             if lo is None:
-                left.append(rows[i])
+                left.append((off, kind, readonly_name(name), addend))
                 continue
             low = word(lo[0]) & 0xFFFF
             value = (target + ((insn & 0xFFFF) << 16) + (low - 0x10000 if low & 0x8000 else low)) & 0xFFFFFFFF
@@ -125,7 +134,7 @@ def linked(section: dict[str, Any], symbols: dict[str, int]) -> tuple[bytes, lis
             value = (target + (low - 0x10000 if low & 0x8000 else low)) & 0xFFFF
             struct.pack_into("<I", data, off, (insn & 0xFFFF0000) | value)
         else:
-            left.append(rows[i])
+            left.append((off, kind, readonly_name(name), addend))
     return bytes(data), left
 
 
@@ -143,7 +152,8 @@ _SYMBOLS: dict[str, dict[str, int]] = {}
 
 
 def retail_symbols(config: dict[str, Any]) -> dict[str, int]:
-    """The main executable's symbols, with the target's own symbol file (an overlay's) on top."""
+    """The main executable's symbols, with the target's own symbol file (an overlay's) on top, and the target's
+    read-only data (`.rodata`, `.rdata`) at the address its linked block gives it."""
     files = [str(ctr_match.SYMBOL_FILE.relative_to(ctr_match.ROOT))]
     if config.get("symbol_file") and config["symbol_file"] not in files:
         files.append(config["symbol_file"])
@@ -152,6 +162,9 @@ def retail_symbols(config: dict[str, Any]) -> dict[str, int]:
         if name not in _SYMBOLS:
             _SYMBOLS[name] = ctr_match.load_symbol_file(ctr_match.repository_path(name))
         merged.update(_SYMBOLS[name])
+    rodata = (config.get("linked_block") or {}).get("rodata_address")
+    if rodata is not None:
+        merged[".rodata"] = int(str(rodata), 0)
     return merged
 
 
@@ -195,7 +208,8 @@ def compile_job(job: tuple[str, str, dict[str, Any], ctr_match.Toolchain]) -> tu
     for section, body in sections.items():
         is_data = section in DATA_SECTIONS or any(section.startswith(d + ".") for d in DATA_SECTIONS)
         if want is None or section in want or (is_data and "*data" in want):
-            keep[section] = fingerprint(body, symbols)
+            key = readonly_name(section)
+            keep[key if key not in keep else section] = fingerprint(body, symbols)
     return name, source, keep, None
 
 

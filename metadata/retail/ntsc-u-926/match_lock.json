@@ -645,9 +645,9 @@
   },
   "bots-state-lifecycle": {
    "game/BOTS.c": {
-    ".BOTS_ChangeState": "3c8:f88732fe329d04fb8a45",
+    ".BOTS_ChangeState": "3c8:11fdccd5a7d307a64d2f",
     ".BOTS_CollideWithOtherAI": "164:01206bd2154c9529d777",
-    ".BOTS_Driver_Convert": "2b4:92cefa112f31a2a973e3",
+    ".BOTS_Driver_Convert": "2b4:bd2368a245e96e691c62",
     ".BOTS_Driver_Init": "1b4:2c43818175b66a7f715a",
     ".BOTS_GotoStartingLine": "138:65b831389341b4abd752",
     ".rodata": "34:d94708c8e8ab515bda4f"
@@ -998,7 +998,7 @@
   },
   "draw-confetti": {
    "game/DrawConfetti.c": {
-    ".DrawConfetti": "4c8:c5b0f34e65286a13375b",
+    ".DrawConfetti": "4c8:d322afe2b987a3a09331",
     ".rodata": "24:66f9c953be2574f3696a"
    },
    "game/MATH/TRIG_AngleSinCos_r15r16r17.c": {
@@ -1013,8 +1013,8 @@
   },
   "draw-tires": {
    "game/DrawTires.c": {
-    ".DrawTires_Reflection": "9a4:afce18c3295d85262eca",
-    ".DrawTires_Solid": "9a8:fae66a59fe19a20e2008",
+    ".DrawTires_Reflection": "9a4:4e660ff5bd7c38990fea",
+    ".DrawTires_Solid": "9a8:f111c5f81c9a82a787e6",
     ".rodata": "c4:eeac7dd1aa3dc12a3e3e"
    },
    "game/DrawTires_Sqrt.c": {
@@ -1034,9 +1034,9 @@
    "game/ElimBG.c": {
     ".ElimBG_Activate": "24:ed61e3df8fb6eb5f09c9",
     ".ElimBG_Deactivate": "44:9493ed8d65bfac83000e",
-    ".ElimBG_HandleState": "294:591f803421f0321e950e",
+    ".ElimBG_HandleState": "294:16ec46e7fd18e4754c08",
     ".ElimBG_SaveScreenshot_Chunk": "78:3afdfd4a037b97a543e8",
-    ".ElimBG_SaveScreenshot_Full": "280:9682b9c7649f2e1a57d5",
+    ".ElimBG_SaveScreenshot_Full": "280:23dfa63b25c689c5a89a",
     ".ElimBG_ToggleAllInstances": "b8:6891f5796ca47214f54d",
     ".ElimBG_ToggleInstance": "7c:26f2b818ca4fc033939b",
     ".rodata": "10:0cab85c6abf57941f7b4"
@@ -1115,9 +1115,9 @@
     ".Audio_SetDefaults": "60:d7d4384e00b05e482142",
     ".Audio_SetMaskSong": "128:4311e6badcb5a88d8083",
     ".Audio_SetReverbMode": "78:ebf2e79504af8cacb418",
-    ".Audio_SetState": "1d8:f766fe134186744d82ce",
+    ".Audio_SetState": "1d8:03a77267ea3bb95ce961",
     ".Audio_SetState_Safe": "40:19746e6faf12bfb4b225",
-    ".Audio_Update1": "5d0:264175bc738937b7e2f3",
+    ".Audio_Update1": "5d0:cee3b953551c387e23ed",
     ".rodata": "80:c75b26106b9f915069ba"
    }
   },
@@ -1430,7 +1430,7 @@
   },
   "load-hub": {
    "game/LOAD/LOAD_Hub.c": {
-    ".LOAD_Hub_Main": "15c:e17f9e2c11b0d28ad544",
+    ".LOAD_Hub_Main": "15c:615702886906e0f1a293",
     ".LOAD_Hub_ReadFile": "10c:216bed8ba18235bb6b87",
     ".LOAD_Hub_SwapNow": "210:9c1e03e75b96f77b4131",
     ".rodata": "3c:2269b57ddfb60e93f460"
@@ -1514,7 +1514,7 @@
   },
   "main-db": {
    "game/MAIN/MainDB.c": {
-    ".MainDB_GetClipSize": "64:46c11d95f94b0ac6d3bb",
+    ".MainDB_GetClipSize": "64:f519a45358d9f29101f0",
     ".MainDB_OTMem": "58:f65090b61722089266c7",
     ".MainDB_PrimMem": "64:ecb7a15f3755b1a4cf58",
     ".rodata": "90:bf408eb385bd45ac1f8a"
@@ -1569,8 +1569,8 @@
     ".MainFreeze_ConfigSetupEntry": "dbc:56cf10393c3a922b7444",
     ".MainFreeze_GetMenuPtr": "cc:d0f2264cb24dc383f0e8",
     ".MainFreeze_IfPressStart": "110:57c1e90331ba8cc85e9e",
-    ".MainFreeze_MenuPtrDefault": "388:005bd5bbdde421ab00a4",
-    ".MainFreeze_MenuPtrOptions": "dac:051f2c33f029c9f8d1b3",
+    ".MainFreeze_MenuPtrDefault": "388:c5024adbb65dc7e27b86",
+    ".MainFreeze_MenuPtrOptions": "dac:57934430aab6db1e91c4",
     ".MainFreeze_MenuPtrQuit": "f4:07338d5eaadb6f505c55",
     ".MainFreeze_SafeAdvDestroy": "48:9d8d83cbbf7c1370baa8",
     ".rodata": "5c:3356b9f120ea87dc5753"
@@ -1598,7 +1598,7 @@
    "game/MAIN/MainInit_Memory.c": {
     ".MainInit_JitPoolsReset": "60:a66eabd45afc59c89ab9",
     ".MainInit_OTMem": "108:069ebeac2f9ea308c35c",
-    ".MainInit_PrimMem": "1e4:defd2456f14afdb8e110",
+    ".MainInit_PrimMem": "1e4:ec78c9e57800215797e5",
     ".MainInit_RainBuffer": "e8:709bdbfb37166b3691dc",
     ".rodata": "14:90ee0869e497c7778731"
    },
@@ -1623,7 +1623,7 @@
    "game/MAIN/MainInit_Memory.c": {
     ".MainInit_JitPoolsReset": "60:a66eabd45afc59c89ab9",
     ".MainInit_OTMem": "108:069ebeac2f9ea308c35c",
-    ".MainInit_PrimMem": "1e4:defd2456f14afdb8e110",
+    ".MainInit_PrimMem": "1e4:ec78c9e57800215797e5",
     ".MainInit_RainBuffer": "e8:709bdbfb37166b3691dc",
     ".rodata": "14:90ee0869e497c7778731"
    }
@@ -1813,8 +1813,8 @@
   },
   "memcard-handle-event": {
    "game/MEMCARD/MEMCARD_RetailHandleEvent.c": {
-    ".MEMCARD_HandleEvent": "48c:cccd1b2869de421e9ea5",
-    ".rdata": "38:ac826f81e687331dd4d0"
+    ".MEMCARD_HandleEvent": "48c:ae7a0eb4d41459642622",
+    ".rodata": "38:ac826f81e687331dd4d0"
    }
   },
   "memcard-icon": {
@@ -1885,7 +1885,7 @@
   "music": {
    "game/HOWL/HOWL_Music.c": {
     ".Music_Adjust": "c8:0ff974d3a9bb5337fb90",
-    ".Music_AsyncParseBanks": "4f0:5d91f3e6ca5df38f9716",
+    ".Music_AsyncParseBanks": "4f0:94ad3ebd5f5e636be015",
     ".Music_End": "14:ea1991d6427ad83c67a3",
     ".Music_GetHighestSongPlayIndex": "c:708977b9afb7cda4f1f2",
     ".Music_LoadBanks": "d4:69ca7cff77ac51ab5e9e",
@@ -1921,7 +1921,7 @@
     ".Particle_RenderList": "d78:7851267c6af88c9adb39",
     ".Particle_SetColors": "cc:e575ec4b452cb9dc501c",
     ".Particle_UpdateAllParticles": "58:4fcf485603bccbfd9b22",
-    ".Particle_UpdateList": "538:8acfdd39f5f357846527",
+    ".Particle_UpdateList": "538:2d164f5d120faf4d4337",
     ".rodata": "1c:3d8c311ab80c01fdba8a"
    }
   },
@@ -1938,7 +1938,7 @@
   },
   "podium-models": {
    "game/Podium.c": {
-    ".Podium_InitModels": "13c:eb258b5708caa88643ef",
+    ".Podium_InitModels": "13c:656ff65e65d34222f947",
     ".rodata": "20:60dda70c4b8f6e501bfe"
    }
   },
@@ -2258,17 +2258,17 @@
   },
   "rdata-strings": {
    "game/zGlobal_RDATA.c": {
-    ".rdata.level_resource_names": "e8:ae55e05e06b8d5a57d10",
-    ".rdata.loading_names": "1a8:34776fd2fbbbfa969b26",
-    ".rdata.misc.bots": "18:61d6a977900f26dbe082",
-    ".rdata.misc.ghost": "2c:34757b26e5b992d7da54",
-    ".rdata.misc.hud": "3c:b76b4588d7880d5bb404",
-    ".rdata.misc.language": "c:ddda8bffd0543171ac48",
-    ".rdata.misc.menus": "30:521087dcb9c7e975ab22",
-    ".rdata.misc.sample": "14:1cbe930daee22b29df9f",
-    ".rdata.model_names": "f98:652bd7ea2bf9399b29cd",
-    ".rdata.ui.vs_wait": "1c:72b9e4891ede8e1a0709",
-    ".rdata.vehicle_names": "260:5559a439ff2f435f37a0"
+    ".rodata.level_resource_names": "e8:ae55e05e06b8d5a57d10",
+    ".rodata.loading_names": "1a8:34776fd2fbbbfa969b26",
+    ".rodata.misc.bots": "18:61d6a977900f26dbe082",
+    ".rodata.misc.ghost": "2c:34757b26e5b992d7da54",
+    ".rodata.misc.hud": "3c:b76b4588d7880d5bb404",
+    ".rodata.misc.language": "c:ddda8bffd0543171ac48",
+    ".rodata.misc.menus": "30:521087dcb9c7e975ab22",
+    ".rodata.misc.sample": "14:1cbe930daee22b29df9f",
+    ".rodata.model_names": "f98:652bd7ea2bf9399b29cd",
+    ".rodata.ui.vs_wait": "1c:72b9e4891ede8e1a0709",
+    ".rodata.vehicle_names": "260:5559a439ff2f435f37a0"
    }
   },
   "rectmenu": {
@@ -2337,8 +2337,8 @@
   },
   "refresh-card-polling": {
    "game/RefreshCard.c": {
-    ".RefreshCard_Unknown3": "788:c713508b21d794c05eaa",
-    ".RefreshCard_Unknown4": "30c:8ef82264e4d7e8b48b5c",
+    ".RefreshCard_Unknown3": "788:208bc97d24d22ff7aad0",
+    ".RefreshCard_Unknown4": "30c:1c0f81f4374fd99b7c1f",
     ".rodata": "60:ff9e2df7fa72b485abab"
    }
   },
@@ -2361,7 +2361,7 @@
     ".RenderLists_Init1P2P": "464:235b2ea3ec2b6716c0da",
     ".RenderLists_Init3P4P": "398:0b69042de5263d72733d",
     ".RenderLists_PreInit": "b4:d67738c8e5e454af773e",
-    ".rdata": "20:83e5f7e9ded59f89805e"
+    ".rodata": "20:83e5f7e9ded59f89805e"
    }
   },
   "render-stars": {
@@ -2594,7 +2594,7 @@
     ".UI_RaceEnd_MenuProc": "3ec:01cf2086dfecd77cb624"
    },
    "game/UI/UI_RaceStart.c": {
-    ".UI_RaceStart_IntroText1P": "450:1c29d136e22e3a1f6021",
+    ".UI_RaceStart_IntroText1P": "450:2baa1d79c858e9a1783a",
     ".rodata": "9:a092eaf559ec0d1bb279"
    }
   },
@@ -2647,7 +2647,7 @@
   "ui-vs-quip-assign": {
    "game/UI/UI_VsQuip.c": {
     ".UI_VsQuipAssign": "184:f85148a9f1dae18a9d3d",
-    ".UI_VsQuipAssignAll": "4f8:bc739cf776ef7951bf2e",
+    ".UI_VsQuipAssignAll": "4f8:18129a6c9003cab56e49",
     ".UI_VsQuipDrawAll": "1b0:a1fa9a238b203c9acb6e",
     ".UI_VsQuipReadDriver": "70:7d2e1ca6b9afc8c14532",
     ".rodata": "28:f58d7d97b1a9b5f40382"

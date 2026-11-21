@@ -49,6 +49,17 @@ class LinkedTests(unittest.TestCase):
         self.assertEqual(lock.linked(a, SYMBOLS)[1], [(0, lock.R_MIPS_26, "unknown_a", 0)])
         self.assertNotEqual(lock.fingerprint(a, SYMBOLS), lock.fingerprint(b, SYMBOLS))
 
+    def test_rdata_and_rodata_are_one_section(self) -> None:
+        code_asm = section([0x3C020000, 0x24420000], [(0, lock.R_MIPS_HI16, ".rdata", 0), (4, lock.R_MIPS_LO16, ".rdata", 0)])
+        code_c = section([0x3C020000, 0x24420000], [(0, lock.R_MIPS_HI16, ".rodata", 0), (4, lock.R_MIPS_LO16, ".rodata", 0)])
+        self.assertEqual(lock.readonly_name(".rdata"), ".rodata")
+        self.assertEqual(lock.readonly_name(".rdata.misc"), ".rodata.misc")
+        self.assertEqual(lock.readonly_name(".rdatax"), ".rdatax")
+        self.assertEqual(lock.fingerprint(code_asm), lock.fingerprint(code_c))
+        linked_at = dict(SYMBOLS, **{".rodata": 0x800115AC})
+        self.assertEqual(words(lock.linked(code_asm, linked_at)[0]), [0x3C028001, 0x244215AC])
+        self.assertEqual(lock.fingerprint(code_asm, linked_at), lock.fingerprint(code_c, linked_at))
+
     def test_a_changed_word_changes_the_fingerprint(self) -> None:
         self.assertNotEqual(lock.fingerprint(section([0x24020555], [])), lock.fingerprint(section([0x24020556], [])))
 
