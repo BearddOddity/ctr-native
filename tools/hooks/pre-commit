@@ -1,0 +1,12 @@
+#!/bin/sh
+# CTR regression gate. Install once per clone:  git config core.hooksPath tools/hooks
+# Runs the matching unit tests and the match lock (tools/matching/lock.py) when a commit touches game code,
+# headers, the matching tools or their metadata. Skip once with: git commit --no-verify
+changed=$(git diff --cached --name-only -- game include tools/matching metadata)
+[ -z "$changed" ] && exit 0
+PY=$(command -v python3 || command -v python)
+if [ -z "$PY" ]; then
+    echo "pre-commit: no python found; the regression gate did not run" >&2
+    exit 0
+fi
+exec "$PY" tools/check.py --fast

@@ -1,0 +1,2854 @@
+{
+ "schema": 1,
+ "toolchain": "2.8.1",
+ "targets": {
+  "221": {
+   "game/221.c": {
+    ".data": "40:4def7dbe77b38137e262",
+    ".rodata": "e:da2f0135aa4886e15481",
+    ".text": "4dc:99f9e22cae233460a88f"
+   }
+  },
+  "222": {
+   "game/222.c": {
+    ".data": "78:d26546c7fefde10331f7",
+    ".rodata": "4:7b5bb0faf3252610e609",
+    ".text": "1434:edc1bfaf62a0bc38dcaf"
+   }
+  },
+  "223": {
+   "game/223.c": {
+    ".data": "4:122bb03bfcb21eaad764",
+    ".rodata": "1c:ef23f4215190fdfc1e49",
+    ".text": "1598:6eed78f04adac11502cd"
+   }
+  },
+  "224": {
+   "game/224.c": {
+    ".data": "a0:dfff1b4a04e2f07af976",
+    ".rodata": "4:7b5bb0faf3252610e609",
+    ".text": "d30:78243ec0d63821797f2b"
+   }
+  },
+  "225": {
+   "game/225.c": {
+    ".data": "c4:b6c9a91c5d4e353fb0e0",
+    ".rodata": "15:dde1d42ccaf54082d079",
+    ".text": "a2c:dd9593a2ef2e236dd06b"
+   }
+  },
+  "226": {
+   "game/226/226_00_DrawLevelOvr1P_psx.s": {
+    ".text": "a750:044ba7fd9781f151485f"
+   },
+   "game/226/R226.c": {
+    ".data": "564:97c6c7a785f94b4bccfe"
+   }
+  },
+  "227": {
+   "game/227/227_00_DrawLevelOvr2P_psx.s": {
+    ".text": "a7d0:09a04fee9eba1c95d2b8"
+   },
+   "game/227/R227.c": {
+    ".data": "564:1240cc82e9be712f122e"
+   }
+  },
+  "228": {
+   "game/228/228_00_DrawLevelOvr3P_psx.s": {
+    ".text": "817c:c455af258d4c009bebf3"
+   },
+   "game/228/R228.c": {
+    ".data": "420:86065f58c9f5139a9209"
+   }
+  },
+  "229": {
+   "game/229/229_00_DrawLevelOvr4P_psx.s": {
+    ".text": "8230:be65c4cb2cba79906fd9"
+   },
+   "game/229/R229.c": {
+    ".data": "420:9a2861e6152e509dfa20"
+   }
+  },
+  "230": {
+   "game/230/D230.c": {
+    ".D230": "1580:e0e73ece6411c05fe2e8",
+    ".bss": "88:6b1f9b0d2648c6f6fad4"
+   },
+   "game/230/MM_Battle.c": {
+    ".MM_Battle_CloseSubMenu": "14:2ffe4fed84088be05668",
+    ".MM_Battle_DrawIcon_Character": "48:8de927fab203d4a34b5b",
+    ".MM_Battle_DrawIcon_Weapon": "1d0:c6db8392c9e4a3811839",
+    ".MM_Battle_Init": "18:e8b09a423f4f1d3e99bb",
+    ".MM_Battle_MenuProc": "16c4:e71192d02522246024e2",
+    ".rodata": "2c:37ab18ef801d7f213959"
+   },
+   "game/230/MM_Characters.c": {
+    ".MM_Characters_AnimateColors": "c0:c24c25e03ee29d113d39",
+    ".MM_Characters_BackupIDs": "4c:9e734c704fede4bfbd99",
+    ".MM_Characters_DrawWindows": "4b0:b4fc020619ca42fa8658",
+    ".MM_Characters_GetModelByName": "a8:40fb5a8293d382ed056d",
+    ".MM_Characters_GetNextDriver": "98:3cdd75d9d3eea54987c8",
+    ".MM_Characters_HideDrivers": "9c:d6ba677d646350378962",
+    ".MM_Characters_MenuProc": "12f8:a49fb7fb6078f841865b",
+    ".MM_Characters_PreventOverlap": "1a4:d14ead134405487b51a8",
+    ".MM_Characters_RestoreIDs": "24c:0bc606064346db7f94a3",
+    ".MM_Characters_SetMenuLayout": "1b8:42d9f3bfc3cbc0fee6db",
+    ".MM_Characters_boolIsInvalid": "80:29769fcf3c3515319da4",
+    ".rodata": "18:aa4c3d8e5eb6ef79e341"
+   },
+   "game/230/MM_CheatCodes.c": {
+    ".MM_Cheat_AdvDifficulty": "3c:77858fdb2baeb22021f3",
+    ".MM_Cheat_IcyTracks": "3c:97f4800b44ccf15367db",
+    ".MM_Cheat_InfiniteMasks": "38:f0db3cdd48720f140be8",
+    ".MM_Cheat_MaxBombs": "3c:38e30772bbba05ede8f4",
+    ".MM_Cheat_MaxEngine": "3c:9589406a27689ea5ed9d",
+    ".MM_Cheat_MaxInvisibility": "38:9bdd7fd957e370bd797b",
+    ".MM_Cheat_MaxTurbos": "38:2e7daedc7a975e3ee907",
+    ".MM_Cheat_MaxWumpa": "38:ba47afe4bca0f91a55ae",
+    ".MM_Cheat_OneLap": "3c:6977a4a802f1fa483f57",
+    ".MM_Cheat_SuperHard": "3c:a46ff9b5ac9c0d6a352e",
+    ".MM_Cheat_SuperTurboPads": "3c:7dff3e40c72430cfffe7",
+    ".MM_Cheat_TurboCounter": "3c:3e34e9761ca9f3b839e7",
+    ".MM_Cheat_UnlockFakeCrash": "38:86e14e92fe040d83356f",
+    ".MM_Cheat_UnlockJoe": "38:07c5ea1686bb0de2975e",
+    ".MM_Cheat_UnlockPapu": "38:3c77abcdd8bc54e08aee",
+    ".MM_Cheat_UnlockPenta": "38:e975144c06d4408035d6",
+    ".MM_Cheat_UnlockPinstripe": "38:fc8dcca45b6749746aa0",
+    ".MM_Cheat_UnlockRoo": "38:703046a98271a3abcd76",
+    ".MM_Cheat_UnlockScrapbook": "38:928c2bfb1c5b074db069",
+    ".MM_Cheat_UnlockTracks": "38:f366958674d3d0082edf",
+    ".MM_Cheat_UnlockTropy": "38:ad84e8a8a1e2c7365449",
+    ".MM_ParseCheatCodes": "140:f0a576b588722d8a7a92"
+   },
+   "game/230/MM_CupSelect.c": {
+    ".MM_CupSelect_Init": "34:58ff7a4c015a21f5fc58",
+    ".MM_CupSelect_MenuProc": "760:6b72c3b2bd8cd81eeef3"
+   },
+   "game/230/MM_HighScore.c": {
+    ".MM_HighScore_Draw": "958:638a157736f745a34985",
+    ".MM_HighScore_Init": "40:66e61a00b1c5f443f39d",
+    ".MM_HighScore_MenuProc": "690:7d7a17d8fc6f63deddf9",
+    ".MM_HighScore_Text3D": "b0:887ce02490bc63e3acda"
+   },
+   "game/230/MM_MenuFlow.c": {
+    ".MM_AdvNewLoad_GetMenuPtr": "c:15c14bc4c7905a7cc264",
+    ".MM_JumpTo_BattleSetup": "3c:8a7d41c101fcb78f2825",
+    ".MM_JumpTo_Characters": "3c:4651ea3c053cc64298b9",
+    ".MM_JumpTo_Scrapbook": "3c:b48f577664e461212160",
+    ".MM_JumpTo_Title_FirstTime": "90:eca88349ac418e9c7883",
+    ".MM_JumpTo_Title_Returning": "30:6a5c581f8825aec794da",
+    ".MM_JumpTo_TrackSelect": "3c:e607c66d5cc19f07a4be",
+    ".MM_MenuProc_1p2p": "88:ddc5a02f55ceda59d1ae",
+    ".MM_MenuProc_2p3p4p": "90:72c07f3f46f28fef4e40",
+    ".MM_MenuProc_Difficulty": "84:770aa60fa9f017bd2ec8",
+    ".MM_MenuProc_Main": "454:374458f029f3e61d12a4",
+    ".MM_MenuProc_NewLoad": "90:1198b1bda0d8153a0f3f",
+    ".MM_MenuProc_SingleCup": "c8:8f0fa8a471bfe99c25f9",
+    ".MM_ResetAllMenus": "84:941222e0c5f5031d14d6",
+    ".MM_ToggleRows_Difficulty": "12c:bd04529f8aa1914bbde7",
+    ".MM_ToggleRows_PlayerCount": "118:e38c5eea904c725ff527",
+    ".MM_TransitionInOut": "1bc:661074a02d372980cd44"
+   },
+   "game/230/MM_Scrapbook.c": {
+    ".MM_Scrapbook_Init": "30:2bb6901a5791ac2c9a12",
+    ".MM_Scrapbook_PlayMovie": "29c:5dadaaa725b2ca572d9f",
+    ".rodata": "14:f9b4d525f130b5eea0a2"
+   },
+   "game/230/MM_Title.c": {
+    ".MM_Title_CameraMove": "160:1419cdf95adbfbfbd151",
+    ".MM_Title_CameraReset": "20:9cc44784a0c813974e4e",
+    ".MM_Title_Init": "250:8ef0891a09d82a7f779d",
+    ".MM_Title_KillThread": "b0:6bfd2db8355283da42b8",
+    ".MM_Title_MenuUpdate": "4cc:8f5a3a094b092c841fec",
+    ".MM_Title_SetTrophyDPP": "78:cd8eaab2d643a5e25b2f",
+    ".MM_Title_ThTick": "38c:b12acdefacb7dbb6dec2",
+    ".rodata": "18:4db3e270d3edfd19c5ab"
+   },
+   "game/230/MM_TrackSelect.c": {
+    ".MM_TrackSelect_GetMenuPtr": "c:8cb34100d72b8468f1a7",
+    ".MM_TrackSelect_Init": "104:d4beacb0834f59009abf",
+    ".MM_TrackSelect_MenuProc": "dd8:d661db599430d834b7ca",
+    ".MM_TrackSelect_Video_Draw": "468:5a671b89011e42e08876",
+    ".MM_TrackSelect_Video_SetDefaults": "50:4296cc4c0b43cdcd4d84",
+    ".MM_TrackSelect_Video_State": "5c:489431542aa9325a78df",
+    ".MM_TrackSelect_boolTrackOpen": "78:973d5397012a93cbec6c"
+   },
+   "game/230/MM_Video.c": {
+    ".MM_Video_AllocMem": "1fc:eb38e2c0c22eb516b79f",
+    ".MM_Video_CheckIfFinished": "138:c5ae37c05e6ccb5db879",
+    ".MM_Video_ClearMem": "20:3ef7581d4030f73dd0c4",
+    ".MM_Video_DecDCToutCallbackFunc": "118:c76115c56af8dc7791da",
+    ".MM_Video_DecodeFrame": "180:f51d65af88d28e92e9d4",
+    ".MM_Video_KickCD": "110:958f95666666db335b15",
+    ".MM_Video_StartStream": "104:7810777e4be6753852d8",
+    ".MM_Video_StopStream": "78:61120d161f0b9c491fe4",
+    ".MM_Video_VLC_Decode": "4d0:c7c42c4990e13389a780"
+   },
+   "game/230/R230.c": {
+    ".R230": "b8:50b36367b890535839f3"
+   }
+  },
+  "231": {
+   "game/231/D231.c": {
+    ".bss": "270:b81570e9da81e4dfe26b"
+   },
+   "game/231/R231.c": {
+    ".RB_names": "bc:82b81d0de6ebce9a1051",
+    ".data": "3b8:f36d8c9bf7983bc57b18"
+   },
+   "game/231/RB_Armadillo.c": {
+    ".RB_Armadillo_LInB": "174:49bae3fff3ba60bac8ce",
+    ".RB_Armadillo_ThCollide": "14:046ee000e458135a977e",
+    ".RB_Armadillo_ThTick_Rolling": "248:9a007518700a1655013b",
+    ".RB_Armadillo_ThTick_TurnAround": "1f0:5ae3ca87bbd74f0bbcb5",
+    ".rodata": "a:862824e49e76b77dd5d2"
+   },
+   "game/231/RB_Banner.c": {
+    ".RB_Banner_Animate_Init": "2e4:e49421b69647d656906d",
+    ".RB_Banner_Animate_Play": "f0:f44b43a134d4c6909287",
+    ".RB_Banner_LInB": "170:40d35a1aac18af73a643",
+    ".RB_Banner_ThTick": "44:4e9371c43ac747379094",
+    ".rodata": "c:66ee9fd1cda06da590c1"
+   },
+   "game/231/RB_Baron.c": {
+    ".RB_Baron_LInB": "108:d2f4475915980789f5e3",
+    ".RB_Baron_ThTick": "6b4:c303d6a9ccee928c1416",
+    ".rodata": "14:b193f1974d69c0c63af2"
+   },
+   "game/231/RB_Blade.c": {
+    ".RB_Blade_LInB": "64:b4cee8a99612936c5eb3",
+    ".RB_Blade_ThTick": "94:943fd59f362a1f5252ac",
+    ".rodata": "6:1a36fa4a5cd2eb245ec6"
+   },
+   "game/231/RB_Blowup.c": {
+    ".RB_Blowup_Init": "2e0:9255263e181c0ce360f0",
+    ".RB_Blowup_ProcessBucket": "dc:7547d5d7b93ef99198bf",
+    ".RB_Blowup_ThTick": "108:848f0f057e183add157b"
+   },
+   "game/231/RB_Bubbles.c": {
+    ".RB_Bubbles_RoosTubes": "1e4:1a39a842eb71a698fa15",
+    ".data": "fc:6a710233e065f5dbf66f"
+   },
+   "game/231/RB_Burst.c": {
+    ".RB_Burst_CollLevInst": "b0:99fe242110b212077a5e",
+    ".RB_Burst_CollThBucket": "214:5421eafb7c15dce8b707",
+    ".RB_Burst_DrawAll": "308:01e339a36adddbdf9471",
+    ".RB_Burst_Init": "464:5b0179fbc0f4e02eab7f",
+    ".RB_Burst_ProcessBucket": "154:24282dc91f81f5f7915c",
+    ".RB_Burst_ThTick": "164:01b1f52193bdcb33b13e"
+   },
+   "game/231/RB_Crate.c": {
+    ".RB_CrateAny_ThTick_Explode": "78:ae011fa05131a2437db6",
+    ".RB_CrateAny_ThTick_Grow": "100:c97510436748ca200118",
+    ".RB_CrateFruit_LInC": "b4:ac61c581e93669635684",
+    ".RB_CrateFruit_ThCollide": "3f0:1902371e6d701808e413",
+    ".RB_CrateTime_LInC": "b4:5f0ebeaa323192642552",
+    ".RB_CrateTime_ThCollide": "3d8:e98ec72476eea8b1e144",
+    ".RB_CrateWeapon_LInC": "b4:be9e4d54fc616d0eb7a8",
+    ".RB_CrateWeapon_ThCollide": "3fc:a380b2e1b69dc0bf1f5c",
+    ".data": "1c:9af3b079f44228fc79d4",
+    ".rodata": "14:b5690a0974930cd64f82"
+   },
+   "game/231/RB_Crystal.c": {
+    ".RB_Crystal_LInB": "9c:b2bd84371bd943197d6d",
+    ".RB_Crystal_LInC": "cc:fa0baaa5ea221534771f",
+    ".RB_Crystal_ThCollide": "17c:9761981f7e834e90a2ae",
+    ".RB_Crystal_ThTick": "a4:a2988f76b1586349f910",
+    ".data": "6:6aca1a3034bc56ac91dd",
+    ".rodata": "8:1f6eef6817c02afc3e0a"
+   },
+   "game/231/RB_CtrLetter.c": {
+    ".RB_CtrLetter_LInB": "ac:66ea4093132025090aeb",
+    ".RB_CtrLetter_LInC": "cc:89f6c2ffafeee2148259",
+    ".RB_CtrLetter_ThCollide": "180:b8b665581c0216182c8f",
+    ".RB_CtrLetter_ThTick": "58:ada74da86fec699316ba",
+    ".data": "6:6d2584ade8790d9b6e9b",
+    ".rodata": "4:aacb817faf1297f1986b"
+   },
+   "game/231/RB_Default.c": {
+    ".RB_Default_LInB": "ac:8f0e4b0e8a5899f9af69"
+   },
+   "game/231/RB_Explosion.c": {
+    ".RB_Explosion_InitGeneric": "e4:fc69d14402e3eb299a2d",
+    ".RB_Explosion_InitPotion": "1d8:0ccfaa6c0361af8021cf",
+    ".RB_Explosion_ThTick": "80:f783a82dc709a7459092"
+   },
+   "game/231/RB_Fireball.c": {
+    ".RB_Fireball_LInB": "d4:af5cbd7f9d56e19f6e30",
+    ".RB_Fireball_ThCollide": "14:046ee000e458135a977e",
+    ".RB_Fireball_ThTick": "30c:5394db9c6aeac172be4b",
+    ".data": "168:6f96feaf69992a4c7229",
+    ".rodata": "9:caa8d8f0ee09099e607c"
+   },
+   "game/231/RB_FlameJet.c": {
+    ".RB_FlameJet_LInB": "15c:08af6fbd3c014e367be2",
+    ".RB_FlameJet_Particles": "268:405ab3d0efc5fa96e538",
+    ".RB_FlameJet_ThTick": "210:8f02471fd0efaf21278e",
+    ".data": "2b8:8736ffa640a19f459b77",
+    ".rodata": "11:219a3cabf713d10f4f1f"
+   },
+   "game/231/RB_Follower.c": {
+    ".RB_Follower_Init": "164:b68d4bc1cb21d6f51682",
+    ".RB_Follower_ProcessBucket": "b8:29372470791801ad5429",
+    ".RB_Follower_ThTick": "f0:3388a68e95ef68ce8567",
+    ".rodata": "9:ebfb2f00b7ffd4c22450"
+   },
+   "game/231/RB_Fruit.c": {
+    ".RB_Fruit_LInB": "34:d82f6e394129acf2c969",
+    ".RB_Fruit_LInC": "cc:89d96b3862f3c2265e9c",
+    ".RB_Fruit_ThCollide": "184:7fe1abd5abced9c1948f",
+    ".RB_Fruit_ThTick": "3c:f1e9b25c844e73078979",
+    ".rodata": "6:57d92b870ed7c2df92b5"
+   },
+   "game/231/RB_GenericMine.c": {
+    ".RB_GenericMine_LInB": "110:7d8bdf6ac930b34c6bfa",
+    ".RB_GenericMine_ThDestroy": "c0:1fad4da9d4e86aee767c",
+    ".RB_GenericMine_ThTick": "6f0:5cf5b65a28d8101b43f9"
+   },
+   "game/231/RB_Hazard.c": {
+    ".RB_Hazard_CollLevInst": "e4:a4d21f46b39009d290d2",
+    ".RB_Hazard_CollideWithBucket": "a8:22ac5386b1b0ac3d0369",
+    ".RB_Hazard_CollideWithDrivers": "130:9d675bf1ecfb760046ac",
+    ".RB_Hazard_HurtDriver": "70:020168c33ab18d2b626f",
+    ".RB_Hazard_InterpolateValue": "c0:dfb6359e59b249c8dff6",
+    ".RB_Hazard_ThCollide_Generic": "130:25c6fb736ae0fe503e05",
+    ".RB_Hazard_ThCollide_Generic_Alt": "34:0de6d684cfd0656ded45",
+    ".RB_Hazard_ThCollide_Missile": "8c:5c839b577e398ea35152"
+   },
+   "game/231/RB_Instance.c": {
+    ".RB_MakeInstanceReflective": "104:dc08e01aa5fc45ee8940"
+   },
+   "game/231/RB_MaskShieldCloud.c": {
+    ".RB_MaskWeapon_FadeAway": "24c:663e0889c86f5e337e1d",
+    ".RB_MaskWeapon_ThTick": "4bc:bfb386cb28cbcc3b27da",
+    ".RB_RainCloud_FadeAway": "e4:bfa03811f0b029ab9858",
+    ".RB_RainCloud_Init": "238:94588e004c8a728776e9",
+    ".RB_RainCloud_ThTick": "220:fc063f1e54211d15f3b6",
+    ".RB_ShieldDark_ThTick_Grow": "968:9af723d5954cf1d38896",
+    ".RB_ShieldDark_ThTick_Pop": "1dc:8bf2227e0227a5b9f106"
+   },
+   "game/231/RB_MinePool.c": {
+    ".RB_MinePool_Add": "74:b496d0d331e6d0d99a64",
+    ".RB_MinePool_Init": "f8:55ec6534d89c94aed8af",
+    ".RB_MinePool_Remove": "58:82da2b59d042591f6fdd"
+   },
+   "game/231/RB_Minecart.c": {
+    ".RB_Minecart_LInB": "30c:4d248c2b371b7888142a",
+    ".RB_Minecart_ThTick": "4dc:329c87cd25839547ebd6",
+    ".data": "64:d076292c00bec264f5e5",
+    ".rodata": "9:82fb79f022404c0a491f"
+   },
+   "game/231/RB_MovingExplosive.c": {
+    ".RB_MovingExplosive_Explode": "ac:760ec40b5e08b4596642",
+    ".RB_MovingExplosive_ThTick": "928:edaf3900ee176163ec7c"
+   },
+   "game/231/RB_Orca.c": {
+    ".RB_Orca_LInB": "218:8c241f2de4ed062894fb",
+    ".RB_Orca_ThCollide": "14:046ee000e458135a977e",
+    ".RB_Orca_ThTick": "32c:be42204031c22ef8532c",
+    ".data": "fc:15f687034583e1a1c358",
+    ".rodata": "5:347a8b8d15b4cd75652b"
+   },
+   "game/231/RB_Plant.c": {
+    ".RB_Plant_LInB": "128:d97cfa21704ed9a2b87e",
+    ".RB_Plant_ThTick_Eat": "308:fa0c7760c18fe19a5001",
+    ".RB_Plant_ThTick_Grab": "160:8c390adac0ca01edcc33",
+    ".RB_Plant_ThTick_Hungry": "1f4:0e410328fcd472e33533",
+    ".RB_Plant_ThTick_Rest": "fc:b55b54ea45cb85c9bcc4",
+    ".RB_Plant_ThTick_Transition_HungryToRest": "64:f0fdf8b8476b42436560",
+    ".data": "12c:35df73a6b3e1a89218b8",
+    ".rodata": "6:8819fa27e0d9156e37ac"
+   },
+   "game/231/RB_Player.c": {
+    ".RB_Player_KillPlayer": "348:253cdff78488ce2c183c",
+    ".RB_Player_ModifyWumpa": "f0:5bc9b055a7214e0c4189",
+    ".RB_Player_ToggleFlicker": "b4:e5e6a2068162e4ec3fb0",
+    ".RB_Player_ToggleInvisible": "ac:e9dd039c4b1fc8a9d18d"
+   },
+   "game/231/RB_Potion.c": {
+    ".RB_Potion_OnShatter_TeethCallback": "50:aca9b0b87ea04d3bc4d8",
+    ".RB_Potion_OnShatter_TeethSearch": "7c:14ed388cd969009d4db5",
+    ".RB_Potion_ThTick_InAir": "39c:705714bd86aa6d6546bd"
+   },
+   "game/231/RB_Seal.c": {
+    ".RB_Seal_LInB": "1b4:c2ee72f86741b4e46c79",
+    ".RB_Seal_ThCollide": "14:046ee000e458135a977e",
+    ".RB_Seal_ThTick_Move": "2bc:7f4a5b71e9334c4fed0d",
+    ".RB_Seal_ThTick_TurnAround": "21c:b46dbc72146a47a2bbb5",
+    ".rodata": "5:ed458617346ab223e7e2"
+   },
+   "game/231/RB_Snowball.c": {
+    ".RB_Snowball_LInB": "d8:bf8b7d0099b427a78176",
+    ".RB_Snowball_ThTick": "260:72fd774d0abaeee8cb45",
+    ".rodata": "9:9706482d7c16bc8b5b00"
+   },
+   "game/231/RB_Spider.c": {
+    ".RB_Spider_DrawWebs": "24c:c0229ced0f25b3602a49",
+    ".RB_Spider_LInB": "1d0:77e7eec2f4b83eca8b9f",
+    ".RB_Spider_ThCollide": "14:046ee000e458135a977e",
+    ".RB_Spider_ThTick": "378:4ef5bc1defbc6b9d541d",
+    ".data": "34:65a8709bf1b08d41c166",
+    ".rodata": "15:3d62468199843a9fc478"
+   },
+   "game/231/RB_StartText.c": {
+    ".RB_StartText_LInB": "8:3fce55fcf4d40dd7ad5a",
+    ".RB_StartText_ProcessBucket": "8:3fce55fcf4d40dd7ad5a"
+   },
+   "game/231/RB_TNT.c": {
+    ".RB_TNT_ThTick_SitOnHead": "2c4:10dcf8cafec070d29e09",
+    ".RB_TNT_ThTick_ThrowOffHead": "13c:4ad22c055d6312421a67",
+    ".RB_TNT_ThTick_ThrowOnHead": "21c:47f7b205376ce58dc83e",
+    ".rodata": "188:5e6ca744530bb3a21d3a"
+   },
+   "game/231/RB_Teeth.c": {
+    ".RB_Teeth_BSP_Callback": "c8:b793b80413a1400ebe57",
+    ".RB_Teeth_LInB": "54:ed0a868395b98d89bc61",
+    ".RB_Teeth_LInC": "158:9406c3ce7fe9f8be994c",
+    ".RB_Teeth_OpenDoor": "98:ad24b2a44385fb30867c",
+    ".RB_Teeth_ThTick": "1bc:898b0b0260f57ac3da0c",
+    ".rodata": "6:b18bd029864196020fce"
+   },
+   "game/231/RB_Tracker.c": {
+    ".RB_GetThread_ClosestTracker": "9c:dd8d7cc737cad7f97293"
+   },
+   "game/231/RB_Turtle.c": {
+    ".RB_Turtle_LInB": "d8:ac0266c3fc7369775ca1",
+    ".RB_Turtle_LInC": "50:a99691a0fcf8908f383d",
+    ".RB_Turtle_ThTick": "160:652cc5fbe7b26617e8c4",
+    ".rodata": "7:81ff941cfafd2e2404ab"
+   },
+   "game/231/RB_Warpball.c": {
+    ".RB_Warpball_Death": "64:1c6f7c1edb19dd43aacd",
+    ".RB_Warpball_FadeAway": "e0:ea9b8fa1657f0dd46332",
+    ".RB_Warpball_GetDriverTarget": "2d0:ee08b37b254c656b86c4",
+    ".RB_Warpball_NewPathNode": "110:1856d8ccf2e930e45d9e",
+    ".RB_Warpball_SeekDriver": "100:f1a287d11ae8f50cda4d",
+    ".RB_Warpball_SetTargetDriver": "234:1542d921da96cb40928b",
+    ".RB_Warpball_Start": "64:bf24bd3fcc97badebf89",
+    ".RB_Warpball_ThTick": "bd4:869285737c553a8e87bd",
+    ".RB_Warpball_TurnAround": "1bc:b64dfdf61f5eeb3ed6c0"
+   }
+  },
+  "232": {
+   "game/232/AH_Door.c": {
+    ".AH_Door_LInB": "46c:d1fa357d6242f9af69bf",
+    ".AH_Door_ThDestroy": "68:2b309c95914c5c89b752",
+    ".AH_Door_ThTick": "ccc:3cefbd7ab546141ae8fa",
+    ".rodata": "16:bc8f7c77461699ef8f55"
+   },
+   "game/232/AH_Garage.c": {
+    ".AH_Garage_LInB": "334:b8bf63e36d1e650fcadd",
+    ".AH_Garage_Open": "a8:15d25a2987e508939aae",
+    ".AH_Garage_ThDestroy": "40:858565cc259d1010ccc1",
+    ".AH_Garage_ThTick": "6e8:d4d3bbddd96466061129",
+    ".rodata": "16:a94c75a82cc5ba893590"
+   },
+   "game/232/AH_HintMenu.c": {
+    ".AH_HintMenu_FiveArrows": "d0:15a83479b1929cbd909e",
+    ".AH_HintMenu_MaskPosRot": "78:f7bb9826faabcf05526c",
+    ".AH_HintMenu_MenuProc": "844:f5dcc9094f055a2ff4a0"
+   },
+   "game/232/AH_Map.c": {
+    ".AH_Map_HubArrow": "238:33dee12b5ab4a7256454",
+    ".AH_Map_HubArrowOuter": "3a4:48efd9838d2e2cb9021c",
+    ".AH_Map_HubItems": "524:abcc73adc48465ece449",
+    ".AH_Map_LoadSave_Full": "238:8c16ea6016ca72d5e638",
+    ".AH_Map_LoadSave_Prim": "148:9f76f65f642c114b245e",
+    ".AH_Map_Main": "268:2472e7ccf06db09da54a",
+    ".AH_Map_Warppads": "278:f0999161f9e1d88aa7ac",
+    ".rodata": "14:7cf81a0d35d1ce6f4a71"
+   },
+   "game/232/AH_MaskHint.c": {
+    ".AH_MaskHint_LerpVol": "a4:691bcf4cc278ba79b1ed",
+    ".AH_MaskHint_SetAnim": "31c:f60d46c8bef8f0088e52",
+    ".AH_MaskHint_SpawnParticles": "118:cab18e6d3f037a8d86d3",
+    ".AH_MaskHint_Start": "1b0:4879d229791041b13cc0",
+    ".AH_MaskHint_Update": "810:beca9cc91ffaae4d66af",
+    ".AH_MaskHint_boolCanSpawn": "10:552a61471c8e66f33e58",
+    ".rodata": "20:4ef8bda1c332c9820e63"
+   },
+   "game/232/AH_Pause.c": {
+    ".AH_Pause_Destroy": "80:dee663aa0fd7cb0db035",
+    ".AH_Pause_Draw": "11cc:d4be7d14dc0ad3eef16c",
+    ".AH_Pause_Update": "308:3c43c5009bdb6e996daa"
+   },
+   "game/232/AH_SaveObj.c": {
+    ".AH_SaveObj_LInB": "208:72835510df06ce306c4f",
+    ".AH_SaveObj_ThDestroy": "40:57091d01cbe6ff216316",
+    ".AH_SaveObj_ThTick": "40c:a0ac1aebd226fe117d32"
+   },
+   "game/232/AH_Sign.c": {
+    ".AH_Sign_LInB": "15c:af90da7fb3b922ee1c96"
+   },
+   "game/232/AH_WarpPad.c": {
+    ".AH_WarpPad_AllWarppadNum": "1a4:bfa85f5c35044bb5e24f",
+    ".AH_WarpPad_GetSpawnPosRot": "e0:688e008341441b65b39b",
+    ".AH_WarpPad_LInB": "14b4:1cc3d393653f712e24c1",
+    ".AH_WarpPad_MenuProc": "7c:b099c1b0d18dee72c13d",
+    ".AH_WarpPad_SpinRewards": "14c:864cd7ebdb31715670f7",
+    ".AH_WarpPad_ThDestroy": "124:853eb3a1d70f792012ef",
+    ".AH_WarpPad_ThTick": "1380:b6d707fdaa9102acd33e",
+    ".rodata": "47:f9fb91552f3a42df108d"
+   },
+   "game/232/D232.c": {
+    ".data": "898:3da7db686386b6c67633"
+   },
+   "game/232/R232.c": {
+    ".data": "a0:f6b3cfa8d96bd706686a"
+   }
+  },
+  "233": {
+   "game/233/CS_BoxScene.c": {
+    ".CS_BoxScene_InstanceSplitLines": "44:7ce3781acca6feaaeb44"
+   },
+   "game/233/CS_Camera.c": {
+    ".CS_Camera_BoolGotoBoss": "b0:aa0a88cab9d096474622",
+    ".CS_Camera_ThTick_Boss": "3a0:3b34e603f20371f280eb",
+    ".CS_Camera_ThTick_Podium": "530:f949a4c2eeb08d93d1c9",
+    ".rodata": "18:81035f33643e60e2bbbf"
+   },
+   "game/233/CS_Credits.c": {
+    ".CS_Credits_AnimateCreditGhost": "1a8:05daf9f49a95c1ea7b38",
+    ".CS_Credits_DestroyCreditGhost": "6c:f767c0c564660977b1a6",
+    ".CS_Credits_DrawEpilogue": "1f8:b9fdf13daa7477006726",
+    ".CS_Credits_DrawNames": "308:bc5483f3bfdee3f1d2af",
+    ".CS_Credits_End": "94:01bfad7f6128e82f59c6",
+    ".CS_Credits_GetNextString": "4c:4dff15267906c44e8c93",
+    ".CS_Credits_Init": "314:3c608c191e5b1faf291f",
+    ".CS_Credits_IsTextValid": "2c:c330975c0ae15174ea7c",
+    ".CS_Credits_NewCreditGhosts": "5c:5078c2a16d355e33cbc8",
+    ".CS_Credits_NewDancer": "cc:bf7fb6a1e40c3e12ea89",
+    ".CS_Credits_ThDestroy": "8:3fce55fcf4d40dd7ad5a",
+    ".CS_Credits_ThTick": "1bc:e2eea86da650baaa1d9c",
+    ".CS_credits_names": "24:33467db580d90cd0454b"
+   },
+   "game/233/CS_Cutscene.c": {
+    ".CS_Cutscene_Start": "2bc:6b2cd17e93d7eacd3b87"
+   },
+   "game/233/CS_Garage.c": {
+    ".CS_Garage_GetMenuPtr": "c:402502728e8c8793ac31",
+    ".CS_Garage_Init": "40:9606e31a60e1f1ca3f5c",
+    ".CS_Garage_MenuProc": "d18:fc74870524df702652ed",
+    ".CS_Garage_ZoomOut": "b0:3b6d3f491fb640b20b03",
+    ".CS_garage_white": "4:e8f2e884c9dcb91ef86b"
+   },
+   "game/233/CS_Instance.c": {
+    ".CS_Instance_BoolPlaySound": "80:ccb0aeef0f7dd2dbe336",
+    ".CS_Instance_GetFrameData": "284:b7a609e86b7a5ee41978",
+    ".CS_Instance_GetNumAnimFrames": "94:f59f003e4f1ee4f526f0",
+    ".CS_Instance_InitMatrix": "10c:a3f229098d94cbcc3a3f",
+    ".CS_Instance_SafeCheckAnimFrame": "5c:389bf49dc926eedf6171"
+   },
+   "game/233/CS_LoadBoss.c": {
+    ".CS_LoadBoss": "174:d69adbe0f2ddd74f49fd",
+    ".CS_LoadBossCallback": "18:39a91efc52343b6e0207"
+   },
+   "game/233/CS_Podium.c": {
+    ".CS_DestroyPodium_StartDriving": "12c:2afca51d83bab3fbfe23",
+    ".CS_Podium_FullScene_Init": "3ac:eb9e554bd9c502a4e404",
+    ".CS_Podium_Prize_Init": "38c:fe65efb4759b66bada94",
+    ".CS_Podium_Prize_Spin": "1d4:c77649913728702d1cef",
+    ".CS_Podium_Prize_ThDestroy": "38:97513e45b6f3822ed173",
+    ".CS_Podium_Prize_ThTick1": "194:59da8ebca317c564d83b",
+    ".CS_Podium_Prize_ThTick2": "fc:275b799dd5cba3e04cb3",
+    ".CS_Podium_Prize_ThTick3": "234:3dfa770615de8d227332",
+    ".CS_Podium_Stand_Init": "b8:dffa634481b4847cc4b9",
+    ".CS_Podium_Stand_ThTick": "2c:efdf10ff41c0e853d9bb",
+    ".rodata": "12c:98e29780d7dcaabf9e0c"
+   },
+   "game/233/CS_ScriptCmd.c": {
+    ".CS_ScriptCmd_OpcodeAt": "28:428911d0338a332fc5d5",
+    ".CS_ScriptCmd_OpcodeNext": "2c:32c2a5ffd7dca0415337",
+    ".CS_ScriptCmd_ReadOpcode_GetInt": "3c:d48df3d0ead488890d81",
+    ".CS_ScriptCmd_ReadOpcode_GetInt_dup": "3c:d48df3d0ead488890d81",
+    ".CS_ScriptCmd_ReadOpcode_GetShort": "2c:e13190597f46cd3bd677",
+    ".CS_ScriptCmd_ReadOpcode_Main": "1ac:de56119b65140f07d0d0"
+   },
+   "game/233/CS_Thread.c": {
+    ".CS_Thread_AnimateScale": "60:1fca42af81522613c63e",
+    ".CS_Thread_Init": "498:4405dbb3042988a2c51c",
+    ".CS_Thread_InterpolateFramesMS": "234:60842d8a5bd42b41f7c4",
+    ".CS_Thread_LInB": "1d0:1b6356d0813f084d7387",
+    ".CS_Thread_MoveOnPath": "42c:a8cf8f0911ddb19ed5ba",
+    ".CS_Thread_Particles": "19c:381188bf8f99739aca73",
+    ".CS_Thread_ThTick": "2d0:708fcdacea47ad9c5c8d",
+    ".CS_Thread_UseOpcode": "164c:9e834f37a8316bdbf999",
+    ".rodata": "1c4:161ed7e3375adaa4b87e"
+   },
+   "game/233/D233.c": {
+    ".CS_credits_data": "374:8e93ba4b6224ffc53130",
+    ".CS_garage_data": "ac:84e70b5a5fa908525685"
+   },
+   "game/233/R233.c": {
+    ".CS_intro_names": "bc:610c8f75a3daad9c2010",
+    ".CS_thread_names": "18:ef31549495f586bad6f5",
+    ".data": "6c04:87fdb9db4184b83dfbfd"
+   }
+  },
+  "animate-quad": {
+   "game/MATH/TRIG_AngleSinCos_r19r17r18.c": {
+    ".TRIG_AngleSinCos_r19r17r18": "68:5d095cc19a571084ff85"
+   },
+   "game/RenderLevel/AnimateQuad.c": {
+    ".AnimateQuad": "9c:840ab24f7642bb38e464"
+   },
+   "game/RenderLevel/AnimateQuadVertex.c": {
+    ".AnimateQuadVertex": "88:fb9a97600dd897119c1b"
+   }
+  },
+  "animate-water": {
+   "game/RenderLevel/AnimateWater.c": {
+    ".AnimateWater3P": "108:f4d4a398328100dbf697",
+    ".AnimateWater4P": "12c:9e2677dfab44ab8e03de",
+    ".AnimateWaterVertex": "b4:b9293a9af6a55c65e5c9"
+   },
+   "game/RenderLevel/AnimateWater1P.c": {
+    ".AnimateWater1P": "c8:a0042fb2987cd7e1e91e"
+   },
+   "game/RenderLevel/AnimateWater2P.c": {
+    ".AnimateWater2P": "e4:bf2aa20d742f0baa5040"
+   }
+  },
+  "bank-allocation": {
+   "game/HOWL/HOWL_Bank.c": {
+    ".Bank_Alloc": "bc:37aab3963c8f04ab4455",
+    ".Bank_ResetAllocator": "1c:8f6f61b0ccbda3d837de"
+   }
+  },
+  "bank-assign-spu-addrs": {
+   "game/HOWL/HOWL_Bank.c": {
+    ".Bank_AssignSpuAddrs": "30c:d9317cf193dfaefc4638"
+   }
+  },
+  "bank-destroy-clear": {
+   "game/HOWL/HOWL_Bank.c": {
+    ".Bank_ClearInRange": "70:1d3e7bdcf14bc25d0db7",
+    ".Bank_Destroy": "6c:65da9d14c71041ab8073"
+   }
+  },
+  "bank-lifecycle": {
+   "game/HOWL/HOWL_Bank.c": {
+    ".Bank_DestroyAll": "38:40715e94841961edac89",
+    ".Bank_DestroyLast": "4c:c9ae669792a27fc4b534",
+    ".Bank_DestroyUntilIndex": "74:85c3b9c74cd4ef38953c",
+    ".Bank_Load": "84:ccd867c6e68ebe187e20"
+   }
+  },
+  "bots-init-difficulty": {
+   "game/BOTS.c": {
+    ".BOTS_Adv_AdjustDifficulty": "ddc:9f290ed792d9fb822b91",
+    ".BOTS_Adv_NumTimesLostEvent": "30:f0f842f3a70a40f84ec0",
+    ".BOTS_EmptyFunc": "8:3fce55fcf4d40dd7ad5a",
+    ".BOTS_InitNavPath": "120:2db180fb2127cc79e20b",
+    ".BOTS_SetGlobalNavData": "60:b28804f0b0bb341bf265"
+   }
+  },
+  "bots-state-lifecycle": {
+   "game/BOTS.c": {
+    ".BOTS_ChangeState": "3c8:f88732fe329d04fb8a45",
+    ".BOTS_CollideWithOtherAI": "164:01206bd2154c9529d777",
+    ".BOTS_Driver_Convert": "2b4:92cefa112f31a2a973e3",
+    ".BOTS_Driver_Init": "1b4:2c43818175b66a7f715a",
+    ".BOTS_GotoStartingLine": "138:65b831389341b4abd752",
+    ".rodata": "34:d94708c8e8ab515bda4f"
+   }
+  },
+  "bots-support": {
+   "game/BOTS.c": {
+    ".BOTS_Killplane": "1a8:88b20099f06d0d677e29",
+    ".BOTS_LevInstColl": "154:60b4de58fd40bbf6476e",
+    ".BOTS_MaskGrab": "238:45ae235fb137a0f0f38b",
+    ".BOTS_SetRotation": "194:c97286888b9882012d38",
+    ".BOTS_ThTick_RevEngine": "10c:390c0222479c2898a851",
+    ".BOTS_UpdateGlobals": "d0:9a09303186933c6e12b9"
+   }
+  },
+  "cam-angle-fly": {
+   "game/CAM/CAM_FollowDriver_AngleAxis.c": {
+    ".CAM_FollowDriver_AngleAxis": "3a0:3887ab020d816601ee95"
+   },
+   "game/CAM/CAM_StartLine_FlyIn.c": {
+    ".CAM_StartLine_FlyIn": "430:d476f445520e68e458ac"
+   }
+  },
+  "cam-path-race": {
+   "game/CAM.c": {
+    ".CAM_EndOfRace": "88:11b0a3096e84ee7b6aec",
+    ".CAM_EndOfRace_Battle": "9c:d6e09348e18710a8ebbb",
+    ".CAM_Path_GetNumPoints": "88:8376cae91c579654e303",
+    ".CAM_Path_Move": "180:55e067e29067956cb1ad",
+    ".CAM_StartOfRace": "7c:298323f5e2301b821d57"
+   }
+  },
+  "cam-pose": {
+   "game/CAM.c": {
+    ".CAM_FollowDriver_Spin360": "fc:1484d2affb4ed82b7795",
+    ".CAM_LookAtPosition": "dc:be3ba1c1217949a719dc",
+    ".CAM_MapRange_PosPoints": "e0:ef8bdba48ff89a880e58",
+    ".CAM_SetDesiredPosRot": "68:6c5de4d10f1141e166bf"
+   }
+  },
+  "cam-setup": {
+   "game/CAM.c": {
+    ".CAM_ClearScreen": "1fc:84c02abbbced34d0c1ff",
+    ".CAM_FindClosestQuadblock": "270:4e6dca7fa8e7794ffc8e",
+    ".CAM_Init": "90:82c498e8327142ebcff0"
+   }
+  },
+  "cam-trackpath": {
+   "game/CAM/CAM_FollowDriver_TrackPath.c": {
+    ".CAM_FollowDriver_TrackPath": "584:6a143fc579e3917365d6"
+   }
+  },
+  "cam-transition": {
+   "game/CAM.c": {
+    ".CAM_ProcessTransition": "13c:38f001e6aba8666668d9",
+    ".CAM_StartLine_FlyIn_FixY": "12c:8db99dbc3094e68c49b0"
+   }
+  },
+  "cdsys": {
+   "game/CDSYS.c": {
+    ".CDSYS_GetFilePosInt": "50:e6c46351bd0557201208",
+    ".CDSYS_Init": "c0:c1190d915a63581f11ef",
+    ".CDSYS_SetMode_StreamAudio": "78:04bb25e76cdafeacf5d6",
+    ".CDSYS_SetMode_StreamData": "84:eb8eb3ca000e8506f873",
+    ".CDSYS_SetXAToLang": "238:bad6e94cff0597f63404",
+    ".CDSYS_SpuCallbackIRQ": "a0:414e422f2004c83b2dbd",
+    ".CDSYS_SpuCallbackTransfer": "60:fcd7402f894cb8f393e3",
+    ".CDSYS_SpuDisableIRQ": "34:c75fdbeffda23ce9f8ab",
+    ".CDSYS_SpuEnableIRQ": "80:7a68a15925c52a4ce646",
+    ".CDSYS_SpuGetMaxSample": "148:df45a9ceae5b98308c23",
+    ".CDSYS_XAGetNumTracks": "38:eaa50a0a4a1cee576df4",
+    ".CDSYS_XAGetTrackLength": "94:39c8bdf71056317dd61b",
+    ".CDSYS_XAPauseAtEnd": "28:b5d56b373d0dc6368e92",
+    ".CDSYS_XAPauseForce": "80:4552d8c865928d2e93fe",
+    ".CDSYS_XAPauseRequest": "54:6a42c8cab4d6cd00c8d5",
+    ".CDSYS_XAPlay": "1e4:ab8404e59dda9eb34b7e",
+    ".CDSYS_XASeek": "108:c206a115ba316303a0c8",
+    ".CDSYS_XaCallbackCdReady": "e8:53a7a8ee775fcd86b815",
+    ".CDSYS_XaCallbackCdSync": "58:22ae6ac55cd31e7bcce5"
+   }
+  },
+  "coll-barycentrics": {
+   "game/COLL/COLL_Barycentrics.c": {
+    ".COLL_FIXED_TRIANGL_Barycentrics": "138:d826cfc85403c15ae52c"
+   }
+  },
+  "coll-bsp-leaf": {
+   "game/COLL/COLL_BspLeaf.c": {
+    ".COLL_FIXED_BSPLEAF_TestQuadblocks": "8c:caaf4c6282d646c703a7"
+   }
+  },
+  "coll-bsp-search": {
+   "game/COLL/COLL_BspSearch.c": {
+    ".COLL_SearchBSP_CallbackPARAM": "1f8:03fa20153f8fbf22e82b"
+   },
+   "game/COLL/COLL_CallbackQuadBlock.c": {
+    ".COLL_SearchBSP_CallbackQUADBLK": "e0:8b79cdaa776336cd3a82"
+   }
+  },
+  "coll-fixed-player": {
+   "game/COLL/COLL_FixedPlayer.c": {
+    ".COLL_FIXED_PlayerSearch": "11c8:1f102b4e758320f10efd"
+   }
+  },
+  "coll-fixed-test-point": {
+   "game/COLL/COLL_TestPoint.c": {
+    ".COLL_FIXED_TRIANGL_TestPoint": "38c:9752f1895d02ba6375a0",
+    ".COLL_FIXED_TRIANGL_UNUSED": "34:5f3ed3423f2f2ed3982c"
+   }
+  },
+  "coll-fixed-test-triangles": {
+   "game/COLL/COLL_BspLeaf.c": {
+    ".COLL_FIXED_BSPLEAF_TestQuadblocks": "8c:caaf4c6282d646c703a7"
+   },
+   "game/COLL/COLL_GetNormVec.c": {
+    ".COLL_FIXED_TRIANGL_GetNormVec": "140:4eb18fbc3c7e1964301c"
+   },
+   "game/COLL/COLL_InstanceQuery.c": {
+    ".COLL_FIXED_BSPLEAF_TestInstance": "16c:20a66aa3921d50d382c8"
+   },
+   "game/COLL/COLL_LoadScratchpadVerts.c": {
+    ".COLL_FIXED_QUADBLK_LoadScratchpadVerts": "138:3c3f0a288dac3973e515"
+   },
+   "game/COLL/COLL_QuadBlockNormals.c": {
+    ".COLL_FIXED_QUADBLK_GetNormVecs_HiLOD": "100:a52e8435958bcdfd73e2",
+    ".COLL_FIXED_QUADBLK_GetNormVecs_LoLOD": "74:2a18b9443591f812c653"
+   },
+   "game/COLL/COLL_TestPoint.c": {
+    ".COLL_FIXED_TRIANGL_TestPoint": "38c:9752f1895d02ba6375a0",
+    ".COLL_FIXED_TRIANGL_UNUSED": "34:5f3ed3423f2f2ed3982c"
+   },
+   "game/COLL/COLL_TestTriangles.c": {
+    ".COLL_FIXED_QUADBLK_TestTriangles": "1d4:7b8ea9c0b82ae4861f42"
+   }
+  },
+  "coll-instance-query": {
+   "game/COLL/COLL_InstancePoint.c": {
+    ".COLL_FIXED_INSTANC_TestPoint": "54c:5292ed2759e69b750bf3"
+   },
+   "game/COLL/COLL_InstanceQuery.c": {
+    ".COLL_FIXED_BSPLEAF_TestInstance": "16c:20a66aa3921d50d382c8",
+    ".COLL_FIXED_BotsSearch": "1c8:258369f96ffb3aab54cf"
+   }
+  },
+  "coll-load-scratchpad-verts": {
+   "game/COLL/COLL_LoadScratchpadVerts.c": {
+    ".COLL_FIXED_QUADBLK_LoadScratchpadVerts": "138:3c3f0a288dac3973e515"
+   }
+  },
+  "coll-moved-dispatch": {
+   "game/COLL/COLL_Barycentrics.c": {
+    ".COLL_FIXED_TRIANGL_Barycentrics": "138:d826cfc85403c15ae52c"
+   },
+   "game/COLL/COLL_GetNormVec.c": {
+    ".COLL_FIXED_TRIANGL_GetNormVec": "140:4eb18fbc3c7e1964301c"
+   },
+   "game/COLL/COLL_LoadScratchpadVerts.c": {
+    ".COLL_FIXED_QUADBLK_LoadScratchpadVerts": "138:3c3f0a288dac3973e515"
+   },
+   "game/COLL/COLL_MovedBspLeaf.c": {
+    ".COLL_MOVED_BSPLEAF_TestQuadblocks": "8c:53fad46b5e7792c79e7e"
+   },
+   "game/COLL/COLL_MovedQuadBlock.c": {
+    ".COLL_MOVED_QUADBLK_TestTriangles": "244:b664505735cd6da414f4"
+   },
+   "game/COLL/COLL_QuadBlockNormals.c": {
+    ".COLL_FIXED_QUADBLK_GetNormVecs_HiLOD": "100:a52e8435958bcdfd73e2",
+    ".COLL_FIXED_QUADBLK_GetNormVecs_LoLOD": "74:2a18b9443591f812c653"
+   }
+  },
+  "coll-moved-player": {
+   "game/COLL/COLL_FindScrub.c": {
+    ".COLL_MOVED_FindScrub": "dc:838c3ad22df983d1375a"
+   },
+   "game/COLL/COLL_MovedPlayerSearch.c": {
+    ".COLL_MOVED_PlayerSearch": "848:c80c3c2212850d87a229"
+   },
+   "game/COLL/COLL_MovedScrubImpact.c": {
+    ".COLL_MOVED_ScrubImpact": "8a8:325ea006683e2be3812d"
+   }
+  },
+  "coll-moved-test-triangles": {
+   "game/COLL/COLL_Barycentrics.c": {
+    ".COLL_FIXED_TRIANGL_Barycentrics": "138:d826cfc85403c15ae52c"
+   },
+   "game/COLL/COLL_GetNormVec.c": {
+    ".COLL_FIXED_TRIANGL_GetNormVec": "140:4eb18fbc3c7e1964301c"
+   },
+   "game/COLL/COLL_LoadScratchpadVerts.c": {
+    ".COLL_FIXED_QUADBLK_LoadScratchpadVerts": "138:3c3f0a288dac3973e515"
+   },
+   "game/COLL/COLL_MovedBspLeaf.c": {
+    ".COLL_MOVED_BSPLEAF_TestQuadblocks": "8c:53fad46b5e7792c79e7e"
+   },
+   "game/COLL/COLL_MovedQuadBlock.c": {
+    ".COLL_MOVED_QUADBLK_TestTriangles": "244:b664505735cd6da414f4"
+   },
+   "game/COLL/COLL_MovedReorderNormals.c": {
+    ".COLL_MOVED_TRIANGL_ReorderNormals": "318:42c754c4451ee11afb0a"
+   },
+   "game/COLL/COLL_MovedTrianglePoint.c": {
+    ".COLL_MOVED_TRIANGL_TestPoint": "424:da8d64a9f9a5c5c36ccc"
+   },
+   "game/COLL/COLL_QuadBlockNormals.c": {
+    ".COLL_FIXED_QUADBLK_GetNormVecs_HiLOD": "100:a52e8435958bcdfd73e2",
+    ".COLL_FIXED_QUADBLK_GetNormVecs_LoLOD": "74:2a18b9443591f812c653"
+   }
+  },
+  "coll-quad-normals": {
+   "game/COLL/COLL_LoadScratchpadVerts.c": {
+    ".COLL_FIXED_QUADBLK_LoadScratchpadVerts": "138:3c3f0a288dac3973e515"
+   },
+   "game/COLL/COLL_QuadBlockNormals.c": {
+    ".COLL_FIXED_QUADBLK_GetNormVecs_HiLOD": "100:a52e8435958bcdfd73e2",
+    ".COLL_FIXED_QUADBLK_GetNormVecs_LoLOD": "74:2a18b9443591f812c653"
+   }
+  },
+  "coll-triangle-normal": {
+   "game/COLL/COLL_GetNormVec.c": {
+    ".COLL_FIXED_TRIANGL_GetNormVec": "140:4eb18fbc3c7e1964301c"
+   }
+  },
+  "cseq-opcodes-6-a": {
+   "game/HOWL/HOWL_CseqOpcode.c": {
+    ".cseq_opcode06": "2c:2caa1d0661b1512eb023",
+    ".cseq_opcode07": "2c:6965cefccf23797f9b5c",
+    ".cseq_opcode08": "94:e1250f45d57ed9787d25",
+    ".cseq_opcode09": "14:dfbcbbebcb32ddc68fed",
+    ".cseq_opcode0a": "194:d342e782a911297c3bd8"
+   }
+  },
+  "cseq-opcodes-early": {
+   "game/HOWL/HOWL_CseqOpcode.c": {
+    ".cseq_opcode01_noteoff": "104:869803daf90f66153419",
+    ".cseq_opcode02_empty": "8:3fce55fcf4d40dd7ad5a",
+    ".cseq_opcode03": "54:d761f4feb7f7a2ee8cb7",
+    ".cseq_opcode04_empty": "8:3fce55fcf4d40dd7ad5a"
+   }
+  },
+  "cseq-volume-handler": {
+   "game/HOWL/HOWL_CseqOpcode.c": {
+    ".cseq_opcode_from06and07": "11c:5899d4aaef5f8328753a"
+   }
+  },
+  "ctr-box": {
+   "game/CTR/CTR_Box.c": {
+    ".CTR_Box_DrawClearBox": "118:4df49b9dcb5592ef9bdd",
+    ".CTR_Box_DrawSolidBox": "f0:6b23fd0134a0e9f2d258",
+    ".CTR_Box_DrawWireBox": "1e8:836038b503ca70499b15",
+    ".CTR_Box_DrawWirePrims": "94:4218091612e9230fc451"
+   }
+  },
+  "ctr-cycle-tex": {
+   "game/CTR/CTR_CycleTex.c": {
+    ".CTR_CycleTex_2p3p4pWumpaHUD": "28:39be8290e0b6c476a348",
+    ".CTR_CycleTex_AllModels": "d4:daee66e9485508bf2a1f",
+    ".CTR_CycleTex_LEV": "9c:59ffbe0fb237d67cc38e",
+    ".CTR_CycleTex_Model": "a0:4be932c31da2d48b90fb"
+   }
+  },
+  "ctr-error-screen": {
+   "game/CTR/CTR_Error.c": {
+    ".CTR_ErrorScreen": "10c:b4656417ed009f2c9ce8"
+   }
+  },
+  "ctr-ghost-string": {
+   "game/CTR/CTR_Ghost.c": {
+    ".CTR_ScrambleGhostString": "ac:75729deaf9a7d3a1993e"
+   }
+  },
+  "ctr-matrix-to-rot": {
+   "game/CTR/CTR_Matrix.c": {
+    ".CTR_MatrixToRot": "358:2fded13af47f1cfae045"
+   }
+  },
+  "ctr-render-lists": {
+   "game/CTR/CTR_RenderLists.c": {
+    ".CTR_ClearRenderLists_1P2P": "70:4fc15cb7366972208a4d",
+    ".CTR_ClearRenderLists_3P4P": "60:08016a411e161336d64c",
+    ".CTR_EmptyFunc_MainFrame_ResetDB": "8:3fce55fcf4d40dd7ad5a"
+   }
+  },
+  "ctr-visibility": {
+   "game/CTR/CTR_Visibility.c": {
+    ".CTR_unknownMaybeThunk1": "7c:221534173890d983f6a8",
+    ".CTR_unknownMaybeThunk2": "8c:9d288d0106739d5819b6",
+    ".CTR_unknownMaybeThunk3": "34:4836e0ff0a3b71bac09a"
+   }
+  },
+  "data-initialized": {
+   "game/zGlobal_DATA.c": {
+    ".data": "9900:6c85e00744fa7d5342e2"
+   }
+  },
+  "debug-font": {
+   "game/DebugFont.c": {
+    ".DebugFont_DrawNumbers": "dc:b994d0a6c7e2b8971445",
+    ".DebugFont_Init": "38:a815f4ad93239f2a4277"
+   }
+  },
+  "decal-font": {
+   "game/DecalFont.c": {
+    ".DecalFont_DrawLine": "4c:bd34255df9b909fcbb6b",
+    ".DecalFont_DrawLineOT": "6c:9aa4dd934bd85acf92f9",
+    ".DecalFont_DrawLineStrlen": "37c:4597fca057aa7b84cbd2",
+    ".DecalFont_DrawMultiLine": "60:2b14e6ac142cee59890e",
+    ".DecalFont_DrawMultiLineStrlen": "204:73e9f8cf420c769efc77",
+    ".DecalFont_GetLineWidth": "2c:eeef4be775e9bbccbd10",
+    ".DecalFont_GetLineWidthStrlen": "dc:776675c17ebe21ef76f9"
+   }
+  },
+  "decal-global": {
+   "game/DecalGlobal.c": {
+    ".DecalGlobal_Clear": "40:a7ae612dd6c3a69803e1",
+    ".DecalGlobal_EmptyFunc_MainFrame_ResetDB": "8:3fce55fcf4d40dd7ad5a",
+    ".DecalGlobal_FindInLEV": "a4:c806ef03c6af89ef2a6e",
+    ".DecalGlobal_FindInMPK": "84:c37748987f107d580531",
+    ".DecalGlobal_Store": "ac:9a64235b1d6c73f0fb36"
+   }
+  },
+  "decal-hud": {
+   "game/DecalHUD.c": {
+    ".DecalHUD_Arrow2D": "2f8:ee0dfbaa601a061c85fd",
+    ".DecalHUD_DrawPolyFT4": "114:e5cd5bab9bec70925fb3",
+    ".DecalHUD_DrawPolyGT4": "13c:99e7c0d5f85756bed407",
+    ".DecalHUD_DrawWeapon": "190:420da3dd397a49a37c6f"
+   }
+  },
+  "decal-mp": {
+   "game/DecalMP.c": {
+    ".DecalMP_01": "1b8:22ad4479f82d30e9eadf",
+    ".DecalMP_02": "144:7ccb3bffb13c1460cf7f",
+    ".DecalMP_03": "2bc:7586c38b3b11abeee805"
+   }
+  },
+  "display": {
+   "game/Display.c": {
+    ".DISPLAY_Blur_Main": "2b0:33c81e51c0032fb8125f",
+    ".DISPLAY_Blur_SubFunc": "30c:741aa6be6776db545c23",
+    ".DISPLAY_Swap": "70:e4c6b1dbed325283d6b5"
+   }
+  },
+  "dotlights": {
+   "game/DotLights.c": {
+    ".DotLights_AudioAndVideo": "1ac:95eb216a866418baae0c",
+    ".DotLights_Video": "24c:9ce0a965bf63e7f13591"
+   }
+  },
+  "draw-confetti": {
+   "game/DrawConfetti.c": {
+    ".DrawConfetti": "4c8:c5b0f34e65286a13375b",
+    ".rodata": "24:66f9c953be2574f3696a"
+   },
+   "game/MATH/TRIG_AngleSinCos_r15r16r17.c": {
+    ".TRIG_AngleSinCos_r15r16r17": "68:a6acb951f44d5002041c"
+   }
+  },
+  "draw-sky": {
+   "game/DrawSky.c": {
+    ".DrawSky_Full": "114:b7160ce3961d32250ddd",
+    ".DrawSky_Piece": "1ac:60d2dc49452a4dd88399"
+   }
+  },
+  "draw-tires": {
+   "game/DrawTires.c": {
+    ".DrawTires_Reflection": "9a4:afce18c3295d85262eca",
+    ".DrawTires_Solid": "9a8:fae66a59fe19a20e2008",
+    ".rodata": "c4:eeac7dd1aa3dc12a3e3e"
+   },
+   "game/DrawTires_Sqrt.c": {
+    ".Unknown_8006ef98": "6c:52800a2b9fc762be868c"
+   },
+   "game/MATH/TRIG_AngleSinCos_r9r8r10.c": {
+    ".TRIG_AngleSinCos_r9r8r10": "68:0af40fd0469e731c747a"
+   }
+  },
+  "drop-rain": {
+   "game/DropRain.c": {
+    ".DropRain_MakeSound": "b8:1e3ea7b3f2410d9e5094",
+    ".DropRain_Reset": "8:d8ee18350856026bb7f2"
+   }
+  },
+  "elim-bg": {
+   "game/ElimBG.c": {
+    ".ElimBG_Activate": "24:ed61e3df8fb6eb5f09c9",
+    ".ElimBG_Deactivate": "44:9493ed8d65bfac83000e",
+    ".ElimBG_HandleState": "294:591f803421f0321e950e",
+    ".ElimBG_SaveScreenshot_Chunk": "78:3afdfd4a037b97a543e8",
+    ".ElimBG_SaveScreenshot_Full": "280:9682b9c7649f2e1a57d5",
+    ".ElimBG_ToggleAllInstances": "b8:6891f5796ca47214f54d",
+    ".ElimBG_ToggleInstance": "7c:26f2b818ca4fc033939b",
+    ".rodata": "10:0cab85c6abf57941f7b4"
+   }
+  },
+  "flare": {
+   "game/FLARE.c": {
+    ".FLARE_Init": "74:e5a60f6192f6cfa7994d",
+    ".FLARE_ThTick": "4ec:6fadb7da57fbdadbc323"
+   }
+  },
+  "gamepad": {
+   "game/GAMEPAD.c": {
+    ".GAMEPAD_GetNumConnected": "164:220af9a781415b920b87",
+    ".GAMEPAD_Init": "5c:80eeaa62efd2da3b70bb",
+    ".GAMEPAD_JogCon1": "5c:982a9eff2275fc09a8f8",
+    ".GAMEPAD_JogCon2": "44:c217d76b3f50dfeb04f3",
+    ".GAMEPAD_PollVsync": "1a4:55346a90b57c7c4b0747",
+    ".GAMEPAD_ProcessAnyoneVars": "d0:ab2244986cbfa5669ea7",
+    ".GAMEPAD_ProcessHold": "13c:0fda136877b11d284faa",
+    ".GAMEPAD_ProcessMotors": "4b8:b7c0a09a75e8d767ecfd",
+    ".GAMEPAD_ProcessState": "170:3ded2e08d252184dd742",
+    ".GAMEPAD_ProcessSticks": "4bc:28b15e6564ab34f1da46",
+    ".GAMEPAD_ProcessTapRelease": "108:a63731e6079d3528dabf",
+    ".GAMEPAD_SetMainMode": "98:9f491020a1933800a925",
+    ".GAMEPAD_ShockForce1": "80:26791b42cb603661edc9",
+    ".GAMEPAD_ShockForce2": "80:005c9363797b015500f0",
+    ".GAMEPAD_ShockFreq": "80:c5a1311a03df8d1552bd"
+   }
+  },
+  "gameprog": {
+   "game/GAMEPROG.c": {
+    ".GAMEPROG_AdvPercent": "2dc:65664e6b77135835e97b",
+    ".GAMEPROG_CheckGhostsBeaten": "10c:f0825eb9e56e0f0c1348",
+    ".GAMEPROG_GetPtrHighScoreTrack": "58:6d71227ca53debc1ed7b",
+    ".GAMEPROG_InitFullMemcard": "94:9bea483e4c589f4d89d1",
+    ".GAMEPROG_NewGame_OnBoot": "38:cc6e7e6d0e818d302038",
+    ".GAMEPROG_NewProfile_InsideAdv": "3c:622f9d47f250201ad8dd",
+    ".GAMEPROG_NewProfile_OutsideAdv": "34:3433ee17de64088e0956",
+    ".GAMEPROG_ResetHighScores": "248:57c5fe8a3b5d7f0a9460",
+    ".GAMEPROG_SaveCupProgress": "88:8c641394987667241044",
+    ".GAMEPROG_SyncGameAndCard": "cc:15ddb0b52a56ae955495"
+   }
+  },
+  "ghost-replay": {
+   "game/GhostReplay.c": {
+    ".GhostReplay_Init1": "350:74ecfdf6f176e167a568",
+    ".GhostReplay_Init2": "26c:08bd9d8d1ec3a3427801",
+    ".GhostReplay_ThTick": "960:e722f1606a358a521555"
+   }
+  },
+  "ghost-tape": {
+   "game/GhostTape.c": {
+    ".GhostTape_Destroy": "2c:4cc1cbc63f6ddaa362bc",
+    ".GhostTape_End": "90:da13f2a462b1c4b6ab0c",
+    ".GhostTape_Start": "9c:580d2e0a3a531f2b87a0",
+    ".GhostTape_WriteBoosts": "84:3d769ac6ed1463441472",
+    ".GhostTape_WriteMoves": "46c:f2d8c438e3a23a954c39"
+   }
+  },
+  "gte-ratan-table": {
+   "platform/gte_ratan_table.c": {
+    ".data": "802:5a3111b87553558583d3"
+   }
+  },
+  "howl-audio-lr": {
+   "game/HOWL/HOWL_AudioLR.c": {
+    ".GTE_AudioLR_Driver": "8c:69ab4a884c3615969d94",
+    ".GTE_AudioLR_Inst": "70:c5e89faff5ed41ed7ea6",
+    ".GTE_GetSquaredLength": "38:b79f233898d96c122635"
+   }
+  },
+  "howl-audio-state": {
+   "game/HOWL/HOWL_AudioState.c": {
+    ".Audio_AdvHub_SwapSong": "48:f1bc7631cd95516d34b2",
+    ".Audio_SetDefaults": "60:d7d4384e00b05e482142",
+    ".Audio_SetMaskSong": "128:4311e6badcb5a88d8083",
+    ".Audio_SetReverbMode": "78:ebf2e79504af8cacb418",
+    ".Audio_SetState": "1d8:f766fe134186744d82ce",
+    ".Audio_SetState_Safe": "40:19746e6faf12bfb4b225",
+    ".Audio_Update1": "5d0:264175bc738937b7e2f3",
+    ".rodata": "80:c75b26106b9f915069ba"
+   }
+  },
+  "howl-channel": {
+   "game/HOWL/HOWL_Channel.c": {
+    ".Channel_AllocSlot": "c8:de3a6deba3052bca2285",
+    ".Channel_AllocSlot_AntiSpam": "1c8:c8c9ca63ec3cd1d09386",
+    ".Channel_DestroyAll_LowLevel": "11c:9bc4c3a6f73889b74163",
+    ".Channel_FindSound": "54:4ca8e2d21e3fd5469aa9",
+    ".Channel_ParseSongToChannels": "2f0:bb9c98165e1cbd1f4a44",
+    ".Channel_SearchFX_Destroy": "d8:dccc7ae1eaf02ebfb958",
+    ".Channel_SearchFX_EditAttr": "120:8b5d3893744035d89749",
+    ".Channel_SetVolume": "74:bab3975c7c58cc068363",
+    ".Channel_UpdateChannels": "2f0:be452711d4d5c59bb6f6",
+    ".Smart_EnterCriticalSection": "38:078fb1bcc3665870574c",
+    ".Smart_ExitCriticalSection": "38:202e70a80db2961a4672"
+   }
+  },
+  "howl-cseq-advhub-swap": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_AdvHubSwap": "d4:15da06a42e0a1ddb0513"
+   }
+  },
+  "howl-cseq-change-tempo": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_ChangeTempo": "c4:2dc6dcc361ec961ea6cd"
+   }
+  },
+  "howl-cseq-change-volume": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_ChangeVolume": "d8:360750e4a271984946eb"
+   }
+  },
+  "howl-cseq-opcode": {
+   "game/HOWL/HOWL_CseqOpcode.c": {
+    ".cseq_opcode01_noteoff": "104:869803daf90f66153419",
+    ".cseq_opcode02_empty": "8:3fce55fcf4d40dd7ad5a",
+    ".cseq_opcode03": "54:d761f4feb7f7a2ee8cb7",
+    ".cseq_opcode04_empty": "8:3fce55fcf4d40dd7ad5a",
+    ".cseq_opcode05_noteon": "11c:ae60fc451620183badb1",
+    ".cseq_opcode06": "2c:2caa1d0661b1512eb023",
+    ".cseq_opcode07": "2c:6965cefccf23797f9b5c",
+    ".cseq_opcode08": "94:e1250f45d57ed9787d25",
+    ".cseq_opcode09": "14:dfbcbbebcb32ddc68fed",
+    ".cseq_opcode0a": "194:d342e782a911297c3bd8",
+    ".cseq_opcode_from06and07": "11c:5899d4aaef5f8328753a",
+    ".howl_InitChannelAttr_Music": "1f0:bbc82d11a7c28cc15b7a"
+   }
+  },
+  "howl-cseq-pause-resume": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_Pause": "7c:e502efa68b62234a810c",
+    ".CseqMusic_Resume": "7c:9d58f13ed98c5235b15e"
+   }
+  },
+  "howl-cseq-restart": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_Restart": "d4:440ef3e1148135b866b3"
+   }
+  },
+  "howl-cseq-start": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_Start": "ec:5521a6f5253caeed9839"
+   }
+  },
+  "howl-cseq-stop": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_Stop": "b8:fd614e20f8bf0ca02615"
+   }
+  },
+  "howl-cseq-stop-all": {
+   "game/HOWL/HOWL_CseqMusic.c": {
+    ".CseqMusic_StopAll": "88:b84541bc6602dcb80b42"
+   }
+  },
+  "howl-engine-audio": {
+   "game/HOWL/HOWL_Engine.c": {
+    ".EngineAudio_InitOnce": "130:e7b57a7de14bf4de81a7",
+    ".EngineAudio_Recalculate": "1a4:7976cb866db40ba22852",
+    ".EngineAudio_Stop": "68:59dedf15d002d99cd6f2"
+   }
+  },
+  "howl-engine-sound": {
+   "game/HOWL/HOWL_Engine.c": {
+    ".EngineSound_AI": "2c4:2f60e09746721f5b1f11",
+    ".EngineSound_NearestAIs": "2e0:e39622f7e2f282c2a6a6",
+    ".EngineSound_Player": "634:cc3dcfc309ea847340a7",
+    ".EngineSound_VolumeAdjust": "3c:348360316b305f343963"
+   }
+  },
+  "howl-garage": {
+   "game/HOWL/HOWL_Garage.c": {
+    ".Garage_Enter": "1a0:c25e2db6803c53ce4b82",
+    ".Garage_Init": "5c:70325717c29f243171f4",
+    ".Garage_Leave": "2c:f1e45fcb7712569ace14",
+    ".Garage_LerpFX": "1dc:77f6b8dcaca6f51ea6e8",
+    ".Garage_MoveLR": "b8:9ce12ad4cea955696c69",
+    ".Garage_PlayFX": "b4:fcf2075ba8001d0c9fb8"
+   }
+  },
+  "howl-garage-init": {
+   "game/HOWL/HOWL_Garage.c": {
+    ".Garage_Init": "5c:70325717c29f243171f4"
+   }
+  },
+  "howl-garage-leave": {
+   "game/HOWL/HOWL_Garage.c": {
+    ".Garage_Leave": "2c:f1e45fcb7712569ace14"
+   }
+  },
+  "howl-level-audio": {
+   "game/HOWL/HOWL_LevelAudio.c": {
+    ".CalculateVolumeFromDistance": "148:476e7074e8a1c430f7b8",
+    ".GTE_GetSquaredDistance": "90:abbbbdb37f06a1ffae09",
+    ".Level_AmbientSound": "4f8:445e743d3688ca0db4cd",
+    ".Level_RandomFX": "12c:2588a46c22681025edb4",
+    ".Level_SoundLoopFade": "74:49f09a978a2b0c57c957",
+    ".Level_SoundLoopSet": "84:b9911059340368e7953e",
+    ".PlaySound3D": "240:639fe13986092b1b5da7",
+    ".PlaySound3D_Flags": "2d8:d669ad05afaa6924ab88",
+    ".PlayWarppadSound": "2c:255818d4fe5596c85ac6"
+   }
+  },
+  "howl-load": {
+   "game/HOWL/HOWL_Load.c": {
+    ".cseq_opcode00_empty": "8:3fce55fcf4d40dd7ad5a",
+    ".howl_ErasePtrCseqHeader": "c:4792447edf1c3c4e53b2",
+    ".howl_GetNextNote": "44:1b3101a40f35de25e310",
+    ".howl_InitGlobals": "c8:34fff83828d74dcdadd2",
+    ".howl_InstrumentPitch": "6c:97d4d69a3bcec10bd4d2",
+    ".howl_LoadHeader": "114:0deaf27a81f21252d9dd",
+    ".howl_LoadSong": "11c:cb6fd37ba524157af3df",
+    ".howl_ParseCseqHeader": "78:8bb4a771e2e8e9e5408f",
+    ".howl_ParseHeader": "64:b7ba5c5d8de340fe4704",
+    ".howl_SetSong": "64:a62c0d180b163b7ac9cc"
+   }
+  },
+  "howl-other-fx-recycle": {
+   "game/HOWL/HOWL_OtherFXRecycle.c": {
+    ".OtherFX_DriverCrashing": "5c:32929a760f976e7bc0dd",
+    ".OtherFX_RecycleMute": "3c:285cbde2f9edd179579f",
+    ".OtherFX_RecycleNew": "94:c75cbfdb9a24703e4052"
+   }
+  },
+  "howl-playback": {
+   "game/HOWL/HOWL_Playback.c": {
+    ".Cutscene_VolumeBackup": "44:3fb6ba6ca71a2cd8397e",
+    ".Cutscene_VolumeRestore": "38:342410b7f546546100cd",
+    ".howl_InitChannelAttr_EngineFX": "d8:bc54e8c1da1522cf9998",
+    ".howl_InitChannelAttr_OtherFX": "ec:4200c584598e09021be3",
+    ".howl_PauseAudio": "13c:d3ef96b1437edf5d6f69",
+    ".howl_PlayAudio_Update": "144:1e74dece564caa70dc2b",
+    ".howl_StopAudio": "70:4132249401999f9689e4",
+    ".howl_UnPauseAudio": "124:587b196821cdd4b3b41a",
+    ".howl_UnPauseChannel": "138:91d56dc8e575af90fd60"
+   }
+  },
+  "howl-reverb-mode": {
+   "game/HOWL/HOWL_Reverb.c": {
+    ".SetReverbMode": "bc:76a96a1207b6e08544cf"
+   }
+  },
+  "howl-settings": {
+   "game/HOWL/HOWL_Settings.c": {
+    ".OptionsMenu_TestSound": "2c8:f7196c8590ec461f0a93",
+    ".UpdateChannelVol_EngineFX": "4c:33c0f37b750d617a9a68",
+    ".UpdateChannelVol_EngineFX_All": "108:35dcf794b4c967b0c968",
+    ".UpdateChannelVol_Music": "f4:3f8d516e01556e754ff4",
+    ".UpdateChannelVol_Music_All": "c4:e9d78cca78f035328bbb",
+    ".UpdateChannelVol_OtherFX": "6c:2638d58ee03c6bb665a7",
+    ".UpdateChannelVol_OtherFX_All": "b0:b031621edacbec2d229c",
+    ".howl_Disable": "24:8a73059272a966755f5a",
+    ".howl_ModeGet": "c:3f7719a4cb9beee24609",
+    ".howl_ModeSet": "c:547d98166709722cf8b1",
+    ".howl_VolumeGet": "50:568003a81bebfd459dbb",
+    ".howl_VolumeSet": "c0:4365376dee5c1df37d56"
+   }
+  },
+  "howl-voiceline": {
+   "game/HOWL/HOWL_Voiceline.c": {
+    ".Voiceline_ClearTimeStamp": "38:9497c7cd8c0a684a8bdd",
+    ".Voiceline_EmptyFunc": "8:3fce55fcf4d40dd7ad5a",
+    ".Voiceline_PoolClear": "64:affef0740c31d3975d90",
+    ".Voiceline_PoolInit": "190:2265db40e3aa912d8d3c",
+    ".Voiceline_RequestPlay": "340:84946c3826b35b4fc8e4",
+    ".Voiceline_SetDefaults": "44:c98f537f566013ebe791",
+    ".Voiceline_StartPlay": "1d0:30c4a384fa5a7ce7ad39",
+    ".Voiceline_StopAll": "70:ff253b5a0e14c1645665",
+    ".Voiceline_ToggleEnable": "34:b538518b1e6ecfee5be4",
+    ".Voiceline_Update": "1b0:afadb38137b789cd05ec"
+   }
+  },
+  "instance": {
+   "game/INSTANCE.c": {
+    ".INSTANCE_Birth": "f4:cf382f2e41480a4d0f5b",
+    ".INSTANCE_Birth2D": "c0:9e5b758a928d8722ee56",
+    ".INSTANCE_Birth3D": "78:158cd7913f609a45925e",
+    ".INSTANCE_BirthWithThread": "ac:65cd45b85a141e517801",
+    ".INSTANCE_BirthWithThread_Stack": "58:6b625c1f64436693c6d2",
+    ".INSTANCE_Death": "2c:e736ad947fda6c96d9dc",
+    ".INSTANCE_GetNumAnimFrames": "84:e7a9e976b2eafc2f2acc",
+    ".INSTANCE_LevDelayedLInBs": "84:c3da01384c444becd191",
+    ".INSTANCE_LevInitAll": "400:75e33858287e4618577d"
+   }
+  },
+  "jitpool": {
+   "game/JitPool.c": {
+    ".JitPool_Add": "58:c24a64faae7c1ac30ccc",
+    ".JitPool_Clear": "80:bb2285fdb57a5a366cc5",
+    ".JitPool_Init": "78:addf6041a83ef7ff1629",
+    ".JitPool_Remove": "40:d45886e87e87745fc561"
+   }
+  },
+  "levinstdef": {
+   "game/LevInstDef.c": {
+    ".LevInstDef_RePack": "160:181ecc3e28c666b31531",
+    ".LevInstDef_UnPack": "fc:0ed7239a8b70ea4f2a95"
+   }
+  },
+  "lh-matrix-parent": {
+   "game/LHMatrix.c": {
+    ".LHMatrix_Parent": "b4:e5af8e8d680738e902bd"
+   }
+  },
+  "library-of-models": {
+   "game/LibraryOfModels.c": {
+    ".LibraryOfModels_Clear": "20:3bb0fef3fecc851e3929",
+    ".LibraryOfModels_Store": "44:bd16c1f82117851c6034"
+   }
+  },
+  "linked-collide": {
+   "game/LinkedCollide.c": {
+    ".LinkedCollide_Hitbox": "12c:53092f81651ca156e257",
+    ".LinkedCollide_Hitbox_Desc": "5c:b64b61220b9d70f21392",
+    ".LinkedCollide_Radius": "cc:688dec39979a5c6de633"
+   }
+  },
+  "list": {
+   "game/LIST.c": {
+    ".LIST_AddBack": "44:4e3b93283716d406231f",
+    ".LIST_AddFront": "44:5054aa57d59de40a5f7f",
+    ".LIST_Clear": "10:df0a3f359d51c0268a72",
+    ".LIST_GetFirstItem": "c:6780948c9eaa5b73c4b0",
+    ".LIST_GetNextItem": "c:6780948c9eaa5b73c4b0",
+    ".LIST_Init": "6c:ae7d56ed045a96b1835f",
+    ".LIST_RemoveBack": "90:220c13e79477cc83ae55",
+    ".LIST_RemoveFront": "80:9cfef6a8deeceafc4d44",
+    ".LIST_RemoveMember": "88:c52f3e8e017255b5607d"
+   }
+  },
+  "load-callbacks": {
+   "game/LOAD/LOAD_Callbacks.c": {
+    ".LOAD_Callback_DriverModels": "14:11227eba5cfbc324baf8",
+    ".LOAD_Callback_LEV": "2c:c6178c8a9429ff621fdf",
+    ".LOAD_Callback_MaskHints3D": "14:252f13aaf695ee754f99",
+    ".LOAD_Callback_Overlay_230": "14:f20b59735d75e3842758",
+    ".LOAD_Callback_Overlay_231": "18:8f404561196adeeb941c",
+    ".LOAD_Callback_Overlay_232": "18:5fa3dc17c0a0577089ee",
+    ".LOAD_Callback_Overlay_233": "18:9abb7be75669de51e451",
+    ".LOAD_Callback_Overlay_Generic": "c:a19f5e27392e05438f6e",
+    ".LOAD_Callback_PatchMem": "5c:bcf53de1e7bfed47b2de",
+    ".LOAD_Callback_Podiums": "14:c21102d5684d8ae61c29",
+    ".LOAD_HubCallback": "3c:0abb422ac5709f19603d"
+   }
+  },
+  "load-driver-mpk": {
+   "game/LOAD/LOAD_Assets.c": {
+    ".LOAD_DriverMPK": "324:3fe2a97211b38727f7fd"
+   }
+  },
+  "load-file": {
+   "game/LOAD/LOAD_File.c": {
+    ".LOAD_DramFile": "e4:811bce052abb2803ba5b",
+    ".LOAD_DramFileCallback": "d0:2e29b02a975538ae3b1f",
+    ".LOAD_FindFile": "60:bd9a1804f35898b2ad29",
+    ".LOAD_InitCD": "20:7190beed6b7f1feb8477",
+    ".LOAD_ReadDirectory": "b8:637eeca9bc55744843a3",
+    ".LOAD_ReadFileASyncCallback": "a4:9047aff45851f726bef8",
+    ".LOAD_ReadFile_ex": "190:85cb1286554d52a78b9b",
+    ".LOAD_StringToUpper": "3c:61968617875ae11a88af",
+    ".LOAD_VramFile": "134:4cb158aeadc4e8ec004a",
+    ".LOAD_VramFileCallback": "f8:587199c837e9f3afd21b",
+    ".LOAD_XnfFile": "f4:59cb62082a86661c6795"
+   }
+  },
+  "load-get-adv-pack-index": {
+   "game/LOAD/LOAD_Overlays.c": {
+    ".LOAD_GetAdvPackIndex": "34:cfc68086cb077aec1cb4"
+   }
+  },
+  "load-get-bigfile-index": {
+   "game/LOAD/LOAD_Assets.c": {
+    ".LOAD_GetBigfileIndex": "10c:398979900ebcff68f48e"
+   }
+  },
+  "load-howl-complete": {
+   "game/LOAD/LOAD_Howl.c": {
+    ".LOAD_HowlCallback": "48:e99fcfd75bce6b2b0fe9",
+    ".LOAD_HowlHeaderSectors": "b4:4e24e431a93f54b4a7a0",
+    ".LOAD_HowlSectorChainEnd": "48:edabad14bd498b83e7fb",
+    ".LOAD_HowlSectorChainStart": "d8:e11164bc3320aebd1456"
+   }
+  },
+  "load-howl-header-and-start": {
+   "game/LOAD/LOAD_Howl.c": {
+    ".LOAD_HowlCallback": "48:e99fcfd75bce6b2b0fe9",
+    ".LOAD_HowlHeaderSectors": "b4:4e24e431a93f54b4a7a0",
+    ".LOAD_HowlSectorChainStart": "d8:e11164bc3320aebd1456"
+   }
+  },
+  "load-hub": {
+   "game/LOAD/LOAD_Hub.c": {
+    ".LOAD_Hub_Main": "15c:e17f9e2c11b0d28ad544",
+    ".LOAD_Hub_ReadFile": "10c:216bed8ba18235bb6b87",
+    ".LOAD_Hub_SwapNow": "210:9c1e03e75b96f77b4131",
+    ".rodata": "3c:2269b57ddfb60e93f460"
+   }
+  },
+  "load-init-cdvol": {
+   "game/LOAD/LOAD_File.c": {
+    ".LOAD_InitCDvol": "f0:ea378173143312a3bcc7"
+   }
+  },
+  "load-is-open": {
+   "game/LOAD/LOAD_IsOpen.c": {
+    ".LOAD_IsOpen_AdvHub": "20:da5b089483e088050c9a",
+    ".LOAD_IsOpen_MainMenu": "18:33503f62c65be878ccc2",
+    ".LOAD_IsOpen_Podiums": "20:1bf4964188c914803e87",
+    ".LOAD_IsOpen_RacingOrBattle": "20:c5aefbdb51728c596a3b"
+   }
+  },
+  "load-lang-file": {
+   "game/LOAD/LOAD_LangFile.c": {
+    ".LOAD_LangFile": "d4:5955c440540016a22deb"
+   }
+  },
+  "load-level": {
+   "game/LOAD/LOAD_Level.c": {
+    ".LOAD_LevelFile": "74:e5746ed154041c908989",
+    ".LOAD_TalkingMask": "a4:dbcc3b62de5b15e16d0a"
+   }
+  },
+  "load-model-ptrs": {
+   "game/LOAD/LOAD_ModelPtrs.c": {
+    ".LOAD_GlobalModelPtrs_MPK": "8c:7f8d75608b90d82e96ea",
+    ".LOAD_HubSwapPtrs": "40:93be347054a0c2282170"
+   }
+  },
+  "load-ovr-end-race": {
+   "game/LOAD/LOAD_Overlays.c": {
+    ".LOAD_OvrEndRace": "7c:8d024c94193133fa2522"
+   }
+  },
+  "load-ovr-lod": {
+   "game/LOAD/LOAD_Overlays.c": {
+    ".LOAD_OvrLOD": "80:2e68abc0897a7fc8e8be"
+   }
+  },
+  "load-ovr-threads": {
+   "game/LOAD/LOAD_Overlays.c": {
+    ".LOAD_OvrThreads": "6c:3ee903829f7ae2f7570c"
+   }
+  },
+  "load-queue-entry": {
+   "game/LOAD/LOAD_Queue.c": {
+    ".LOAD_AppendQueue": "5c:e9a74af047b5fba1c20d",
+    ".LOAD_CDRequestCallback": "34:3a1e1bbc97048dd4bf93"
+   }
+  },
+  "load-queue-next": {
+   "game/LOAD/LOAD_Queue.c": {
+    ".LOAD_NextQueuedFile": "23c:6ca233a69b070f766d22"
+   }
+  },
+  "load-robots-1p": {
+   "game/LOAD/LOAD_Assets.c": {
+    ".LOAD_Robots1P": "50:48511fe5d26a9a9b8866"
+   }
+  },
+  "load-robots-2p": {
+   "game/LOAD/LOAD_Assets.c": {
+    ".LOAD_Robots2P": "dc:6e55c7d6eb54bf863d8b"
+   }
+  },
+  "load-run-ptr-map": {
+   "game/LOAD/LOAD_Assets.c": {
+    ".LOAD_RunPtrMap": "4c:31c40c898c6327649ced"
+   }
+  },
+  "load-ten-stages": {
+   "game/LOAD/LOAD_TenStages.c": {
+    ".LOAD_TenStages": "11c0:2a7f2f2eb16222ff0b67"
+   }
+  },
+  "main-db": {
+   "game/MAIN/MainDB.c": {
+    ".MainDB_GetClipSize": "64:46c11d95f94b0ac6d3bb",
+    ".MainDB_OTMem": "58:f65090b61722089266c7",
+    ".MainDB_PrimMem": "64:ecb7a15f3755b1a4cf58",
+    ".rodata": "90:bf408eb385bd45ac1f8a"
+   }
+  },
+  "main-draw-cb": {
+   "game/MAIN/MainDrawCb.c": {
+    ".MainDrawCb_DrawSync": "24:f4422b989a017f159ef1",
+    ".MainDrawCb_Vsync": "a4:9576c7fc8203d5218be2"
+   }
+  },
+  "main-frame": {
+   "game/MAIN/MainFrame.c": {
+    ".MainFrame_GameLogic": "930:a142dcb9274331ab3489"
+   },
+   "game/MAIN/MainFrame_ResetDB.c": {
+    ".MainFrame_ResetDB": "198:67f97c3b89bcede7d3c4"
+   },
+   "game/MAIN/MainFrame_Services.c": {
+    ".MainFrame_HaveAllPads": "b0:4f9e4d5049512a6aa6e2",
+    ".MainFrame_InitVideoSTR": "40:b21028fee45492008953",
+    ".MainFrame_RequestMaskHint": "50:6aab77cc25d64a740b2e",
+    ".MainFrame_TogglePauseAudio": "74:4d2b4e7a8e0294f12646"
+   },
+   "game/MAIN/MainVisibility.c": {
+    ".MainFrame_VisMemAddDriverPVS": "134:bdda455c1f4a7a3ed232",
+    ".MainFrame_VisMemFullFrame": "578:8adad88db6d5cfe52008"
+   }
+  },
+  "main-frame-render": {
+   "game/MAIN/MainFrame_RenderFrame.c": {
+    ".MainFrame_RenderFrame": "1b84:393e7ca2d8ba068bbe84"
+   }
+  },
+  "main-frame-reset-db": {
+   "game/MAIN/MainFrame_ResetDB.c": {
+    ".MainFrame_ResetDB": "198:266d29ea172193e3d1cb"
+   }
+  },
+  "main-frame-services": {
+   "game/MAIN/MainFrame_Services.c": {
+    ".MainFrame_HaveAllPads": "b0:4f9e4d5049512a6aa6e2",
+    ".MainFrame_InitVideoSTR": "40:b21028fee45492008953",
+    ".MainFrame_RequestMaskHint": "50:6aab77cc25d64a740b2e",
+    ".MainFrame_TogglePauseAudio": "74:4d2b4e7a8e0294f12646"
+   }
+  },
+  "main-freeze": {
+   "game/MAIN/MainFreeze.c": {
+    ".MainFreeze_ConfigDrawArrows": "1e0:5dde389162723012d776",
+    ".MainFreeze_ConfigDrawNPC105": "1cc:902604134bd4de88db5a",
+    ".MainFreeze_ConfigSetupEntry": "dbc:56cf10393c3a922b7444",
+    ".MainFreeze_GetMenuPtr": "cc:d0f2264cb24dc383f0e8",
+    ".MainFreeze_IfPressStart": "110:57c1e90331ba8cc85e9e",
+    ".MainFreeze_MenuPtrDefault": "388:005bd5bbdde421ab00a4",
+    ".MainFreeze_MenuPtrOptions": "dac:051f2c33f029c9f8d1b3",
+    ".MainFreeze_MenuPtrQuit": "f4:07338d5eaadb6f505c55",
+    ".MainFreeze_SafeAdvDestroy": "48:9d8d83cbbf7c1370baa8",
+    ".rodata": "5c:3356b9f120ea87dc5753"
+   }
+  },
+  "main-game-end": {
+   "game/MAIN/MainGameEnd.c": {
+    ".MainGameEnd_Initialize": "aec:818495b251e6dfe39a2c",
+    ".MainGameEnd_SoloRaceGetReward": "30c:3cbd1e6a813b8203f41c",
+    ".MainGameEnd_SoloRaceSaveHighScore": "148:a1932a0a1cd24b781cec"
+   }
+  },
+  "main-game-start": {
+   "game/MAIN/MainGameStart.c": {
+    ".MainGameStart_Initialize": "9c:4cc12fbd848ef8cf4b58"
+   }
+  },
+  "main-init": {
+   "game/MAIN/MainInit.c": {
+    ".MainInit_FinalizeInit": "8a0:954d6699e836acb4ac42"
+   },
+   "game/MAIN/MainInit_Drivers.c": {
+    ".MainInit_Drivers": "264:7ea84cbc1aeae7a5ec2f"
+   },
+   "game/MAIN/MainInit_Memory.c": {
+    ".MainInit_JitPoolsReset": "60:a66eabd45afc59c89ab9",
+    ".MainInit_OTMem": "108:069ebeac2f9ea308c35c",
+    ".MainInit_PrimMem": "1e4:defd2456f14afdb8e110",
+    ".MainInit_RainBuffer": "e8:709bdbfb37166b3691dc",
+    ".rodata": "14:90ee0869e497c7778731"
+   },
+   "game/MAIN/MainInit_Peripheral.c": {
+    ".MainInit_StringToLevID": "74:70537fbad75ab8895646",
+    ".MainInit_VRAMClear": "c8:330673b8983a5495be8f",
+    ".MainInit_VRAMDisplay": "10c:2a526d4389c97d0d34e8"
+   },
+   "game/MAIN/MainInit_Pools.c": {
+    ".MainInit_JitPoolsNew": "294:7abe01d6c52f1e486c92"
+   },
+   "game/MAIN/MainVisibility.c": {
+    ".MainInit_VisMem": "84:0c0e069d93bf6c051e45"
+   }
+  },
+  "main-init-drivers": {
+   "game/MAIN/MainInit_Drivers.c": {
+    ".MainInit_Drivers": "264:7ea84cbc1aeae7a5ec2f"
+   }
+  },
+  "main-init-memory": {
+   "game/MAIN/MainInit_Memory.c": {
+    ".MainInit_JitPoolsReset": "60:a66eabd45afc59c89ab9",
+    ".MainInit_OTMem": "108:069ebeac2f9ea308c35c",
+    ".MainInit_PrimMem": "1e4:defd2456f14afdb8e110",
+    ".MainInit_RainBuffer": "e8:709bdbfb37166b3691dc",
+    ".rodata": "14:90ee0869e497c7778731"
+   }
+  },
+  "main-init-peripheral": {
+   "game/MAIN/MainInit_Peripheral.c": {
+    ".MainInit_StringToLevID": "74:70537fbad75ab8895646",
+    ".MainInit_VRAMClear": "c8:330673b8983a5495be8f",
+    ".MainInit_VRAMDisplay": "10c:2a526d4389c97d0d34e8"
+   }
+  },
+  "main-init-pools": {
+   "game/MAIN/MainInit_Pools.c": {
+    ".MainInit_JitPoolsNew": "294:7abe01d6c52f1e486c92"
+   }
+  },
+  "main-kill-game": {
+   "game/MAIN/MainKillGame.c": {
+    ".MainKillGame_LaunchSpyro2": "88:1f52cef137a3ca24dd96",
+    ".MainKillGame_StopCTR": "64:ddeed3d505e72a97d8a5"
+   }
+  },
+  "main-load-vlc": {
+   "game/MAIN/MainLoadVLC.c": {
+    ".MainLoadVLC": "74:04bd05d3988ad4f20768",
+    ".MainLoadVLC_Callback": "10:92a23421d8528684ec46"
+   }
+  },
+  "main-load-vlc-callback": {
+   "game/MAIN/MainLoadVLC.c": {
+    ".MainLoadVLC_Callback": "10:92a23421d8528684ec46"
+   }
+  },
+  "main-race-track": {
+   "game/MAIN/MainRaceTrack.c": {
+    ".MainRaceTrack_RequestLoad": "64:9453e7ea909e85d00da9",
+    ".MainRaceTrack_StartLoad": "44:4d95fbf30b5d7e57aae8"
+   }
+  },
+  "main-stats": {
+   "game/MAIN/MainStats.c": {
+    ".MainStats_ClearBattleVS": "44:d697f5ed62d0d2316764",
+    ".MainStats_RestartRaceCountLoss": "11c:28f299a90bb8469bb9f1"
+   }
+  },
+  "main-visibility": {
+   "game/MAIN/MainVisibility.c": {
+    ".MainFrame_VisMemAddDriverPVS": "134:bdda455c1f4a7a3ed232",
+    ".MainFrame_VisMemFullFrame": "578:8adad88db6d5cfe52008",
+    ".MainInit_VisMem": "84:0c0e069d93bf6c051e45"
+   }
+  },
+  "math-hitbox-matrix": {
+   "game/MATH/MATH_3_HitboxMatrix.c": {
+    ".MATH_HitboxMatrix": "c4:41edce10f848aeec21a1"
+   }
+  },
+  "math-matrix-mul": {
+   "game/MATH/MATH_6_MatrixMul.c": {
+    ".MATH_MatrixMul": "84:13a7fd67fb4809d592db"
+   }
+  },
+  "math-signed-trig": {
+   "game/MATH/TRIG_AngleSinCos_r15r16r17.c": {
+    ".TRIG_AngleSinCos_r15r16r17": "68:a6acb951f44d5002041c"
+   },
+   "game/MATH/TRIG_AngleSinCos_r16r17r18.c": {
+    ".TRIG_AngleSinCos_r16r17r18": "68:fb7c4d662ae99fa0b97a"
+   },
+   "game/MATH/TRIG_AngleSinCos_r19r17r18.c": {
+    ".TRIG_AngleSinCos_r19r17r18": "68:5d095cc19a571084ff85"
+   },
+   "game/MATH/TRIG_AngleSinCos_r9r8r10.c": {
+    ".TRIG_AngleSinCos_r9r8r10": "68:0af40fd0469e731c747a"
+   }
+  },
+  "math-trig": {
+   "game/MATH/MATH_0_Sin.c": {
+    ".MATH_Sin": "3c:2ebbb2864bbe100c2f55"
+   },
+   "game/MATH/MATH_1_Cos.c": {
+    ".MATH_Cos": "54:9031887d0c9ae108478f"
+   }
+  },
+  "math-vector-length": {
+   "game/MATH/MATH_4_VectorLength.c": {
+    ".MATH_VectorLength": "50:6450b90e722d003b743b"
+   }
+  },
+  "math-vector-normalize": {
+   "game/MATH/MATH_5_VectorNormalize.c": {
+    ".MATH_VectorNormalize": "e8:25e5e28c8e2196f02fe5"
+   }
+  },
+  "matrix-lv-pair": {
+   "game/MATH/MATH_7_MatrixStubs.c": {
+    ".ApplyMatrixLV_stub": "88:73ef160751c46fc135df",
+    ".Unknown_8006c6c8": "28:1fe902da70f91d7ce099"
+   }
+  },
+  "matrix-rotation-light": {
+   "game/MATH/MATH_7_MatrixStubs.c": {
+    ".ConvertRotToMatrix": "d4:f9442fabee4b76db746e",
+    ".ConvertRotToMatrix_InverseTranspose": "d4:fdc395e4f212aaf23155",
+    ".ConvertRotToMatrix_InverseTranspose_NoRotY": "ac:4d6e6f5d846e42efbfcd",
+    ".ConvertRotToMatrix_Transpose": "38:57d0f3a48c3976c512db",
+    ".MatrixRotate": "80:51eb70e235c74cd58743",
+    ".SquareRoot0_stub": "6c:9d248e09c738629e2976",
+    ".Unknown_8006c600": "18:889c357671553be8075e"
+   },
+   "game/MATH/MATH_LightMatrix.c": {
+    ".Unknown_8006c558": "a8:9e24634cc6a3ff00331f"
+   },
+   "game/MATH/MATH_RotMatrix.c": {
+    ".MATRIX_SET_r11r12r13r14r15": "18:26cd81e5cdb7f05ae230",
+    ".Unknown_8006c49c": "a4:0586f0546864ff090d61"
+   },
+   "game/MATH/TRIG_AngleSinCos_Unsigned.c": {
+    ".TRIG_AngleSinCos_r16r17r18_duplicate": "6c:d8319fc75d697792d855"
+   }
+  },
+  "memcard-card-events": {
+   "game/MEMCARD/MEMCARD_Events.c": {
+    ".MEMCARD_GetNextHwEvent": "7c:635f55fc73360bc5aa5e",
+    ".MEMCARD_GetNextSwEvent": "7c:9ae854598d67cd60fbff",
+    ".MEMCARD_SkipEvents": "44:4635b49671f91dcde36f",
+    ".MEMCARD_WaitForHwEvent": "70:6cf64f35c075e213d35d"
+   }
+  },
+  "memcard-checksum": {
+   "game/MEMCARD/MEMCARD_Checksum.c": {
+    ".MEMCARD_CRC16": "44:1a642ac764a3cdeef568",
+    ".MEMCARD_ChecksumSave": "94:e82898eee9a120426af0"
+   }
+  },
+  "memcard-checksum-load": {
+   "game/MEMCARD/MEMCARD_RetailChecksumLoad.c": {
+    ".MEMCARD_ChecksumLoad": "d0:13e0b7d8e6865a00f637"
+   }
+  },
+  "memcard-close-card": {
+   "game/MEMCARD/MEMCARD_Card.c": {
+    ".MEMCARD_CloseCard": "90:f40f4642031f68147ee2"
+   }
+  },
+  "memcard-file-read-write": {
+   "game/MEMCARD/MEMCARD_FileIO.c": {
+    ".MEMCARD_ReadFile": "6c:19628229c5a8993879bf",
+    ".MEMCARD_WriteFile": "74:fd5b2ec98f635a461d19"
+   }
+  },
+  "memcard-file-setup": {
+   "game/MEMCARD/MEMCARD_FileIO.c": {
+    ".MEMCARD_CloseFile": "38:34d611580f099802e1b7",
+    ".MEMCARD_NewTask": "60:07d2557dfe8c03f49b90"
+   }
+  },
+  "memcard-fileio": {
+   "game/MEMCARD/MEMCARD_FileIO.c": {
+    ".MEMCARD_CloseFile": "38:34d611580f099802e1b7",
+    ".MEMCARD_NewTask": "60:07d2557dfe8c03f49b90",
+    ".MEMCARD_ReadFile": "6c:19628229c5a8993879bf",
+    ".MEMCARD_WriteFile": "74:fd5b2ec98f635a461d19"
+   }
+  },
+  "memcard-format": {
+   "game/MEMCARD/MEMCARD_RetailCard.c": {
+    ".MEMCARD_Format": "80:5bfeeb53dbab327cb761"
+   }
+  },
+  "memcard-free-bytes": {
+   "game/MEMCARD/MEMCARD_RetailCard.c": {
+    ".MEMCARD_GetFreeBytes": "9c:45cae1fb06afe940ecf1"
+   }
+  },
+  "memcard-get-info": {
+   "game/MEMCARD/MEMCARD_RetailCard.c": {
+    ".MEMCARD_GetInfo": "64:4f0f95b1cc15c0b5881a"
+   }
+  },
+  "memcard-ghost-erase": {
+   "game/MEMCARD/MEMCARD_RetailCard.c": {
+    ".MEMCARD_EraseFile": "6c:d3b7b4ee5596e77a2c19",
+    ".MEMCARD_FindFirstGhost": "78:f999d830aca7ff728457",
+    ".MEMCARD_FindNextGhost": "5c:189d5faafd2d7f14996f"
+   }
+  },
+  "memcard-handle-event": {
+   "game/MEMCARD/MEMCARD_RetailHandleEvent.c": {
+    ".MEMCARD_HandleEvent": "48c:cccd1b2869de421e9ea5",
+    ".rdata": "38:ac826f81e687331dd4d0"
+   }
+  },
+  "memcard-icon": {
+   "game/MEMCARD/MEMCARD_Icon.c": {
+    ".MEMCARD_SetIcon": "5c:e463a237e9cf06bc7ff1"
+   }
+  },
+  "memcard-init-card": {
+   "game/MEMCARD/MEMCARD_RetailInitCard.c": {
+    ".MEMCARD_InitCard": "184:b1e9125dcbcfc7bb40f7"
+   }
+  },
+  "memcard-is-file": {
+   "game/MEMCARD/MEMCARD_RetailCard.c": {
+    ".MEMCARD_IsFile": "64:44338696c754d7939cdf"
+   }
+  },
+  "memcard-load": {
+   "game/MEMCARD/MEMCARD_RetailTransfer.c": {
+    ".MEMCARD_Load": "a8:c20456a3eb29775d277a"
+   }
+  },
+  "memcard-save": {
+   "game/MEMCARD/MEMCARD_RetailTransfer.c": {
+    ".MEMCARD_Save": "1d8:e61f5712ef41de8b8433"
+   }
+  },
+  "memcard-string": {
+   "game/MEMCARD/MEMCARD_String.c": {
+    ".MEMCARD_StringInit": "48:e7fedebb78ec5e851b6c",
+    ".MEMCARD_StringSet": "a8:1b3a6831c075208f926f"
+   }
+  },
+  "memcard-transfer": {
+   "game/MEMCARD/MEMCARD_RetailTransfer.c": {
+    ".MEMCARD_Load": "a8:c20456a3eb29775d277a",
+    ".MEMCARD_Save": "1d8:e61f5712ef41de8b8433"
+   }
+  },
+  "memcard-wait-hw-event": {
+   "game/MEMCARD/MEMCARD_Events.c": {
+    ".MEMCARD_WaitForHwEvent": "70:6cf64f35c075e213d35d"
+   }
+  },
+  "mempack": {
+   "game/MEMPACK.c": {
+    ".MEMPACK_AllocHighMem": "50:d738b0c29fcdb9e6a787",
+    ".MEMPACK_AllocMem": "74:141dc0edfbb55cd4ff82",
+    ".MEMPACK_ClearHighMem": "14:03358e54893c95019ce9",
+    ".MEMPACK_ClearLowMem": "18:a9a49213a63f7b8ea539",
+    ".MEMPACK_GetFreeBytes": "18:84d8a2388be7f312db10",
+    ".MEMPACK_Init": "cc:3694bd33170b22f1d3f5",
+    ".MEMPACK_NewPack": "2c:e8c16128431fc71e255c",
+    ".MEMPACK_PopState": "38:6d16eaac093581c59c7c",
+    ".MEMPACK_PopToState": "20:662721925fd18d3ab403",
+    ".MEMPACK_PushState": "40:1265179b8ee933c54601",
+    ".MEMPACK_ReallocMem": "2c:1716abe36c82f6784777",
+    ".MEMPACK_SwapPacks": "24:acd2ea9a48dc99ffdaed"
+   }
+  },
+  "mixrng": {
+   "game/MixRNG/MixRNG.c": {
+    ".MixRNG_GetValue": "34:6c730de8e6a4f9d87089",
+    ".MixRNG_Particles": "40:99b4d5a1f72286590888",
+    ".MixRNG_Scramble": "44:c7d34ff2950ddeec5afd"
+   }
+  },
+  "music": {
+   "game/HOWL/HOWL_Music.c": {
+    ".Music_Adjust": "c8:0ff974d3a9bb5337fb90",
+    ".Music_AsyncParseBanks": "4f0:5d91f3e6ca5df38f9716",
+    ".Music_End": "14:ea1991d6427ad83c67a3",
+    ".Music_GetHighestSongPlayIndex": "c:708977b9afb7cda4f1f2",
+    ".Music_LoadBanks": "d4:69ca7cff77ac51ab5e9e",
+    ".Music_LowerVolume": "54:fae6e751f145fea84f85",
+    ".Music_RaiseVolume": "54:9ff959aa58f90cf433ea",
+    ".Music_Restart": "2c:130a8a1f44b619a3d041",
+    ".Music_SetDefaults": "18:0d0772ebd2f36d645083",
+    ".Music_SetIntro": "50:7fb81fea6064dec1b6fb",
+    ".Music_Start": "18:dd77e505080934655d25",
+    ".Music_Stop": "38:bed51f463e7fd8999b95",
+    ".rodata": "14:7a19dbfd58915427fa4f"
+   }
+  },
+  "other-fx": {
+   "game/HOWL/HOWL_OtherFX.c": {
+    ".CountSounds": "2c:a9b12b60a028ae6bdcad",
+    ".OtherFX_Modify": "178:f8ee6aa0590749af2b1e",
+    ".OtherFX_Play": "2c:4e6db6444fda8605e1ec",
+    ".OtherFX_Play_Echo": "3c:be6fdbbff2c660e1c2e9",
+    ".OtherFX_Play_LowLevel": "1c0:bc01dd1e3bba7892367c",
+    ".OtherFX_Stop1": "3c:a8d83a544473ddcd29c0",
+    ".OtherFX_Stop2": "3c:8428f1ffc9569aa7aaae"
+   }
+  },
+  "particles": {
+   "game/Particle.c": {
+    ".Particle_BitwiseClampByte": "38:0bc7a1a4b7fd3647c21a",
+    ".Particle_FuncPtr_ExhaustUnderwater": "90:48dcbcb25b76d9ab5911",
+    ".Particle_FuncPtr_PotionShatter": "138:ad148ee70e06dea7a547",
+    ".Particle_FuncPtr_SpitTire": "208:9b432fa8486cd04227f8",
+    ".Particle_Init": "548:38a84f56dd311535b5b0",
+    ".Particle_OnDestroy": "4c:9e94a7fc31fdbde58ef5",
+    ".Particle_RenderList": "d78:7851267c6af88c9adb39",
+    ".Particle_SetColors": "cc:e575ec4b452cb9dc501c",
+    ".Particle_UpdateAllParticles": "58:4fcf485603bccbfd9b22",
+    ".Particle_UpdateList": "538:8acfdd39f5f357846527",
+    ".rodata": "1c:3d8c311ab80c01fdba8a"
+   }
+  },
+  "pickup-bots": {
+   "game/PickupBots.c": {
+    ".PickupBots_Init": "68:61e04ad641eb66814098",
+    ".PickupBots_Update": "c3c:90e4dacf7b6b5d532a2e"
+   }
+  },
+  "playlevel-lap-stats": {
+   "game/PlayLevel.c": {
+    ".PlayLevel_UpdateLapStats": "790:ddcb6d66c12b84b85eb0"
+   }
+  },
+  "podium-models": {
+   "game/Podium.c": {
+    ".Podium_InitModels": "13c:eb258b5708caa88643ef",
+    ".rodata": "20:60dda70c4b8f6e501bfe"
+   }
+  },
+  "proc-bsp-leaf-collision": {
+   "game/PROC.c": {
+    ".PROC_PerBspLeaf_CheckInstances": "148:1ff296c7260c4fe1a40c",
+    ".PROC_StartSearch_Self": "90:f12cfe16034f96e59c5a"
+   }
+  },
+  "proc-bucket-search": {
+   "game/PROC.c": {
+    ".PROC_CollidePointWithBucket": "4c:fba4167ee2803652b402",
+    ".PROC_CollidePointWithSelf": "bc:9aeed775584550f72f37",
+    ".PROC_SearchForModel": "68:ca48ca2cf41c71fbd487"
+   }
+  },
+  "proc-hitbox-bucket": {
+   "game/PROC.c": {
+    ".PROC_CollideHitboxWithBucket": "124:c5eeb090e3f134d4f5f0"
+   }
+  },
+  "proc-lifecycle": {
+   "game/PROC.c": {
+    ".PROC_BirthWithObject": "230:4e1c205a4cde46fe5101",
+    ".PROC_CheckAllForDead": "68:e344b229fdaf2ae694bc",
+    ".PROC_CheckBloodlineForDead": "9c:c3d6c58a043f0ef82661",
+    ".PROC_DestroyBloodline": "54:9cd8c37ab4ddb906676c",
+    ".PROC_DestroyInstance": "24:0176cc4a91080508af33",
+    ".PROC_DestroyObject": "7c:7616f598000b6b2c70cd",
+    ".PROC_DestroySelf": "68:97c3b357a95880daf57c",
+    ".PROC_DestroyTracker": "3c:b3d429b5dc5d3ac90f4a"
+   }
+  },
+  "psx-bios-call-gates": {
+   "game/PSX/PSX_BIOS_CallGates.c": {
+    ".ChangeClearPAD": "10:9914f156f1e5a0eab7be",
+    ".CloseEvent": "10:0890ef2d60ddd450a55a",
+    ".DeliverEvent": "10:eb1e96e7781babb4aad5",
+    ".EnableEvent": "10:42492c54c08aaa651374",
+    ".FlushCache": "10:c65d37138899547eab93",
+    ".HookEntryInt": "10:6b4f40ad164c9284970e",
+    ".LoadExec": "10:6fe4ebe9edfaedca685c",
+    ".OpenEvent": "10:af72f0368e039dccda66",
+    ".ResetEntryInt": "10:52eb11f6daca196a4294",
+    ".ReturnFromException": "10:69bc3fdcaf2da1374893",
+    ".StartCARD2": "10:c969869e593c1e6cff4c",
+    ".StopCARD2": "10:8934f40c7e6938e9facb",
+    ".SysDeqIntRP": "10:388a02c462676164c0cc",
+    ".SysEnqIntRP": "10:e48f68cbd8167055a7ad",
+    ".TestEvent": "10:09883699b5dfe34712e0",
+    ".WaitEvent": "10:2127dd683dafe977f55f",
+    "._96_init": "10:63af07bb52044cf95b7d",
+    "._bu_init": "10:79839dde36bae6b722b3",
+    "._card_info": "10:974a55b1744ff28112d5",
+    "._card_load": "10:5758523569021d052adb",
+    "._card_write": "10:39f030682629cbdf8883",
+    "._new_card": "10:5503a6560aeb189619c2",
+    ".bzero": "10:c8ae08626be3341a2e04",
+    ".close": "10:3e2d98c3913189dde252",
+    ".erase": "10:826aa8a98b0db01c27f5",
+    ".firstfile2": "10:3116f7cf05e8635afeca",
+    ".format": "10:c567c5e0afe5519d4008",
+    ".lseek": "10:0fc11bc796f4992d61c2",
+    ".memchr": "10:83fdfdf1862569451fe4",
+    ".memcpy": "10:23df134744d5cf64e62f",
+    ".memset": "10:d280bae343ef6927a1e6",
+    ".nextfile": "10:a898d2d6fe16cf2c3474",
+    ".open": "10:51fe596c890c65f38bb2",
+    ".printf": "10:d2d64ae259e6074b74f9",
+    ".read": "10:f3a7d67eb553ee296f4f",
+    ".setjmp": "10:93be14358c5e67fddbee",
+    ".strcat": "10:34484c599810e63a3cbe",
+    ".strcmp": "10:6c2cbfb7040042b4cb7c",
+    ".strcpy": "10:98f28d87667ba0f2692d",
+    ".strlen": "10:7e6e20934335e433991a",
+    ".strncpy": "10:7f52d58f31daeb5d3c08",
+    ".write": "10:d5db08b9c1f1a84722fd"
+   }
+  },
+  "psx-bios-rand": {
+   "game/MixRNG/PSX_BIOS_Rand.c": {
+    ".rand": "10:e95a00704a41e38e8fd3"
+   }
+  },
+  "psx-sdk-addprim": {
+   "game/PSX/PSX_SDK_AddPrim.c": {
+    ".AddPrim": "3c:67cc3fbcd9e271fa0a94"
+   }
+  },
+  "psx-sdk-cd-core": {
+   "game/PSX/PSX_SDK_CDCore.c": {
+    ".CD_ResetController": "d4:91a8209191dac768856c",
+    ".CdIntToPos": "104:c7758a5f495e9fdfae02",
+    ".CdLastCom": "10:f219eb9f28e7a23ba267",
+    ".CdLastPos": "c:18ccaaf6fb0b4655a643",
+    ".CdMode": "10:1d8ec8e8e7ee7fac4848",
+    ".CdPosToInt": "80:808b3e691e1d1eb07899",
+    ".CdStatus": "10:4b315fcef20640c88a7e",
+    ".data.CD_cbready": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_cbsync": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_com": "1:2215e8ac4e2b871c2a48",
+    ".data.CD_controllerState": "3:8ef3b0d7c4476e2c0a91",
+    ".data.CD_debug": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_mode": "1:2215e8ac4e2b871c2a48",
+    ".data.CD_nopen": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_pos": "4:14b772ed27bfc909fdee",
+    ".data.CD_resetWordReg": "4:7a662ec156bed39f286f",
+    ".data.CD_status": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_status1": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_unresolved8008c43a": "2:ee94d4fdbb37914cd73b",
+    ".data.psxCdReg0": "4:21bfb538fb6ed08ba570",
+    ".data.psxCdReg2": "4:0eb39a3fd5198b3a2f77",
+    ".data.psxCdReg3": "4:d7687d81f1db0c84b1bc"
+   },
+   "game/PSX/PSX_SDK_CDState.c": {
+    ".CdReadyCallback": "14:eecdc52f5c0e73be5bdc",
+    ".CdSetDebug": "14:e767c30cecea2fee0455",
+    ".CdSyncCallback": "14:e2d9c3d455e4cf11b237"
+   },
+   "game/PSX/PSX_SDK_CdReset.c": {
+    ".CdReset": "20:f37a3be363a8a2eb6fe5"
+   }
+  },
+  "psx-sdk-cd-transfer": {
+   "game/PSX/PSX_SDK_CDForward.c": {
+    ".CdDataCallback": "24:3b80c1bb948a7f9aaa90",
+    ".CdDataSync": "20:bd9c5e75f07610f98ca2",
+    ".CdReady": "20:5043ae32443de03b6dc8"
+   },
+   "game/PSX/PSX_SDK_CDTransfer.c": {
+    ".CdGetSector": "20:9a663455794ad426d4ca",
+    ".CdGetSector2": "20:a82ad5bc80ae41170fb6",
+    ".CdReadCallback": "14:68a028d19d6e7dc2477c",
+    ".data.CD_cbread": "4:5d5ce0f8049e6b8f8503"
+   }
+  },
+  "psx-sdk-draw-move": {
+   "game/PSX/PSX_SDK_DrawMove.c": {
+    ".SetDrawMove": "60:186ea8092ff10092c54e"
+   }
+  },
+  "psx-sdk-gte-matrix": {
+   "platform/gte_matrix.c": {
+    ".RotTrans": "28:cab93cfb283cc866fe04",
+    ".SetGeomOffset": "18:e7f11251777b7892682a",
+    ".SetLightMatrix": "30:a0ed4f903149f8f18eb1",
+    ".SetRotMatrix": "30:ae6fc0f3baaa8078455b",
+    ".SetTransMatrix": "20:40d704b068575b196de7"
+   }
+  },
+  "psx-sdk-leaves": {
+   "game/PSX/PSX_SDK_Leaves.c": {
+    ".EnterCriticalSection": "10:4c4e442daf44bd6874a4",
+    ".ExitCriticalSection": "10:c0f824e9b57acbc7a20f",
+    ".PadSetCmd": "10:19a7abd023daedb3a279",
+    ".SetGeomScreen": "10:063c708a9628cebe88c2"
+   }
+  },
+  "psx-sdk-spu-setters": {
+   "game/PSX/PSX_SDK_SpuSetters.c": {
+    ".SpuSetCommonCDMix": "40:cbdb6c77445621b6f1ae",
+    ".SpuSetCommonCDReverb": "40:bbcfb24e8af5aad178da",
+    ".SpuSetCommonCDVolume": "18:6f3f88e8402116379d78",
+    ".SpuSetCommonMasterVolume": "1c:50557b6ba7814ab5188d",
+    ".SpuSetReverbModeDepth": "28:ee2cf8c152c0e028868e"
+   }
+  },
+  "psx-sdk-spu-state": {
+   "game/PSX/PSX_SDK_SpuState.c": {
+    ".data.psxSpuReverbDepth": "4:5d5ce0f8049e6b8f8503",
+    ".data.psxSpuSdkRegs": "4:ee0ebb448385d76e985d"
+   }
+  },
+  "psx-sdk-spu-transfer": {
+   "game/PSX/PSX_SDK_SpuTransfer.c": {
+    ".SpuSetTransferCallback": "24:dd77f16f5cb1e48999f6",
+    ".SpuSetTransferMode": "30:40d5ec76f15f61b62241"
+   }
+  },
+  "psx-sdk-spu-transfer-state": {
+   "game/PSX/PSX_SDK_SpuTransferState.c": {
+    ".data.psxSpuTransferCallback": "4:5d5ce0f8049e6b8f8503",
+    ".data.psxSpuTransferMode": "4:5d5ce0f8049e6b8f8503",
+    ".data.psxSpuTransferModeRaw": "4:5d5ce0f8049e6b8f8503"
+   }
+  },
+  "psx-sdk-spu-voice": {
+   "game/PSX/PSX_SDK_SpuVoice.c": {
+    ".SpuSetVoicePitch": "70:57491133754600f0f3a3",
+    ".SpuSetVoiceVolume": "7c:644a56ee7a2c79645022"
+   }
+  },
+  "psx-sdk-stream-ring": {
+   "game/PSX/PSX_SDK_CDCore.c": {
+    ".CdIntToPos": "104:c7758a5f495e9fdfae02",
+    ".CdPosToInt": "80:808b3e691e1d1eb07899",
+    ".data.CD_cbready": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_cbsync": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_com": "1:2215e8ac4e2b871c2a48",
+    ".data.CD_controllerState": "3:8ef3b0d7c4476e2c0a91",
+    ".data.CD_debug": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_mode": "1:2215e8ac4e2b871c2a48",
+    ".data.CD_nopen": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_pos": "4:14b772ed27bfc909fdee",
+    ".data.CD_resetWordReg": "4:7a662ec156bed39f286f",
+    ".data.CD_status": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_status1": "4:5d5ce0f8049e6b8f8503",
+    ".data.CD_unresolved8008c43a": "2:ee94d4fdbb37914cd73b",
+    ".data.psxCdReg0": "4:21bfb538fb6ed08ba570",
+    ".data.psxCdReg2": "4:0eb39a3fd5198b3a2f77",
+    ".data.psxCdReg3": "4:d7687d81f1db0c84b1bc"
+   },
+   "game/PSX/PSX_SDK_CDForward.c": {
+    ".CdDataCallback": "24:3b80c1bb948a7f9aaa90"
+   },
+   "game/PSX/PSX_SDK_Stream.c": {
+    ".StClearRing": "60:a4ccf9536ff3f466ae4d",
+    ".StSetMask": "1c:c3a22117c7c8c548bb9a",
+    ".StSetRing": "2c:e5336b9bd03de5d73ee8",
+    ".init_ring_status": "34:c74930f3d1cbde18e598"
+   },
+   "game/PSX/PSX_SDK_StreamBackloc.c": {
+    ".StGetBackloc": "58:a4573d677de864b70d3d"
+   },
+   "game/PSX/PSX_SDK_StreamConsumers.c": {
+    ".StFreeRing": "ac:fe5c6b7d7c4101a1e795",
+    ".StGetNext": "b8:bdf5fcc7f22b6806d61d"
+   },
+   "game/PSX/PSX_SDK_StreamRead.c": {
+    ".CdRead2": "84:77c8ef478fae2015431c"
+   },
+   "game/PSX/PSX_SDK_StreamReady.c": {
+    ".St_cdready_callback": "20:c7cd84a26eb8b58e1635",
+    ".data_ready_callback": "8c:917532e5aa54a36b52ff"
+   },
+   "game/PSX/PSX_SDK_StreamSetup.c": {
+    ".StSetStream": "84:92286eb72e7ff7da7d5a"
+   },
+   "game/PSX/PSX_SDK_StreamStatus.c": {
+    ".StRingStatus": "c4:05c5230ffa5fecc85772"
+   }
+  },
+  "psx-sdk-video-defaults": {
+   "game/PSX/PSX_SDK_DefaultEnv.c": {
+    ".SetDefDispEnv": "3c:78d61b905ba5633472c2",
+    ".SetDefDrawEnv": "b4:c608a62da82db0522b23"
+   },
+   "game/PSX/PSX_SDK_VideoMode.c": {
+    ".GetVideoMode": "10:7aada4f58a02dbc3c3a8",
+    ".SetVideoMode": "14:608eaf21a33ca17bfe33"
+   }
+  },
+  "psx-sdk-video-state": {
+   "game/PSX/PSX_SDK_VideoState.c": {
+    ".data.PSX_videoMode": "4:5d5ce0f8049e6b8f8503"
+   }
+  },
+  "push-buffer-fades": {
+   "game/PushBuffer.c": {
+    ".PushBuffer_FadeAllWindows": "78:885addfedef1cb9029f0",
+    ".PushBuffer_FadeOneWindow": "190:18030818aa0f2e4e1a58"
+   }
+  },
+  "push-buffer-frustum": {
+   "game/PushBuffer/PushBuffer_SetFrustumPlane.c": {
+    ".PushBuffer_SetFrustumPlane": "2a0:bb04606cd8e38351f8a0"
+   },
+   "game/PushBuffer/PushBuffer_SetMatrixVP.c": {
+    ".PushBuffer_SetMatrixVP": "24c:4b6b4216a11362faedbc"
+   },
+   "game/PushBuffer/PushBuffer_UpdateFrustum.c": {
+    ".PushBuffer_UpdateFrustum": "838:fa1118d34ed9e83d3bff"
+   }
+  },
+  "push-buffer-plane": {
+   "game/PushBuffer/PushBuffer_SetFrustumPlane.c": {
+    ".PushBuffer_SetFrustumPlane": "2a0:bb04606cd8e38351f8a0"
+   }
+  },
+  "push-buffer-setup": {
+   "game/PushBuffer.c": {
+    ".PushBuffer_Init": "218:c07b34cef44147e5c154",
+    ".PushBuffer_SetDrawEnv_DecalMP": "118:0bc97d5cd315a2880d24",
+    ".PushBuffer_SetDrawEnv_Normal": "178:51132b7585fe45e5685b",
+    ".PushBuffer_SetPsyqGeom": "64:7a0dc29d5f7fbbc4c674"
+   }
+  },
+  "queue-load-track": {
+   "game/QueueLoadTrack.c": {
+    ".QueueLoadTrack_GetMenuPtr": "c:9483bff3146cbcdd0108",
+    ".QueueLoadTrack_MenuProc": "d4:f10404e538e763679011"
+   }
+  },
+  "raceconfig": {
+   "game/RaceConfig.c": {
+    ".RaceConfig_LoadGameOptions": "114:388b099814ca9e170746",
+    ".RaceConfig_SaveGameOptions": "110:3a405938da2b840daced"
+   }
+  },
+  "raceflag": {
+   "game/RaceFlag.c": {
+    ".RaceFlag_BeginTransition": "7c:f3ccd01ff6b4a8ca8bb3",
+    ".RaceFlag_DrawLoadingString": "248:5c5bf09ac88631b14360",
+    ".RaceFlag_DrawSelf": "a10:2e0e83186ce85a4879e2",
+    ".RaceFlag_GetCanDraw": "c:c76821c431d24166bb8e",
+    ".RaceFlag_GetOT": "1f0:fe21731c5c3a3798586c",
+    ".RaceFlag_IsFullyOffScreen": "1c:b9292f63accc2722c21e",
+    ".RaceFlag_IsFullyOnScreen": "c:5c32d051dc196886d9a4",
+    ".RaceFlag_IsTransitioning": "48:85f0c029ab3ab4e7cdd7",
+    ".RaceFlag_MoveModels": "e8:f5c96a4742b2ce111c8f",
+    ".RaceFlag_ResetTextAnim": "10:f325a66b5e71e16061d0",
+    ".RaceFlag_SetCanDraw": "c:7cf3376b8ba1b289da33",
+    ".RaceFlag_SetDrawOrder": "24:5290e2f041d1522a76fd",
+    ".RaceFlag_SetFullyOffScreen": "30:bd3cbb826ccd3fd8c1f5",
+    ".RaceFlag_SetFullyOnScreen": "2c:f66a1a48216b0dafb280"
+   }
+  },
+  "rdata-strings": {
+   "game/zGlobal_RDATA.c": {
+    ".rdata.level_resource_names": "e8:ae55e05e06b8d5a57d10",
+    ".rdata.loading_names": "1a8:34776fd2fbbbfa969b26",
+    ".rdata.misc.bots": "18:61d6a977900f26dbe082",
+    ".rdata.misc.ghost": "2c:34757b26e5b992d7da54",
+    ".rdata.misc.hud": "3c:b76b4588d7880d5bb404",
+    ".rdata.misc.language": "c:ddda8bffd0543171ac48",
+    ".rdata.misc.menus": "30:521087dcb9c7e975ab22",
+    ".rdata.misc.sample": "14:1cbe930daee22b29df9f",
+    ".rdata.model_names": "f98:652bd7ea2bf9399b29cd",
+    ".rdata.ui.vs_wait": "1c:72b9e4891ede8e1a0709",
+    ".rdata.vehicle_names": "260:5559a439ff2f435f37a0"
+   }
+  },
+  "rectmenu": {
+   "game/RECTMENU.c": {
+    ".RECTMENU_BoolHidden": "14:424602f956cd742304cb",
+    ".RECTMENU_ClearInput": "54:949fe504281c796f5af9",
+    ".RECTMENU_CollectInput": "dc:31d572c7e6c914359a32",
+    ".RECTMENU_DrawFullRect": "130:5f0404358b174569e8a0",
+    ".RECTMENU_DrawInnerRect": "23c:e6f0f1ac1540ecee75a7",
+    ".RECTMENU_DrawOuterRect_Edge": "68:aa272b12ef27ea613b42",
+    ".RECTMENU_DrawOuterRect_HighLevel": "3c:88d9a3c4a89a2fb42c9f",
+    ".RECTMENU_DrawOuterRect_LowLevel": "11c:9e65d26f2f8421e0b50a",
+    ".RECTMENU_DrawPolyGT4": "98:cf4b646cd17f9fc85804",
+    ".RECTMENU_DrawQuip": "124:c8d0047c0284e096f153",
+    ".RECTMENU_DrawRwdBlueRect": "194:c3723a4236c70d412aac",
+    ".RECTMENU_DrawRwdBlueRect_Subset": "120:a23188b2d9c435820471",
+    ".RECTMENU_DrawRwdTriangle": "14c:a2f2101e286d23749839",
+    ".RECTMENU_DrawSelf": "654:69cd6ba6353cf3009b54",
+    ".RECTMENU_DrawTime": "13c:9ca311cc547d14728aa1",
+    ".RECTMENU_GetHeight": "134:5fffbe02d7cb1b53e061",
+    ".RECTMENU_GetWidth": "160:164aaec35043168baf68",
+    ".RECTMENU_Hide": "14:767c881b8acab8b01527",
+    ".RECTMENU_ProcessInput": "2d8:eb764f2d01cc150a17cc",
+    ".RECTMENU_ProcessState": "184:abc3a03f7c135d639055",
+    ".RECTMENU_Show": "38:828e567aa8e0adf2bb54"
+   }
+  },
+  "redbeaker-rain": {
+   "game/RenderWeather/RedBeaker_RenderRain.c": {
+    ".RedBeaker_RenderRain": "63c:92f02e4029d8a55ccd3b"
+   }
+  },
+  "refresh-card-early-state": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_CountGhostProfilesForLEV": "84:21d641969eb2d131fcff",
+    ".RefreshCard_GetResult": "8c:48be6601b2c01d59bf63",
+    ".RefreshCard_NextMemcardAction": "44:eb688bf1d091737d5c3a",
+    ".RefreshCard_Unknown1": "1c:38a961f246ad386b161c"
+   }
+  },
+  "refresh-card-entry": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_Entry": "44:9542520fd9b1a564ca05"
+   }
+  },
+  "refresh-card-game-progress-options": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_GameProgressAndOptions": "a0:c6f96d11a39f92d0bd8a"
+   }
+  },
+  "refresh-card-ghost-codec": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_GhostDecodeByte": "70:ae4b2b5ed63eeb369b21",
+    ".RefreshCard_GhostEncodeByte": "60:fa7130ae3f6d10142005"
+   }
+  },
+  "refresh-card-ghost-profile-decode": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_GhostDecodeProfile": "164:9b7130925ba3c4f2c4ac"
+   }
+  },
+  "refresh-card-ghost-profile-encode": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_GhostEncodeProfile": "404:0e028c90db8d3cf80e6d"
+   }
+  },
+  "refresh-card-polling": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_Unknown3": "788:c713508b21d794c05eaa",
+    ".RefreshCard_Unknown4": "30c:8ef82264e4d7e8b48b5c",
+    ".rodata": "60:ff9e2df7fa72b485abab"
+   }
+  },
+  "refresh-card-state-entry": {
+   "game/RefreshCard.c": {
+    ".RefreshCard_GetNumGhostsTotal": "c:a54f4e3cde089748e97a",
+    ".RefreshCard_SetScreenText": "24:e3bea93c7218abec22fb",
+    ".RefreshCard_StartMemcardAction": "14:237334638c99a168dfde",
+    ".RefreshCard_StopMemcardAction": "18:8b1f50deda5086ac2941",
+    ".RefreshCard_Unknown2": "3c:c63c5ab269c92220b8d5"
+   }
+  },
+  "render-bucket-init-depth-gte": {
+   "game/RenderBucket/RenderBucket_08_InitDepthGTE.c": {
+    ".RenderBucket_InitDepthGTE": "1c:bf3f534055e4944aca62"
+   }
+  },
+  "render-lists": {
+   "game/RenderLevel/RenderLists.c": {
+    ".RenderLists_Init1P2P": "464:235b2ea3ec2b6716c0da",
+    ".RenderLists_Init3P4P": "398:0b69042de5263d72733d",
+    ".RenderLists_PreInit": "b4:d67738c8e5e454af773e",
+    ".rdata": "20:83e5f7e9ded59f89805e"
+   }
+  },
+  "render-stars": {
+   "game/RenderStars.c": {
+    ".RenderStars": "31c:82d3f3a4ec9f53d8cb57"
+   }
+  },
+  "render-weather": {
+   "game/MATH/TRIG_AngleSinCos_r16r17r18.c": {
+    ".TRIG_AngleSinCos_r16r17r18": "68:fb7c4d662ae99fa0b97a"
+   },
+   "game/RenderWeather/RenderWeather.c": {
+    ".RenderWeather": "460:3d2f5a7a2eda36786c4a"
+   }
+  },
+  "renderbucket": {
+   "game/RenderBucket/RenderBucket_CopyDispatchTables.c": {
+    ".RenderBucket_CopyDispatchTables": "58:78aaee4d13967d7fd15c"
+   },
+   "game/RenderBucket/RenderBucket_DrawInstPrim_ClampDepth.c": {
+    ".RenderBucket_DrawInstPrim_ClampDepth": "f0:c030e5c9fbb5fc7e6501"
+   },
+   "game/RenderBucket/RenderBucket_DrawInstPrim_DepthFade.c": {
+    ".RenderBucket_DrawInstPrim_DepthFade": "168:8a5ab38eb7489caf461e"
+   },
+   "game/RenderBucket/RenderBucket_DrawInstPrim_Normal.c": {
+    ".RenderBucket_DrawInstPrim_Normal": "108:cfa266153c8c2b6df0a4"
+   },
+   "game/RenderBucket/RenderBucket_Execute.c": {
+    ".RenderBucket_Execute": "2c4:1cea121cee6c35579742"
+   },
+   "game/RenderBucket/RenderBucket_ExpandProjectedBounds.c": {
+    ".RenderBucket_ExpandProjectedBounds": "6c:3a4baf953a0e2047547f"
+   },
+   "game/RenderBucket/RenderBucket_InstSetupCallbacks.c": {
+    ".RenderBucket_InstSetupColor": "2c:109f4b13b484fa1341c1",
+    ".RenderBucket_InstSetupFadeColor": "40:b05d822db72fad4fc205",
+    ".RenderBucket_InstSetupLightColor": "20:92e55808d58c9dcd0b8e",
+    ".RenderBucket_InstSetupZeroColor": "10:a873c6cd2e9c2975547f"
+   },
+   "game/RenderBucket/RenderBucket_Normal.c": {
+    ".RenderBucket_DrawFunc_Normal": "3b4:383c22ba33794022ba67"
+   },
+   "game/RenderBucket/RenderBucket_QueueDraw.c": {
+    ".RenderBucket_QueueDraw": "bd4:7eac13c3793a54d2a4b1"
+   },
+   "game/RenderBucket/RenderBucket_QueueInstances.c": {
+    ".RenderBucket_QueueLevInstances": "12c:ea2c0145ec8020de207c",
+    ".RenderBucket_QueueNonLevInstances": "104:a4ee3b8d117b40eb4f3b"
+   },
+   "game/RenderBucket/RenderBucket_Reflection.c": {
+    ".RenderBucket_DrawFunc_Reflection": "428:5df04888f2192c0f7408"
+   },
+   "game/RenderBucket/RenderBucket_Special.c": {
+    ".RenderBucket_DrawFunc_Special": "370:ce0736db9ea015f6cd80"
+   },
+   "game/RenderBucket/RenderBucket_Split.c": {
+    ".RenderBucket_DrawFunc_Split": "21c:8b0e6df2063e7387b844"
+   },
+   "game/RenderBucket/RenderBucket_UncompressAnimationFrame.c": {
+    ".RenderBucket_UncompressAnimationFrame": "1c8:0477f26f2ddfc910cd3a"
+   },
+   "game/RenderBucket/RenderBucket_UncompressAnimationFrame_NextFrame.c": {
+    ".RenderBucket_UncompressAnimationFrame_NextFrame": "27c:8d843b5bf046d7447222"
+   },
+   "game/RenderBucket/RenderBucket_UncompressAnimationFrame_Transformed.c": {
+    ".RenderBucket_UncompressAnimationFrame_ReflectNextFrame": "2a8:6290329af7576ae0e78a",
+    ".RenderBucket_UncompressAnimationFrame_Split": "1f4:3eac220273127864eeba"
+   }
+  },
+  "rng-deadcoed": {
+   "game/MixRNG/RngDeadCoed.c": {
+    ".RngDeadCoed": "44:317aaefbd9093f5a2818"
+   }
+  },
+  "sdata-initialized": {
+   "game/zGlobal_SDATA.c": {
+    ".bss": "1680:8666aa9fa3f141c8e35f",
+    ".data": "6fc:5982aa413a416ea8b09b"
+   }
+  },
+  "select-profile": {
+   "game/SelectProfile.c": {
+    ".SelectProfile_AdvPickMode_MenuProc": "d0:1bfd7614cb177cccdc03",
+    ".SelectProfile_AllProfiles_MenuProc": "1944:260bd8b4e025e13fb062",
+    ".SelectProfile_Destroy": "80:a7f7ccee09bd75439d9b",
+    ".SelectProfile_DrawAdvProfile": "5b0:8846586051232cd710dc",
+    ".SelectProfile_DrawGhostProfile": "370:13c0abe537a8b2147929",
+    ".SelectProfile_GetTrackID": "24:3eead37c3b468ee26602",
+    ".SelectProfile_Init": "314:2b19a2fc51c434193093",
+    ".SelectProfile_InitAndDestroy": "30:26284ad56719ae8ab730",
+    ".SelectProfile_InputLogic": "1b8:1b7d5c64753cd72bb259",
+    ".SelectProfile_MuteCursors": "44:69b55d567b8d8b19de10",
+    ".SelectProfile_PrintInteger": "98:e0849978e2c1ac4775a6",
+    ".SelectProfile_QueueLoadHub_MenuProc": "54:edf1f395e30adc00ad80",
+    ".SelectProfile_ThTick": "124:60e0eabbad98b1f8b487",
+    ".SelectProfile_ToggleMode": "b0:fc87b1808e9f3b1334ca",
+    ".SelectProfile_UI_ConvertX": "20:160deaa6b3d397e119e7",
+    ".SelectProfile_UI_ConvertY": "20:a958f998dd2fd41aea65",
+    ".SelectProfile_UnMuteCursors": "48:25f79f2bf83d689d7c87"
+   }
+  },
+  "song-pool": {
+   "game/HOWL/HOWL_SongPool.c": {
+    ".SongPool_AdvHub1": "54:01c89803c29e25787c1b",
+    ".SongPool_AdvHub2": "d4:0c7a368aeee5ed3296b4",
+    ".SongPool_CalculateTempo": "54:1b1660857e0da3a52abf",
+    ".SongPool_ChangeTempo": "64:fad0feaae558ce472914",
+    ".SongPool_FindFreeChannel": "3c:b43e7704082ababeac3f",
+    ".SongPool_Start": "2a8:1eea7578826fa9cafb73",
+    ".SongPool_StopAllCseq": "88:835cf755a9f412227dc2",
+    ".SongPool_StopCseq": "f4:88b638ab3239050b6ab4",
+    ".SongPool_Volume": "18:4637f5e8abf12bcac009"
+   }
+  },
+  "submit-name": {
+   "game/SubmitName.c": {
+    ".SubmitName_DrawMenu": "6e4:48247c600350ec2355e2",
+    ".SubmitName_MenuProc": "ec:cec36ce31af2ca437ddb",
+    ".SubmitName_RestoreName": "58:f823958207acde7782cf"
+   }
+  },
+  "take-cup-progress": {
+   "game/TakeCupProgress.c": {
+    ".TakeCupProgress_Activate": "28:4337140bb75d97810706",
+    ".TakeCupProgress_MenuProc": "c4:cd0364a1d4570f5bc67f"
+   }
+  },
+  "thread-tick-runtime": {
+   "game/PROC.c": {
+    ".ThTick_FastRET": "58:e296c031b513131153da",
+    ".ThTick_RunBucket": "ac:4a5a8464824404f57ccd",
+    ".ThTick_Set": "8:8e765718ae30e4fbdff7",
+    ".ThTick_SetAndExec": "18:13ef3eeada634fb77b51"
+   }
+  },
+  "timer": {
+   "game/Timer.c": {
+    ".Timer_Destroy": "34:e45e65ea275b58a15e47",
+    ".Timer_GetTime_Elapsed": "54:79f0abde765624ea3ba4",
+    ".Timer_GetTime_Total": "78:cb8c0f807a78b27fad95",
+    ".Timer_Init": "54:4eb1b93f5521cfbcddb5"
+   }
+  },
+  "ui-convert-y": {
+   "game/UI/UI_Convert.c": {
+    ".UI_ConvertY_2": "20:a958f998dd2fd41aea65"
+   }
+  },
+  "ui-cup-ranks": {
+   "game/UI/UI_CupRanks.c": {
+    ".UI_CupStandings_FinalizeCupRanks": "1a4:44ce2d35923b46db0279",
+    ".UI_CupStandings_UpdateCupRanks": "dc:ef67ea4ce6455ea51cbe"
+   }
+  },
+  "ui-cup-standings": {
+   "game/UI/UI_CupStandings.c": {
+    ".UI_CupStandings_InputAndDraw": "fd4:8486c7012591b396a378"
+   }
+  },
+  "ui-draw-num": {
+   "game/UI/UI_DrawNum.c": {
+    ".UI_DrawNumCrystal": "a4:bb502d6ac512fa8980e2",
+    ".UI_DrawNumKey": "ac:8ed1fb7445fddf3d2864",
+    ".UI_DrawNumRelic": "ac:4269dc23d12fcd2c0a20",
+    ".UI_DrawNumTimebox": "ac:0d828c892f8f4ee6367e",
+    ".UI_DrawNumTrophy": "ac:bf24bff0c93ed095765b",
+    ".UI_DrawNumWumpa": "24c:632cd7db0eebf8396da3"
+   }
+  },
+  "ui-icons": {
+   "game/UI/UI_Icon.c": {
+    ".UI_DrawDriverIcon": "1d0:25ea277126fb533f0c6d",
+    ".UI_TrackerBG": "278:b3620d01dcd071bb07d7",
+    ".UI_WeaponBG_AnimateShine": "29c:b71e88a639d9e0f2e58a",
+    ".UI_WeaponBG_DrawShine": "2e4:42414ddf2bbb7cff858a"
+   }
+  },
+  "ui-instance": {
+   "game/UI/UI_Instance.c": {
+    ".UI_INSTANCE_BirthWithThread": "3dc:a963126c1d2d6c05935e",
+    ".UI_INSTANCE_InitAll": "750:ed0232c0ed2a7a3091cf"
+   }
+  },
+  "ui-jump-meter-draw": {
+   "game/UI/UI_JumpMeter_Draw.c": {
+    ".UI_JumpMeter_Draw": "42c:96ffa0e4af8712e0e2e3"
+   }
+  },
+  "ui-jump-meter-update": {
+   "game/UI/UI_JumpMeter_Update.c": {
+    ".UI_JumpMeter_Update": "1c0:bad8a2ac8b74c6cbdc36"
+   }
+  },
+  "ui-lerp2d": {
+   "game/UI/UI_Lerp2D.c": {
+    ".UI_Lerp2D_Angular": "170:d8df4d976a1896fa266f",
+    ".UI_Lerp2D_HUD": "bc:e52792a52d26c1afd8d5",
+    ".UI_Lerp2D_Linear": "d8:1a4f431e3a22637f1904"
+   }
+  },
+  "ui-limit-clock": {
+   "game/UI/UI_LimitClock.c": {
+    ".UI_DrawLimitClock": "144:29b4d0baf78f47712edb"
+   }
+  },
+  "ui-map": {
+   "game/UI/UI_Map.c": {
+    ".UI_Map_DrawAdvPlayer": "98:c4860dcffc17bd282b90",
+    ".UI_Map_DrawDrivers": "18c:729360f1d5097fceb84d",
+    ".UI_Map_DrawGhosts": "114:0619b7ab9aadc60ff857",
+    ".UI_Map_DrawMap": "2a0:ca74867123424f07e248",
+    ".UI_Map_DrawRawIcon": "118:e0f214da3db0fee28a79",
+    ".UI_Map_DrawTracking": "e4:da0a4da10ff62bccc45f",
+    ".UI_Map_GetIconPos": "2f8:b55e7fc41ca3079a3eac"
+   }
+  },
+  "ui-race-clock": {
+   "game/UI/UI_Clock.c": {
+    ".UI_DrawRaceClock": "ae8:8114f026271400bf53d8"
+   }
+  },
+  "ui-race-end-clock": {
+   "game/UI/UI_RaceEndClock.c": {
+    ".UI_RaceEnd_GetDriverClock": "114:c49b193b15420660c75c"
+   }
+  },
+  "ui-race-flow": {
+   "game/UI/UI_RaceEndMenu.c": {
+    ".UI_RaceEnd_MenuProc": "3ec:01cf2086dfecd77cb624"
+   },
+   "game/UI/UI_RaceStart.c": {
+    ".UI_RaceStart_IntroText1P": "450:1c29d136e22e3a1f6021",
+    ".rodata": "9:a092eaf559ec0d1bb279"
+   }
+  },
+  "ui-race-hud-text": {
+   "game/UI/UI_RaceHudText.c": {
+    ".UI_DrawBattleScores": "18c:881aced8acb4ee5c4b6e",
+    ".UI_DrawLapCount": "12c:8863e0ffb8b1431ccd67",
+    ".UI_DrawPosSuffix": "cc:e170770d1541035aeb12"
+   }
+  },
+  "ui-ranked-drivers": {
+   "game/UI/UI_Rank.c": {
+    ".UI_DrawRankedDrivers": "ad4:cea24ec04a4b7e3e93fd"
+   }
+  },
+  "ui-render-frame-adv-crystal": {
+   "game/UI/UI_RenderFrame.c": {
+    ".UI_RenderFrame_AdvHub": "c4:254cd6e54f7c3daf8fdc",
+    ".UI_RenderFrame_CrystChall": "300:c8bedf4988c23b249e00"
+   }
+  },
+  "ui-reward": {
+   "game/UI/UI_Reward.c": {
+    ".UI_SaveLapTime": "1bc:ed4b026ee670e2841611",
+    ".UI_ThTick_CountPickup": "138:d97bbc20ae20ec16fda5",
+    ".UI_ThTick_CtrLetters": "f0:bb5f6743e35122137b31",
+    ".UI_ThTick_Reward": "c4:53da945cc7dca8fd129b",
+    ".UI_ThTick_big1": "a4:afdc91ca19a651be4e74"
+   }
+  },
+  "ui-slide-meter": {
+   "game/UI/UI_DrawSlideMeter.c": {
+    ".UI_DrawSlideMeter": "274:3b258c56728f8f017f53"
+   }
+  },
+  "ui-speedometer": {
+   "game/UI/UI_Speedometer.c": {
+    ".UI_DrawSpeedBG": "5b8:0c7828931cd2db0c387d",
+    ".UI_DrawSpeedNeedle": "4ec:2affc91520bdd1ff6c78"
+   }
+  },
+  "ui-tracker-indicators": {
+   "game/UI/UI_BattleDrawHeadArrows.c": {
+    ".UI_BattleDrawHeadArrows": "35c:5c680df1c298313e8453"
+   },
+   "game/UI/UI_TrackerSelf.c": {
+    ".UI_TrackerSelf": "728:908f9b631b8cea517295"
+   }
+  },
+  "ui-vs-quip-assign": {
+   "game/UI/UI_VsQuip.c": {
+    ".UI_VsQuipAssign": "184:f85148a9f1dae18a9d3d",
+    ".UI_VsQuipAssignAll": "4f8:bc739cf776ef7951bf2e",
+    ".UI_VsQuipDrawAll": "1b0:a1fa9a238b203c9acb6e",
+    ".UI_VsQuipReadDriver": "70:7d2e1ca6b9afc8c14532",
+    ".rodata": "28:f58d7d97b1a9b5f40382"
+   }
+  },
+  "ui-vs-wait": {
+   "game/UI/UI_VsWait.c": {
+    ".UI_VsWaitForPressX": "488:4ee8478c3a03967a10a5"
+   }
+  },
+  "ui-weapon-drawbg": {
+   "game/UI/UI_Weapon_DrawBG.c": {
+    ".UI_Weapon_DrawBG": "128:17eda0f2d9bdee9e6638"
+   }
+  },
+  "ui-weapon-drawself": {
+   "game/UI/UI_Weapon_DrawSelf.c": {
+    ".UI_Weapon_DrawSelf": "318:e36ff0bce8f5b24c8a94"
+   }
+  },
+  "ui-wumpa-multiplayer": {
+   "game/UI/UI_RenderFrameWumpa.c": {
+    ".UI_RenderFrame_Wumpa3D_2P3P4P": "3ac:2aa1e7b3e08b37277210"
+   }
+  },
+  "vector": {
+   "game/Vector.c": {
+    ".Vector_BakeMatrixTable": "3c0:c44ab6d5a44632864cb6",
+    ".Vector_SpecLightNoSpin3D": "1cc:3fdaa2fdc79774ebf9a6",
+    ".Vector_SpecLightSpin2D": "14c:a7e52e300914d0e1e716",
+    ".Vector_SpecLightSpin3D": "29c:017b9d1422e8b142d0ad"
+   }
+  },
+  "vehicle": {
+   "game/Vehicle/VehAfterColl.c": {
+    ".VehAfterColl_GetSurface": "24:e3eea6e0e27c5bdbe551",
+    ".VehAfterColl_GetTerrain": "24:aa4c85556551743a878f"
+   },
+   "game/Vehicle/VehBirth.c": {
+    ".VehBirth_EngineAudio_AllPlayers": "a0:a616e1adf10aedcc6e87",
+    ".VehBirth_GetModelByName": "118:21e9421d67f564a94c2c",
+    ".VehBirth_NonGhost": "194:9f86a1b0b076d7455f00",
+    ".VehBirth_NullThread": "8:3fce55fcf4d40dd7ad5a",
+    ".VehBirth_Player": "94:df3a8ad003ea85c8d02e",
+    ".VehBirth_SetConsts": "144:fc012e489605ef3ea9e4",
+    ".VehBirth_TeleportAll": "b0:80bac7a3146b42582c64",
+    ".VehBirth_TeleportSelf": "c0c:9d677281b26f3446cdca",
+    ".VehBirth_TireSprites": "e0:3a5846a1d2fd5a1a53ed"
+   },
+   "game/Vehicle/VehCalc.c": {
+    ".VehCalc_FastSqrt": "90:06421baa5e8fd6d7d49e",
+    ".VehCalc_InterpBySpeed": "48:a5de01ef65a82b6fd1c6",
+    ".VehCalc_MapToRange": "70:261f56a539453bf425dc",
+    ".VehCalc_SteerAccel": "64:b7b139dfddde8f854418"
+   },
+   "game/Vehicle/VehEmitter.c": {
+    ".VehEmitter_DriverMain": "110c:af42dd7d1cd63f45e0d4",
+    ".VehEmitter_Exhaust": "244:ed7a7556422ae2f94d9f",
+    ".VehEmitter_Sparks_Ground": "214:f25f0091f9cac19ace91",
+    ".VehEmitter_Sparks_Wall": "298:4dd1d2e065a73af63690",
+    ".VehEmitter_Terrain_Ground": "228:1f644a5ab541d6120ee9"
+   },
+   "game/Vehicle/VehFire.c": {
+    ".VehFire_Audio": "d8:603f48ec8c7841794e9c",
+    ".VehFire_Increment": "4c8:b0232be2aa04b9e3a8ec"
+   },
+   "game/Vehicle/VehFrame.c": {
+    ".VehFrameInst_GetNumAnimFrames": "84:e7a9e976b2eafc2f2acc",
+    ".VehFrameInst_GetStartFrame": "30:ba440f872c219cd325de",
+    ".VehFrameProc_Driving": "398:5860a546be8d37fbaa9f",
+    ".VehFrameProc_LastSpin": "bc:79524d8a0fdf0475b533",
+    ".VehFrameProc_Spinning": "ec:68a40b92e98ab6b25957"
+   },
+   "game/Vehicle/VehGroundShadow.c": {
+    ".VehGroundShadow_Main": "a00:81105ce7b90b912c225e",
+    ".VehGroundShadow_Subset1": "68:09fa586602d517187931"
+   },
+   "game/Vehicle/VehGroundSkids.c": {
+    ".VehGroundSkids_Main": "6d0:21bc1bd36e7a3601131c",
+    ".VehGroundSkids_Subset1": "158:af16c94e2978db904ebc",
+    ".VehGroundSkids_Subset2": "dc:bece8a48b64395c57b24"
+   },
+   "game/Vehicle/VehLap.c": {
+    ".VehLap_UpdateProgress": "2f8:6a8f64cb1528508c5fe7"
+   },
+   "game/Vehicle/VehPhysCrash.c": {
+    ".VehPhysCrash_AI": "148:c98809f6e26e58245d2a",
+    ".VehPhysCrash_AnyTwoCars": "d00:0a6933628c9f68e56dc3",
+    ".VehPhysCrash_Attack": "1ec:cc2efae0a2beae21df9d",
+    ".VehPhysCrash_BounceSelf": "16c:a756010d42a1a16526bd",
+    ".VehPhysCrash_ConvertVecToSpeed": "248:d3391b1c170c4b653ab1"
+   },
+   "game/Vehicle/VehPhysForce.c": {
+    ".VehPhysForce_CollideDrivers": "288:3b72cdcfc8162c084cc0",
+    ".VehPhysForce_ConvertSpeedToVec": "110:ebacbbf6e943ce3f127e",
+    ".VehPhysForce_CounterSteer": "140:d526dd29e670055fc19a",
+    ".VehPhysForce_OnApplyForces": "14c:66c5161458bc6db62b1b",
+    ".VehPhysForce_OnGravity": "84c:5698401ad7c05ec9fd80",
+    ".VehPhysForce_RotAxisAngle": "2b0:dff7f0e46129753d0bde",
+    ".VehPhysForce_TranslateMatrix": "a68:f30a230dbd21b5a0d873"
+   },
+   "game/Vehicle/VehPhysGeneral.c": {
+    ".VehPhysGeneral_GetBaseSpeed": "1b4:a450749edeebfc541a2a",
+    ".VehPhysGeneral_JumpAndFriction": "8dc:91c447d94b1e985cca37",
+    ".VehPhysGeneral_JumpGetVelY": "90:8d3635f44c16706f5c78",
+    ".VehPhysGeneral_LerpQuarterStrength": "30:380282797edf1e86ebdf",
+    ".VehPhysGeneral_LerpToForwards": "118:bc9274541b76c7300363",
+    ".VehPhysGeneral_PhysAngular": "7cc:710eca1ab050106300e6",
+    ".VehPhysGeneral_SetHeldItem": "57c:a1ca90f1010d95176293"
+   },
+   "game/Vehicle/VehPhysJoystick.c": {
+    ".VehPhysJoystick_GetStrength": "11c:8992db40b7c1e7881d9e",
+    ".VehPhysJoystick_GetStrengthAbsolute": "50:1da258e1dc90c4ed3333",
+    ".VehPhysJoystick_ReturnToRest": "74:6959ab0a2144f2db4a97"
+   },
+   "game/Vehicle/VehPhysProc.c": {
+    ".VehPhysProc_Driving_Audio": "20:9212b8df3ad5c3ff1eb9",
+    ".VehPhysProc_Driving_Init": "134:5fdc69c04926a859c312",
+    ".VehPhysProc_Driving_PhysLinear": "1210:cd625b48b59ed3a3f5a7",
+    ".VehPhysProc_Driving_Update": "128:2f80f227e9417f2b48a0",
+    ".VehPhysProc_FreezeEndEvent_Init": "ac:32fe0ca22e71fe101cca",
+    ".VehPhysProc_FreezeEndEvent_PhysLinear": "5c:f0e8705f641004ab218d",
+    ".VehPhysProc_FreezeVShift_Init": "b8:6ebb1687e983c80b0fcc",
+    ".VehPhysProc_FreezeVShift_ReverseOneFrame": "90:ae7191ba81397414f206",
+    ".VehPhysProc_FreezeVShift_Update": "54:492a57a46426e2afffeb",
+    ".VehPhysProc_PowerSlide_Finalize": "18:3de9b1ce6eb10998f32d",
+    ".VehPhysProc_PowerSlide_Init": "110:80972977057272e2f975",
+    ".VehPhysProc_PowerSlide_InitSetUpdate": "14:636a0f5465eeec458e76",
+    ".VehPhysProc_PowerSlide_PhysAngular": "6e8:0c7a26ef7f9dfd3738eb",
+    ".VehPhysProc_PowerSlide_PhysLinear": "4c:a59cbce496beeefce111",
+    ".VehPhysProc_PowerSlide_Update": "288:d7560a4bb3c44909126d",
+    ".VehPhysProc_SlamWall_Animate": "a8:b1675035513f5087ae8c",
+    ".VehPhysProc_SlamWall_Init": "120:10a340ec4a8e4fe1de9e",
+    ".VehPhysProc_SlamWall_PhysAngular": "b4:37157ff6ee760843bb71",
+    ".VehPhysProc_SlamWall_PhysLinear": "2c:a99c3e8786f2bda5633f",
+    ".VehPhysProc_SlamWall_Update": "8:3fce55fcf4d40dd7ad5a",
+    ".VehPhysProc_SpinFirst_Init": "16c:fb433cccd037376b2ab9",
+    ".VehPhysProc_SpinFirst_InitSetUpdate": "14:d58b359392a7416db0bd",
+    ".VehPhysProc_SpinFirst_PhysAngular": "e4:4986430def95d511595e",
+    ".VehPhysProc_SpinFirst_PhysLinear": "84:cbaefcc702c23aa197e2",
+    ".VehPhysProc_SpinFirst_Update": "50:37f1a5ccb2d17e76fda4",
+    ".VehPhysProc_SpinLast_Init": "98:87380716d931e0a4df57",
+    ".VehPhysProc_SpinLast_PhysAngular": "1b0:c3ffd8ec5916c2341826",
+    ".VehPhysProc_SpinLast_PhysLinear": "38:3f7b58d06a0c00154dad",
+    ".VehPhysProc_SpinLast_Update": "40:da1d3b8b5445daf7153f",
+    ".VehPhysProc_SpinStop_Animate": "fc:79c3cffd305653da5a4d",
+    ".VehPhysProc_SpinStop_Init": "98:3d9cd952a6a42738866a",
+    ".VehPhysProc_SpinStop_PhysAngular": "b4:37157ff6ee760843bb71",
+    ".VehPhysProc_SpinStop_PhysLinear": "2c:a99c3e8786f2bda5633f",
+    ".VehPhysProc_SpinStop_Update": "8:3fce55fcf4d40dd7ad5a"
+   },
+   "game/Vehicle/VehPickState.c": {
+    ".VehPickState_NewState": "67c:89ea65344b6730374565"
+   },
+   "game/Vehicle/VehPickupItem.c": {
+    ".VehPickupItem_MaskBoolGoodGuy": "54:c466e1cd9d0c62cb050b",
+    ".VehPickupItem_MaskUseWeapon": "35c:d70d716c964f419fb142",
+    ".VehPickupItem_MissileGetTargetDriver": "334:6c93145cce97f8e20af7",
+    ".VehPickupItem_PotionThrow": "144:04773e743e19495dbfc8",
+    ".VehPickupItem_ShootNow": "12d8:7acac5410385e860a300",
+    ".VehPickupItem_ShootOnCirclePress": "98:bce5d5b253870e9d66e9"
+   },
+   "game/Vehicle/VehStuckProc.c": {
+    ".VehStuckProc_MaskGrab_Animate": "324:3e60f71c7f8a5eb97b3b",
+    ".VehStuckProc_MaskGrab_FindDestPos": "534:8b6a2140116215ecd1f1",
+    ".VehStuckProc_MaskGrab_Init": "2ec:cf80a1f6b37c09826aac",
+    ".VehStuckProc_MaskGrab_Particles": "9c:861bed895180d8520403",
+    ".VehStuckProc_MaskGrab_PhysLinear": "50:ece13a0d7879f3c24144",
+    ".VehStuckProc_MaskGrab_Update": "f0:4fc061fef8d020b1e62a",
+    ".VehStuckProc_PlantEaten_Animate": "210:58dac47d4cf35b963bd3",
+    ".VehStuckProc_PlantEaten_Init": "160:6f4ce8835fca608a0e9d",
+    ".VehStuckProc_PlantEaten_PhysLinear": "6c:7c7fc28bfe37f3ca6353",
+    ".VehStuckProc_PlantEaten_Update": "b8:07111d47255915f8a243",
+    ".VehStuckProc_RIP_Init": "30:58b330ef8c3ae373741f",
+    ".VehStuckProc_RevEngine_Animate": "3d0:065aa6a115fa647f33a9",
+    ".VehStuckProc_RevEngine_Init": "150:abe20b6769d5ef6fef5e",
+    ".VehStuckProc_RevEngine_PhysLinear": "108:e14ce02c1e113fa892fc",
+    ".VehStuckProc_RevEngine_Update": "114:b8ecaa82b9222fda922e",
+    ".VehStuckProc_Tumble_Animate": "60:abf04b13d4b1f7a917ed",
+    ".VehStuckProc_Tumble_Init": "150:7e17c5278c2b9e97400f",
+    ".VehStuckProc_Tumble_PhysAngular": "f4:3192841c5b492753a354",
+    ".VehStuckProc_Tumble_PhysLinear": "80:a1c0a5dfaa5d7deb788b",
+    ".VehStuckProc_Tumble_Update": "34:ce4cc44cfab80284951b",
+    ".VehStuckProc_Warp_AddDustPuff1": "94:2a6bb593e65ab7a186b4",
+    ".VehStuckProc_Warp_AddDustPuff2": "5a4:dddd929f7dc4857e1390",
+    ".VehStuckProc_Warp_Init": "18c:e670088ed5f3d9d2d62a",
+    ".VehStuckProc_Warp_MoveDustPuff": "1bc:e5d6559094ac0fab2326",
+    ".VehStuckProc_Warp_PhysAngular": "21c:11a4d34bfd5495cb60c7"
+   },
+   "game/Vehicle/VehTalkMask.c": {
+    ".VehTalkMask_End": "28:5f87162ae6ab2307fe42",
+    ".VehTalkMask_Init": "6c:3f661df6ec4f5f1d4b6e",
+    ".VehTalkMask_PlayXA": "68:4d7c7fa81e1a148aed27",
+    ".VehTalkMask_ThTick": "1e8:49cf6285612325cfc380",
+    ".VehTalkMask_boolNoXA": "10:0e2d69c59799041735c2"
+   },
+   "game/Vehicle/VehTurbo.c": {
+    ".VehTurbo_ProcessBucket": "ec:15d6db37b7641dd16ca6",
+    ".VehTurbo_ThDestroy": "58:c7b714cb56b1ff8cf729",
+    ".VehTurbo_ThTick": "7e8:d60874496cffe32438d6"
+   }
+  }
+ }
+}

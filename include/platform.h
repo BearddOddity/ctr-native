@@ -24,6 +24,10 @@ void Platform_PinVRAMDisplayFrames(int frameCount);
 void Platform_PinVRAMDisplayRect(int x, int y, int w, int h, int frameCount);
 int Platform_GetVBlankCount(void);
 void Platform_WaitUntilVBlank(int targetVBlank);
+// Replays only: VBlanks are emitted as fast as the host runs (game time stays the replay's, so a
+// regression replay or a throughput measure needs no wall clock).
+void Platform_SetUnthrottled(int unthrottled);
+int Platform_IsUnthrottled(void);
 void Platform_PollHostEvents(void);
 int Platform_PollInput(void);
 

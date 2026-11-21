@@ -57,3 +57,24 @@ If a developer asks you to bypass header identity checks:
 ```sh
 build/ctr_native --replay "debug/reports/20260605/ctr-123456/input.ctrreplay" --replay-bypass-header
 ```
+
+## Regression Check
+
+Every replay you keep is a regression test. Playback compares the game's state each frame, so a change that alters
+gameplay shows as `divergence at replay frame N`:
+
+```sh
+python3 tools/replay_check.py --replays debug/reports
+```
+
+It plays each `*.ctrreplay` with `--replay-bypass-header` (the replay names the build that recorded it) and
+`--replay-fast`: VBlanks are emitted as fast as the host runs, while game time stays the replay's, so a replay takes
+seconds instead of minutes. The last lines of a playback give the throughput:
+
+```text
+[CTR Replay] replay finished after 5400 frames
+[CTR Replay] 12.40 s wall, 435.5 game frames/s (unthrottled)
+```
+
+Run it with a sanitizer build (`tools/check.py --sanitize --replays debug/reports`) to catch memory errors and leaks
+as well. Replays come from your own copy of the game: keep them out of the repository.
