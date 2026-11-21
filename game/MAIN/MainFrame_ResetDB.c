@@ -19,7 +19,7 @@ static void MainFrame_RegisterGpuLinkRanges(struct GameTracker *gGT)
 	for (s32 i = 0; i < 2; i++)
 	{
 		struct DB *db = &gGT->db[i];
-		NativeGpuLinks_RegisterRangeChecked(primLabels[i], db->primMem.start, db->primMem.capacityBytes);
+		NativeGpuLinks_RegisterRangeChecked(primLabels[i], db->primMem.start, NativePrimMem_LinkBytes(&db->primMem));
 		NativeGpuLinks_RegisterRangeChecked(otLabels[i], db->otMem.start, db->otMem.capacityBytes);
 	}
 
@@ -41,6 +41,9 @@ void MainFrame_ResetDB(struct GameTracker *gGT)
 	gGT->backBuffer = &gGT->db[gGT->swapchainIndex];
 	gGT->frameTimer_MainFrame_ResetDB++;
 	gGT->backBuffer->blurCameraMask = 0;
+#ifdef CTR_NATIVE
+	NativePrimMem_NoteFrame(&gGT->backBuffer->primMem);
+#endif
 	gGT->backBuffer->primMem.cursor = gGT->backBuffer->primMem.start;
 	gGT->backBuffer->primMem.primitiveCount = 0;
 	gGT->backBuffer->otMem.cursor = gGT->backBuffer->otMem.start;

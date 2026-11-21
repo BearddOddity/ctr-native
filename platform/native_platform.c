@@ -8,6 +8,7 @@
 #include "platform/native_gpu.h"
 #include "platform/native_input.h"
 #include "platform/native_log.h"
+#include "platform/native_memory.h"
 #include "platform/native_perf.h"
 #include "platform/native_renderer.h"
 #include "platform/native_replay_scheduler.h"
@@ -291,6 +292,7 @@ void Platform_Shutdown(void)
 	NativePerf_Shutdown();
 	NativeReplayScheduler_Shutdown();
 #endif
+	NativePrimMem_Report();
 	Platform_InputShutdown();
 	NativeAudio_Shutdown();
 	NativeRenderer_Shutdown();
@@ -556,6 +558,17 @@ int NikoGetEnterKey(void)
 global_variable u64 s_nextVBlankCounter = 0;
 global_variable u64 s_vblankRemainder = 0;
 global_variable int s_nativeVBlankCount = 0;
+global_variable int s_nativeUnthrottled = 0;
+
+void Platform_SetUnthrottled(int unthrottled)
+{
+	s_nativeUnthrottled = unthrottled != 0;
+}
+
+int Platform_IsUnthrottled(void)
+{
+	return s_nativeUnthrottled;
+}
 
 internal u64 Native_CounterFromMicroseconds(u64 freq, u64 microseconds)
 {
@@ -594,6 +607,14 @@ internal void Native_WaitUntilVBlankTarget(void)
 {
 	const u64 freq = SDL_GetPerformanceFrequency();
 	const u64 spinWindow = Native_CounterFromMicroseconds(freq, NATIVE_VSYNC_SPIN_US);
+
+	if (s_nativeUnthrottled)
+	{
+		// The schedule restarts from now, so turning this off later paces from the next VBlank, not a backlog.
+		s_nextVBlankCounter = SDL_GetPerformanceCounter();
+		s_vblankRemainder = 0;
+		return;
+	}
 
 	NativePerf_BeginScope(NATIVE_PERF_BUCKET_VSYNC_WAIT);
 	while (1)

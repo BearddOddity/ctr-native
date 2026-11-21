@@ -219,6 +219,7 @@ int main(int argc, char *argv[])
 
 	Platform_InitScratchpad();
 	Platform_RepairResidentPointers(0);
+	NativePrimMem_ConfigureFromArgs(argc, argv);
 
 #if defined(CTR_INTERNAL)
 	if (NativeReplayScheduler_ConfigureFromArgs(argc, argv) != 0)

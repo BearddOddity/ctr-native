@@ -94,6 +94,7 @@ global_variable enum NativeReplaySchedulerMode s_mode;
 global_variable u32 s_replayFrame;
 global_variable s32 s_beginOpen;
 global_variable s32 s_divergenceLogged;
+global_variable u64 s_playbackStartCounter;
 global_variable FILE *s_file;
 global_variable struct NativeReplayFileHeader s_header;
 global_variable struct NativeReplayFrameRecord s_pendingRecord;
@@ -1317,6 +1318,7 @@ int NativeReplayScheduler_ConfigureFromArgs(int argc, char **argv)
 	const s32 recordReport = NativeReplayScheduler_ArgPresent(argc, argv, "--record");
 	const s32 playback = NativeReplayScheduler_ArgPresent(argc, argv, "--replay");
 	const s32 bypassHeaderIdentity = NativeReplayScheduler_ArgPresent(argc, argv, "--replay-bypass-header");
+	const s32 fast = NativeReplayScheduler_ArgPresent(argc, argv, "--replay-fast");
 	s32 toggle = NativeReplayScheduler_ArgPresent(argc, argv, "--toggle");
 	s32 detailed = NativeReplayScheduler_ArgPresent(argc, argv, "--detailed");
 
@@ -1339,6 +1341,11 @@ int NativeReplayScheduler_ConfigureFromArgs(int argc, char **argv)
 	if ((bypassHeaderIdentity != 0) && (playback == 0))
 	{
 		Platform_Log("[CTR Replay] --replay-bypass-header only applies to --replay\n");
+		return 1;
+	}
+	if ((fast != 0) && (playback == 0))
+	{
+		Platform_Log("[CTR Replay] --replay-fast only applies to --replay\n");
 		return 1;
 	}
 
@@ -1370,7 +1377,13 @@ int NativeReplayScheduler_ConfigureFromArgs(int argc, char **argv)
 
 	if (playbackPath != NULL)
 	{
-		return NativeReplayScheduler_OpenPlayback(playbackPath, bypassHeaderIdentity) ? 0 : 1;
+		if (!NativeReplayScheduler_OpenPlayback(playbackPath, bypassHeaderIdentity))
+		{
+			return 1;
+		}
+		Platform_SetUnthrottled(fast);
+		s_playbackStartCounter = SDL_GetPerformanceCounter();
+		return 0;
 	}
 
 	return 0;
@@ -1490,7 +1503,11 @@ int NativeReplayScheduler_BeginFrame(const struct NativeReplaySchedulerFrameInfo
 
 		if (s_replayFrame >= s_header.frameCount)
 		{
+			const f64 seconds = (f64)(SDL_GetPerformanceCounter() - s_playbackStartCounter) / (f64)SDL_GetPerformanceFrequency();
+
 			Platform_Log("[CTR Replay] replay finished after %u frames\n", s_replayFrame);
+			Platform_Log("[CTR Replay] %.2f s wall, %.1f game frames/s%s\n", seconds, seconds > 0.0 ? (f64)s_replayFrame / seconds : 0.0,
+			             Platform_IsUnthrottled() ? " (unthrottled)" : "");
 			return 1;
 		}
 
