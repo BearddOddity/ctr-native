@@ -32,7 +32,8 @@ void LOAD_AppendQueue(struct BigHeader *bigfile, int type, int fileIndex, void *
 	sdata->queueLength = nextQueueLength + 1;
 }
 
-#if defined(CTR_NATIVE)
+// NOTE: Retail restores ra before the queueReady store, filling the load-delay slot; the matching unit names the
+// flag as a $gp byte of its own (GAME_LOAD_QUEUE_READY in retail_bindings.h), which lets GCC 2.8.1 schedule it so.
 void LOAD_CDRequestCallback(struct LoadQueueSlot *lqs)
 {
 	if (lqs->callbackFuncPtr != NULL)
@@ -40,36 +41,8 @@ void LOAD_CDRequestCallback(struct LoadQueueSlot *lqs)
 		lqs->callbackFuncPtr(lqs);
 	}
 
-	sdata->queueReady = 1;
+	GAME_LOAD_QUEUE_READY = 1;
 }
-#else
-// NOTE(aalhendi): Retail restores ra before the queueReady store, filling the
-// load-delay slot. GCC 2.8.1 places the store first and emits an extra nop.
-// maspsx recognizes the tab-separated .set directives when handling delay slots.
-__asm__(".section .LOAD_CDRequestCallback,\"ax\",@progbits\n"
-        ".align 2\n"
-        ".ent LOAD_CDRequestCallback\n"
-        ".set\tnoreorder\n"
-        ".globl LOAD_CDRequestCallback\n"
-        "LOAD_CDRequestCallback:\n"
-        "addiu $29,$29,-24\n"
-        "sw $31,16($29)\n"
-        "lw $2,20($4)\n"
-        "nop\n"
-        "beq $2,$0,.LLOAD_CDRequestCallback_ready\n"
-        "nop\n"
-        "jalr $2\n"
-        "nop\n"
-        ".LLOAD_CDRequestCallback_ready:\n"
-        "lw $31,16($29)\n"
-        "li $2,1\n"
-        "sb $2,308($28)\n"
-        "jr $31\n"
-        "addiu $29,$29,24\n"
-        ".end LOAD_CDRequestCallback\n"
-        ".set\treorder\n"
-        ".text\n");
-#endif
 
 #ifdef CTR_NATIVE
 void LOAD_NextQueuedFile()
