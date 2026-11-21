@@ -15,6 +15,10 @@
 
 # Runtime state.
 /memcards/
+/logs/
+# CTR Launcher settings when it runs from a checkout.
+/ctr_native.ini
+/launcher.ini
 *.log
 
 # Compiler outputs.
