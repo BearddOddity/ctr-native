@@ -106,6 +106,10 @@ struct NativeRenderTarget
 };
 
 global_variable struct NativeRenderTarget s_mainRenderTarget;
+// Internal resolution: the main target is the PS1 display size times this (CTR_NATIVE_RENDER_SCALE, 1 = the
+// PlayStation's own). s_boundTargetScale is the scale of the framebuffer drawn to now: scissor and clear boxes
+// are given in PS1 display pixels and are multiplied by it.
+global_variable int s_boundTargetScale = 1;
 global_variable struct NativeRenderTarget s_offscreenRenderTarget;
 
 global_variable TextureID s_whiteTexture = (TextureID)-1;
@@ -560,8 +564,30 @@ internal void NativeRenderer_BindMainRenderTarget(void)
 		height = activeDrawEnv.clip.h;
 	}
 
-	NativeRenderer_EnsureRenderTarget(&s_mainRenderTarget, width, height);
+	const int scale = NativeRenderer_GetRenderScale();
+	NativeRenderer_EnsureRenderTarget(&s_mainRenderTarget, width * scale, height * scale);
 	glBindFramebuffer(GL_FRAMEBUFFER, s_mainRenderTarget.framebuffer);
+	s_boundTargetScale = scale;
+}
+
+int NativeRenderer_GetRenderScale(void)
+{
+	return s_nativeOptions.renderScale > 1 ? s_nativeOptions.renderScale : 1;
+}
+
+// The frame as drawn at the internal resolution, straight to the window. With scale 1 the game presents from
+// VRAM as the PlayStation does; above 1 the VRAM copy (kept for screen-copy effects) is PS1-sized, so the main
+// target is shown instead.
+void NativeRenderer_PresentMainTarget(void)
+{
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, s_mainRenderTarget.framebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	NativeRenderer_SetScissorState(0);
+	glBlitFramebuffer(0, 0, s_mainRenderTarget.width, s_mainRenderTarget.height, s_presentViewport.x, s_presentViewport.y,
+	                  s_presentViewport.x + s_presentViewport.w, s_presentViewport.y + s_presentViewport.h,
+	                  GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	s_boundTargetScale = 1;
 }
 
 internal void NativeRenderer_DrawVRAMRegion(int x, int y, int width, int height)
@@ -583,6 +609,7 @@ internal void NativeRenderer_LoadRenderTargetFromVRAM(struct NativeRenderTarget 
 
 	NativeRenderer_UpdateVRAM();
 	glBindFramebuffer(GL_FRAMEBUFFER, target->framebuffer);
+	s_boundTargetScale = (target == &s_mainRenderTarget) ? NativeRenderer_GetRenderScale() : 1;
 	glDisable(GL_BLEND);
 	glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_STENCIL_TEST);
@@ -1339,7 +1366,8 @@ void NativeRenderer_SetupClipMode(const RECT16 *rect, const DISPENV *displayEnv,
 	const float crw = clipRectW * viewportW;
 	const float crh = clipRectH * viewportH;
 
-	glScissor(crx, flipOffset - cry, crw, crh);
+	const float s = (float)s_boundTargetScale;
+	glScissor(crx * s, (flipOffset - cry) * s, crw * s, crh * s);
 }
 
 internal void NativeRenderer_SetShader(const ShaderID shader)
@@ -1709,7 +1737,8 @@ void NativeRenderer_Clear(int x, int y, int w, int h, u8 r, u8 g, u8 b)
 	glGetIntegerv(GL_SCISSOR_BOX, previousScissorBox);
 
 	glEnable(GL_SCISSOR_TEST);
-	glScissor(scissorX, scissorY, scissorW, scissorH);
+	glScissor(scissorX * s_boundTargetScale, scissorY * s_boundTargetScale, scissorW * s_boundTargetScale,
+	          scissorH * s_boundTargetScale);
 	glClearColor(NativeRenderer_PSXColorComponentFloat(r), NativeRenderer_PSXColorComponentFloat(g), NativeRenderer_PSXColorComponentFloat(b), 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -1961,6 +1990,7 @@ internal void NativeRenderer_GpuPackTextureToVRAM(TextureID sourceTexture, int x
 	if (s_previousOffscreenState)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, s_offscreenRenderTarget.framebuffer);
+		s_boundTargetScale = 1;
 		glViewport(0, 0, s_offscreenRenderTarget.width, s_offscreenRenderTarget.height);
 	}
 	else
@@ -2117,6 +2147,7 @@ void NativeRenderer_PresentVRAMRect(int displayX, int displayY, int displayW, in
 
 	NativeRenderer_SetViewPort(s_presentViewport.x, s_presentViewport.y, s_presentViewport.w, s_presentViewport.h);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	s_boundTargetScale = 1;
 
 	NativeRenderer_SetScissorState(0);
 	NativeRenderer_EnableDepth(0);

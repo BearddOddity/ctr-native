@@ -5,6 +5,7 @@
 //   CTR_NATIVE_ASPECT                     "4:3" (pillarboxed, as the PlayStation drew it) or "16:9" (stretched to fill)
 //   CTR_NATIVE_KEYBOARD                   0 = ignore the keyboard
 //   CTR_NATIVE_GAMEPAD                    0 = ignore game controllers
+//   CTR_NATIVE_RENDER_SCALE               internal resolution, 1 (the PlayStation's) to 8 times
 //
 // Which controllers SDL talks to (Xbox through XInput, PlayStation through HIDAPI) is set with SDL's own hints,
 // which SDL reads from the environment too: SDL_XINPUT_ENABLED, SDL_JOYSTICK_HIDAPI_PS4, SDL_JOYSTICK_HIDAPI_PS5, ...
@@ -19,9 +20,10 @@ struct NativeOptions
 	int aspectH;
 	int keyboard;
 	int gamepad;
+	int renderScale;
 };
 
-static struct NativeOptions s_nativeOptions = {0, 0, 0, 0, 0, 1, 1};
+static struct NativeOptions s_nativeOptions = {0, 0, 0, 0, 0, 1, 1, 1};
 
 static int NativeOptions_Int(const char *name, int fallback, int lo, int hi)
 {
@@ -53,6 +55,7 @@ static void NativeOptions_Load(int defaultWidth, int defaultHeight)
 	s_nativeOptions.fullscreen = NativeOptions_Int("CTR_NATIVE_FULLSCREEN", 0, 0, 1);
 	s_nativeOptions.keyboard = NativeOptions_Int("CTR_NATIVE_KEYBOARD", 1, 0, 1);
 	s_nativeOptions.gamepad = NativeOptions_Int("CTR_NATIVE_GAMEPAD", 1, 0, 1);
+	s_nativeOptions.renderScale = NativeOptions_Int("CTR_NATIVE_RENDER_SCALE", 1, 1, 8);
 
 	if ((aspect != NULL) && (strcmp(aspect, "4:3") == 0))
 	{
@@ -65,9 +68,9 @@ static void NativeOptions_Load(int defaultWidth, int defaultHeight)
 		s_nativeOptions.aspectH = 9;
 	}
 
-	printf("[CTR Native] Window %dx%d%s, aspect %s, keyboard %s, controllers %s\n",
+	printf("[CTR Native] Window %dx%d%s, aspect %s, internal resolution x%d, keyboard %s, controllers %s\n",
 		s_nativeOptions.width, s_nativeOptions.height, s_nativeOptions.fullscreen ? " fullscreen" : "",
-		s_nativeOptions.aspectW ? (s_nativeOptions.aspectW == 4 ? "4:3" : "16:9") : "window",
+		s_nativeOptions.aspectW ? (s_nativeOptions.aspectW == 4 ? "4:3" : "16:9") : "window", s_nativeOptions.renderScale,
 		s_nativeOptions.keyboard ? "on" : "off", s_nativeOptions.gamepad ? "on" : "off");
 	fflush(stdout);
 }
