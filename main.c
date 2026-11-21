@@ -19,6 +19,7 @@
 #define ExitCriticalSection()
 
 #include "platform/native_assets.h"
+#include "platform/native_config.h"
 #include "platform/native_log.h"
 #include "platform/native_memory.h"
 #include "platform/native_perf.h"
@@ -35,6 +36,7 @@
 
 #undef RECT
 
+#include "platform/native_config.c"
 #include "platform/native_disc_image.c"
 #include "platform/native_assets.c"
 #include "platform/native_audio.c"
@@ -184,13 +186,27 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-#ifdef USE_16BY9
-	printf("[CTR Native] Widescreen\n");
-	Platform_Init("Crash Team Racing", 1280, 720);
-#else
-	printf("[CTR Native] 4:3\n");
-	Platform_Init("Crash Team Racing", 800, 600);
-#endif
+	// Settings: ctr_native.ini in the base folder (the CTR Launcher writes it),
+	// or the file --config names, then command-line overrides.
+	NativeConfig_SetDefaults(&g_nativeConfig);
+	{
+		const char *configPath = NativeConfig_PathFromArgs(argc, argv);
+
+		if (configPath == NULL)
+		{
+			configPath = NATIVE_CONFIG_FILE_NAME;
+		}
+		if (NativeConfig_LoadFile(&g_nativeConfig, configPath))
+		{
+			printf("[CTR Native] Settings: %s\n", configPath);
+		}
+	}
+	NativeConfig_ApplyEnv(&g_nativeConfig);
+	NativeConfig_ApplyArgs(&g_nativeConfig, argc, argv);
+	printf("[CTR Native] %dx%d %s%s\n", g_nativeConfig.width, g_nativeConfig.height,
+		g_nativeConfig.widescreen ? "widescreen" : "4:3", g_nativeConfig.fullscreen ? " fullscreen" : "");
+	fflush(stdout);
+	Platform_Init("Crash Team Racing", g_nativeConfig.width, g_nativeConfig.height);
 
 #if defined(CTR_INTERNAL)
 	if (NativePerf_ConfigureFromArgs(argc, argv) != 0)

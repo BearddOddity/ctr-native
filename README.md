@@ -133,6 +133,68 @@ ctr-native/
     ctr-u.bin
 ```
 
+### CTR Launcher (Windows)
+
+`CTR Launcher.exe` is a player front end: the left side shows a cover image the
+player picks (none is shipped; a drawn placeholder otherwise), the right side
+takes the player's own disc image (drop the `.bin`, its `.cue` or the folder, or
+press Browse) and a Play button that recompiles the game and starts it, with a
+progress bar per build step. Settings swaps only the right side and has three
+tabs: Display, Graphics and Controls.
+
+Make the self-contained package (llvm-mingw, CMake and Ninja under `tools/`,
+this source under `source/`, nothing to install for the player):
+
+```
+python tools/launcher/package_windows.py --zip
+```
+
+The tool versions are pinned in the script. The first download records each
+archive's sha256 in `tools/launcher/toolchain.lock.json` (commit it), and later
+runs refuse an archive that doesn't match. The zip never
+holds a disc image, a build, saves or settings. `--no-tools` leaves the bundled
+tools out (the launcher then looks on PATH); `CTR_NATIVE_BUILD_LAUNCHER=OFF`
+leaves the launcher out of a normal CMake build.
+
+The disc is never changed: it is hard linked (or, on another drive, copied) to
+`assets/ctr-u.bin`, and a different file already there is renamed `.oldN`.
+Logs go to `logs/build.log` and `logs/game.log`.
+
+### Game settings (`ctr_native.ini`)
+
+The game reads `ctr_native.ini` beside its data (the launcher writes it), then
+`CTR_NATIVE_*` environment variables, then the command line. Hand edits work:
+
+```
+[video]
+width = 1920
+height = 1080
+fullscreen = 0
+widescreen = 1        ; 0 = 4:3 pillarboxed
+vsync = 1
+[graphics]
+upscale = fsr         ; sharp | smooth | fsr
+sharpness = medium    ; low | medium | high (FSR only)
+antialiasing = fxaa   ; off | fxaa
+crt = off             ; off | scanlines | curved
+brightness = 0        ; -2 .. 2
+texture_filter = 0    ; bilinear filtering in 3D
+integer_scale = 0     ; whole-number scaling only
+[input]
+keyboard = 1
+controller = 1
+xbox = 1
+playstation = 1
+vibration = 1
+```
+
+Command line: `--config FILE`, `--width N`, `--height N`, `--resolution WxH`,
+`--fullscreen`, `--windowed`, `--widescreen`, `--no-widescreen`, `--vsync`,
+`--no-vsync`, `--upscale sharp|smooth|fsr`, `--aa off|fxaa`,
+`--crt off|scanlines|curved`, `--no-keyboard`, `--no-controller`, `--no-xbox`,
+`--no-playstation`. Environment: `CTR_NATIVE_WIDTH`, `_HEIGHT`, `_FULLSCREEN`,
+`_ASPECT` (`4:3`, `16:9`, `16:10`), `_KEYBOARD`, `_GAMEPAD`.
+
 ### Extracted Asset Override
 
 You do not need extracted assets for normal play.

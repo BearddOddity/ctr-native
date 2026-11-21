@@ -3,6 +3,7 @@
 #include <macros.h>
 
 #include "platform/native_audio.h"
+#include "platform/native_config.h"
 #include "platform/native_glad.h"
 #include "platform/native_gpu.h"
 #include "platform/native_input.h"
@@ -249,12 +250,21 @@ void Platform_Init(const char *title, int width, int height)
 
 	s_platformInitialized = 1;
 
-	if (!NativeRenderer_InitialiseRender(windowName, width, height, 0))
+	g_cfg_bilinearFiltering = g_nativeConfig.textureFilter;
+
+	if (!NativeRenderer_InitialiseRender(windowName, width, height, g_nativeConfig.fullscreen))
 	{
 		Platform_LogError("[CTR Native] Failed to initialise window\n");
 		Platform_Shutdown();
 		return;
 	}
+
+	if (g_nativeConfig.widescreen == 0)
+	{
+		// 4:3 as on the PSX, pillarboxed in a wider window.
+		NativeRenderer_SetAspect(4, 3);
+	}
+	NativeRenderer_UpdateSwapIntervalState(g_nativeConfig.vsync);
 
 	if (!NativeRenderer_InitialisePSX())
 	{
