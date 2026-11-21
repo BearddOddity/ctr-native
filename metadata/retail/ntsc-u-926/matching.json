@@ -1919,6 +1919,7 @@
       "symbol_prefix": "MEMCARD_HandleEvent",
       "source": "game/MEMCARD/MEMCARD_RetailHandleEvent.c",
       "include_directories": ["include"],
+      "forced_includes": ["tools/matching/namespaces/memcard-event/retail_symbols.h"],
       "compiler_flags": ["-O2", "-G8", "-msoft-float"],
       "small_data_limit": 8,
       "aspsx_version": "2.77",
