@@ -147,6 +147,14 @@ int main(int argc, char *argv[])
 			printf("CTR Native %s (%s)\n", CTR_NATIVE_VERSION, CTR_NATIVE_BUILD_ID);
 			return 0;
 		}
+#if defined(CTR_INTERNAL)
+		if (strcmp(argv[argIndex], "--checkpoint-selftest") == 0)
+		{
+			Platform_InitScratchpad();
+			Platform_InitMempackArena();
+			return NativeCheckpoint_SelfTest();
+		}
+#endif
 	}
 
 	printf("[CTR Native] Starting...\n");

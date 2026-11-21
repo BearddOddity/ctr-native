@@ -78,3 +78,23 @@ seconds instead of minutes. The last lines of a playback give the throughput:
 
 Run it with a sanitizer build (`tools/check.py --sanitize --replays debug/reports`) to catch memory errors and leaks
 as well. Replays come from your own copy of the game: keep them out of the repository.
+
+## Replays From Another Build
+
+A replay starts from the checkpoint taken when recording began (`state.ctrstates`), which holds the game's memory as
+it was, function pointers included: thread ticks, driver states, menu callbacks. Another build (a newer commit, the
+sanitizer build) has its functions and data elsewhere, so each checkpoint also carries the function map of the build
+that wrote it (`platform/native_function_map.inc`: every game function by a hash of its name). Restoring turns each
+stored function address into this build's address of the same function, and each data pointer into the same offset
+of the same region. When the build differs the log says what that took:
+
+```text
+[CTR State] checkpoint from another build or load address: 412 function pointer(s) in fields and 96 in static data found by name, 0 not a game function (code anchor shift), 0 pointer(s) outside every region
+```
+
+A pointer it could not translate (a platform callback, a pointer outside every region) is named under that line with
+its address, and `tools/replay_check.py` prints those lines under the replay. Run `python3 tools/gen_function_map.py`
+after adding or removing a game function (`tools/check.py` fails while the map is out of date).
+
+Checkpoints are version 6 from the function map on: a replay recorded by an older build says `invalid rolling
+checkpoints`. Record it again.
