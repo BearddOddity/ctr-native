@@ -2707,7 +2707,7 @@
       "symbol_prefix": "LOAD_NextQueuedFile",
       "source": "game/LOAD/LOAD_Queue.c",
       "include_directories": ["include"],
-      "forced_includes": ["tools/matching/retail_bindings.h"],
+      "forced_includes": ["tools/matching/namespaces/load-queue/retail_symbols.h"],
       "compiler_flags": ["-O2", "-G8", "-msoft-float"],
       "small_data_limit": 8,
       "aspsx_version": "2.77",
