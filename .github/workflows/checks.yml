@@ -15,8 +15,11 @@ jobs:
         with:
           submodules: recursive
       - name: Packages
+        # The build is 32-bit (-m32): SDL needs the i386 X11 packages to find a window backend.
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y gcc-multilib cmake ninja-build libx11-dev libxext-dev libgl1-mesa-dev libasound2-dev libudev-dev libdbus-1-dev
+          sudo apt-get install -y gcc-multilib cmake ninja-build libx11-dev libxext-dev libgl1-mesa-dev libasound2-dev libudev-dev libdbus-1-dev \
+            libx11-dev:i386 libxext-dev:i386 libxcursor-dev:i386 libxfixes-dev:i386 libxi-dev:i386 libxrandr-dev:i386
       - name: Checks
         run: python3 tools/check.py --sanitize
