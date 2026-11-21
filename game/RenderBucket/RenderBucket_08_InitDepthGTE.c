@@ -1,27 +1,16 @@
 #include <common.h>
+#include <ctr_gte_transfer.h>
 
-#ifdef CTR_NATIVE
+// NOTE: Retail writes the final GTE register in the return's delay slot; the matching unit permits that with
+// -mpsx-ctc2-return-delay=on (metadata/retail/ntsc-u-926/matching.json). Retail's values pass through v1.
 void RenderBucket_InitDepthGTE(void)
 {
-	CTC2(0, 27);
-	CTC2(0, 28);
-	CTC2(0x555, 29);
-	CTC2(0x400, 30);
+	register u32 value CTR_PSX_REGISTER("$3");
+
+	CTR_GteWriteControl(0, 27);
+	CTR_GteWriteControl(0, 28);
+	value = 0x555;
+	CTR_GteWriteControl(value, 29);
+	value = 0x400;
+	CTR_GteWriteControl(value, 30);
 }
-#else
-// NOTE(aalhendi): Retail writes the final GTE register in the return delay slot.
-__asm__(".section .RenderBucket_InitDepthGTE,\"ax\",@progbits\n"
-        ".align 2\n"
-        ".ent RenderBucket_InitDepthGTE\n"
-        ".set noreorder\n"
-        ".globl RenderBucket_InitDepthGTE\n"
-        "RenderBucket_InitDepthGTE:\n"
-        "ctc2 $zero,$27\n"
-        "ctc2 $zero,$28\n"
-        "li $v1,0x555\n"
-        "ctc2 $v1,$29\n"
-        "li $v1,0x400\n"
-        "jr $ra\n"
-        "ctc2 $v1,$30\n"
-        ".end RenderBucket_InitDepthGTE\n");
-#endif

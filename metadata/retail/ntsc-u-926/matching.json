@@ -3181,7 +3181,7 @@
       "symbol_prefix": "RenderBucket_InitDepthGTE",
       "source": "game/RenderBucket/RenderBucket_08_InitDepthGTE.c",
       "include_directories": ["include"],
-      "compiler_flags": ["-O2", "-G8", "-msoft-float"],
+      "compiler_flags": ["-O2", "-G8", "-msoft-float", "-mpsx-ctc2-return-delay=on"],
       "small_data_limit": 8,
       "aspsx_version": "2.77"
     },
