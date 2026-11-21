@@ -1763,6 +1763,7 @@
       "end_symbol": "MEMCARD_CloseCard",
       "symbol_prefix": "MEMCARD_InitCard",
       "source": "game/MEMCARD/MEMCARD_RetailInitCard.c",
+      "forced_includes": ["tools/matching/namespaces/memcard-card/retail_symbols.h"],
       "include_directories": ["include"],
       "compiler_flags": ["-O2", "-G8", "-msoft-float"],
       "small_data_limit": 8,
