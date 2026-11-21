@@ -35,6 +35,7 @@
 
 #undef RECT
 
+#include "platform/native_options.c"
 #include "platform/native_disc_image.c"
 #include "platform/native_assets.c"
 #include "platform/native_audio.c"
@@ -186,10 +187,12 @@ int main(int argc, char *argv[])
 
 #ifdef USE_16BY9
 	printf("[CTR Native] Widescreen\n");
-	Platform_Init("Crash Team Racing", 1280, 720);
+	NativeOptions_Load(1280, 720);
+	Platform_Init("Crash Team Racing", s_nativeOptions.width, s_nativeOptions.height);
 #else
 	printf("[CTR Native] 4:3\n");
-	Platform_Init("Crash Team Racing", 800, 600);
+	NativeOptions_Load(800, 600);
+	Platform_Init("Crash Team Racing", s_nativeOptions.width, s_nativeOptions.height);
 #endif
 
 #if defined(CTR_INTERNAL)

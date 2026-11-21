@@ -243,6 +243,10 @@ int NativeRenderer_InitialiseRender(char *windowName, int width, int height, int
 	g_windowWidth = width;
 	g_windowHeight = height;
 	NativeRenderer_SetPresentationAspect(width, height);
+	if (s_nativeOptions.aspectW > 0)
+	{
+		NativeRenderer_SetPresentationAspect(s_nativeOptions.aspectW, s_nativeOptions.aspectH);
+	}
 
 	// Due to debugging in fullscreen
 	SDL_SetHint(SDL_HINT_WINDOW_ALLOW_TOPMOST, "0");

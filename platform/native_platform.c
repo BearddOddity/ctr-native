@@ -249,7 +249,7 @@ void Platform_Init(const char *title, int width, int height)
 
 	s_platformInitialized = 1;
 
-	if (!NativeRenderer_InitialiseRender(windowName, width, height, 0))
+	if (!NativeRenderer_InitialiseRender(windowName, width, height, s_nativeOptions.fullscreen))
 	{
 		Platform_LogError("[CTR Native] Failed to initialise window\n");
 		Platform_Shutdown();

@@ -665,6 +665,11 @@ internal void NativeInput_CloseController(s32 slot)
 
 internal void NativeInput_OpenController(SDL_JoystickID instanceId, s32 slot)
 {
+	if (s_nativeOptions.gamepad == 0)
+	{
+		return;
+	}
+
 	if ((slot < 0) || (slot >= NATIVE_INPUT_MAX_CONTROLLERS))
 	{
 		return;
@@ -787,7 +792,7 @@ void Platform_InputUpdate(void)
 	}
 
 	SDL_PumpEvents();
-	u16 keyboardButtons = NativeInput_KeyboardSuppressed() ? 0xffff : NativeInput_ReadKeyboard();
+	u16 keyboardButtons = ((s_nativeOptions.keyboard == 0) || NativeInput_KeyboardSuppressed()) ? 0xffff : NativeInput_ReadKeyboard();
 
 	for (s32 slot = 0; slot < NATIVE_INPUT_MAX_CONTROLLERS; slot++)
 	{
