@@ -1,0 +1,498 @@
+/* The game's own menus, drawn in CSS (game/RECTMENU.c, game/zGlobal_DATA.c's color table):
+ *   a box halves the picture behind it, its edge ADDS rgb(0, 80, 64), 3 by 2 game pixels wide, and a shadow
+ *   halves a strip to its right and one below it;
+ *   the selected row ADDS rgb(128, g, 0), g pulsing on a sine about once a second (MainFrame_RenderFrame.c);
+ *   text is the ORANGE gradient, 255,200,0 at the top to 255,0,0 at the bottom, with a black outline;
+ *   PERIWINKLE (200,200,255 to 160,160,225) for the second color, GRAY for what can't be picked.
+ * No game art, font or logo: the lettering is Windows' own heaviest italic. */
+
+:root {
+  --font-game: "Segoe UI Black", "Arial Black", "Arial Nova", "Helvetica Neue", Arial, sans-serif;
+  --font-small: "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+  --edge: rgb(0, 80, 64);
+  --g1: #ffc800;
+  --g2: #ff0000;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #060a2c;
+  color: #c8c8ff;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+#flag {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+/* A fixed 1120 x 700 screen, zoomed to fit the window like a game's picture. zoom makes no stacking context,
+   so the boxes' additive edges blend with the flag behind them, as the game's do with its scene. */
+#stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1120px;
+  height: 700px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+button:focus {
+  outline: none;
+}
+
+/* ---------------------------------------------------------------------------------------------------- boxes */
+
+.box {
+  position: absolute;
+  box-shadow: 12px 7px 0 rgba(0, 0, 0, 0.5);
+}
+
+.box::before {
+  content: "";
+  position: absolute;
+  inset: 4px 5px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: solid var(--edge);
+  border-width: 4px 5px;
+  mix-blend-mode: plus-lighter;
+  pointer-events: none;
+}
+
+.box > * {
+  position: relative;
+}
+
+/* The line under a box's title. */
+.rule {
+  height: 4px;
+  margin: 0 5px;
+  background: var(--edge);
+  mix-blend-mode: plus-lighter;
+}
+
+.boxTitle {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 30px;
+}
+
+/* ----------------------------------------------------------------------------------------------- lettering */
+
+.gt {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-game);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+  padding: 0 0.14em 0 0.06em;
+  white-space: nowrap;
+  color: #000;
+  -webkit-text-stroke: 0.15em #000;
+  text-shadow: 0.05em 0.07em 0 #000;
+}
+
+.gt::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  background: linear-gradient(180deg, var(--g1) 24%, var(--g2) 84%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.peri {
+  --g1: #c8c8ff;
+  --g2: #a0a0e1;
+}
+
+.green {
+  --g1: #88ff88;
+  --g2: #208120;
+}
+
+.red {
+  --g1: #ff0000;
+  --g2: #800000;
+}
+
+.gray {
+  --g1: #808080;
+  --g2: #808080;
+}
+
+.white {
+  --g1: #ffffff;
+  --g2: #ffffff;
+}
+
+.small {
+  font: 600 13px/1.35 var(--font-small);
+  color: #c8c8ff;
+  text-shadow: 1px 1px 0 #000, 0 0 2px #000;
+}
+
+.faint {
+  color: #8a8ab8;
+}
+
+.center {
+  text-align: center;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------------------------------------ the cover */
+
+#coverBox {
+  left: 32px;
+  top: 28px;
+  width: 476px;
+  height: 636px;
+}
+
+.cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 418px;
+  height: 474px;
+  margin: 26px auto 0;
+}
+
+.cover img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  outline: 3px solid #000;
+  box-shadow: 8px 6px 0 rgba(0, 0, 0, 0.5);
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 3px dashed rgba(200, 200, 255, 0.35);
+}
+
+.placeholder .big {
+  font-size: 120px;
+  line-height: 1;
+}
+
+.coverTitle {
+  text-align: center;
+  font-size: 30px;
+  margin-top: 20px;
+}
+
+.link {
+  display: block;
+  margin: 8px auto 0;
+  font-size: 15px;
+}
+
+.link:hover .gt {
+  --g1: #ffc800;
+  --g2: #ff0000;
+}
+
+/* ---------------------------------------------------------------------------------------------------- menus */
+
+.menu {
+  position: relative;
+  padding: 10px 5px;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 20px;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.row.off {
+  cursor: default;
+}
+
+.settings .row {
+  height: 38px;
+  font-size: 21px;
+}
+
+.row .value {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86em;
+}
+
+.arrow {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  visibility: hidden;
+}
+
+.row.sel .arrow {
+  visibility: visible;
+}
+
+.arrow svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tabs {
+  display: flex;
+  gap: 18px;
+  font-size: 19px;
+}
+
+/* The selected row: added light, its green pulsing like the game's (0 to 128, about once a second). */
+.hilite {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  height: 0;
+  background: rgb(128, 64, 0);
+  mix-blend-mode: plus-lighter;
+  animation: pulse 1.07s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  from {
+    background-color: rgb(128, 0, 0);
+  }
+  to {
+    background-color: rgb(128, 128, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hilite {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------------------------- right side */
+
+#discBox {
+  left: 548px;
+  top: 28px;
+  width: 536px;
+  height: 170px;
+  cursor: pointer;
+}
+
+#discBox.off {
+  cursor: default;
+}
+
+.discBody {
+  padding: 12px 26px 0;
+}
+
+.discBody .line {
+  font-size: 22px;
+}
+
+.dropping #discBox::after {
+  border-color: rgb(128, 128, 0);
+}
+
+#menuBox {
+  left: 548px;
+  top: 222px;
+  width: 536px;
+}
+
+#statusBox {
+  left: 548px;
+  top: 518px;
+  width: 536px;
+  height: 146px;
+  padding: 14px 26px 0;
+}
+
+.statusLine {
+  display: flex;
+  align-items: center;
+  font-size: 21px;
+  height: 30px;
+}
+
+.statusLine .gt:first-child {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusLine .pct {
+  margin-left: auto;
+}
+
+.track {
+  position: relative;
+  height: 28px;
+  margin-top: 8px;
+  display: flex;
+}
+
+.track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: solid var(--edge);
+  border-width: 3px 4px;
+  mix-blend-mode: plus-lighter;
+}
+
+.fill {
+  position: relative;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(180deg, var(--g1), var(--g2));
+  border-right: 3px solid #000;
+}
+
+.fill.green {
+  --g1: #88ff88;
+  --g2: #208120;
+}
+
+.fill.gray {
+  --g1: #9a9a9a;
+  --g2: #555;
+}
+
+.fill.none {
+  border: 0;
+}
+
+.finish {
+  position: relative;
+  margin-left: auto;
+  width: 28px;
+  height: 100%;
+  background: conic-gradient(#000 25%, #fff 0 50%, #000 0 75%, #fff 0) 0 0 / 14px 14px;
+  border-left: 3px solid #000;
+}
+
+#statusBox .small {
+  margin-top: 10px;
+  height: 36px;
+  overflow: hidden;
+}
+
+#settingsBox {
+  left: 548px;
+  top: 28px;
+  width: 536px;
+}
+
+#hintBox {
+  left: 548px;
+  top: 514px;
+  width: 536px;
+  height: 150px;
+  padding: 18px 26px 0;
+}
+
+#hintBox .small {
+  font-size: 14px;
+  min-height: 60px;
+}
+
+#hintBox .keys {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  bottom: 16px;
+}
+
+/* -------------------------------------------------------------------------------------------------- dialog */
+
+/* Over the whole window; the box is zoomed like the stage (--z, set by layout()). */
+#modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+#modal[hidden] {
+  display: none;
+}
+
+#modal .box {
+  position: relative;
+  width: 440px;
+  padding-bottom: 6px;
+  zoom: var(--z, 1);
+}
+
+/* darker than a plain box: the menu behind it must not read through the dialog's own rows */
+#modal .box::before {
+  background: rgba(0, 0, 0, 0.9);
+}

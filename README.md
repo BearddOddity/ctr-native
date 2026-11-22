@@ -140,15 +140,35 @@ ctr-native/
 
 ### CTR Launcher (Windows)
 
-`CTR Launcher.exe` is a player front end: the left side shows a cover image the
-player picks (none is shipped; a drawn placeholder otherwise), the right side
-takes the player's own disc image (drop the `.bin`, its `.cue` or the folder, or
-press Browse) and a Play button that recompiles the game and starts it, with a
-progress bar per build step. Settings swaps only the right side and has three
-tabs: Display, Graphics and Controls.
+`CTR Launcher.exe` is a player front end in the game's own menu style: boxes with
+the game's edge colour and drop shadow, its orange lettering, the pulsing row
+highlight and a waving checkered flag behind them (drawn from `game/RECTMENU.c`
+and the game's colour table; no game art, font or logo). The left side shows a
+cover picture the player picks (none is shipped). The right side takes the
+player's own disc image (drop the `.bin`, its `.cue` or the folder on the
+window, or pick Choose Disc) and has Play, which recompiles the game and starts
+it with a progress bar per build step. Settings has three tabs: Display,
+Graphics and Controls. Arrows, Enter and Esc, a pad, or the mouse drive it.
 
-Make the self-contained package (llvm-mingw, CMake and Ninja under `tools/`,
-this source under `source/`, nothing to install for the player):
+It is a Tauri app in `launcher/`: the window is TypeScript built with Bun
+(`launcher/src`), the work (disc check, settings, the build, starting the game)
+is Rust (`launcher/src-tauri`). Windows 10 and 11 ship the WebView2 runtime it
+draws with.
+
+```
+cd launcher
+bun install
+bun run dev        # the window in a browser, with a stand-in for the Rust side
+bun test           # the menus and the progress bar
+bun run app        # the real app (tauri dev)
+bun run build      # src-tauri/target/release/ctr-launcher.exe
+cd src-tauri && cargo test
+```
+
+Run from a checkout, it builds into `build-launcher/` and keeps its settings
+beside the checkout. Make the self-contained package (the launcher, llvm-mingw,
+CMake and Ninja under `tools/`, this source under `source/`, nothing to install
+for the player):
 
 ```
 python tools/launcher/package_windows.py --zip
@@ -156,10 +176,9 @@ python tools/launcher/package_windows.py --zip
 
 The tool versions are pinned in the script. The first download records each
 archive's sha256 in `tools/launcher/toolchain.lock.json` (commit it), and later
-runs refuse an archive that doesn't match. The zip never
-holds a disc image, a build, saves or settings. `--no-tools` leaves the bundled
-tools out (the launcher then looks on PATH); `CTR_NATIVE_BUILD_LAUNCHER=OFF`
-leaves the launcher out of a normal CMake build.
+runs refuse an archive that doesn't match. The zip never holds a disc image, a
+build, saves or settings. `--no-tools` leaves the bundled tools out (the
+launcher then looks on PATH); `--launcher-exe` takes a launcher built elsewhere.
 
 The disc is never changed: it is hard linked (or, on another drive, copied) to
 `assets/ctr-u.bin`, and a different file already there is renamed `.oldN`.
