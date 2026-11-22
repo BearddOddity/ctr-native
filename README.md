@@ -145,8 +145,11 @@ the game's edge colour and drop shadow, its orange lettering, the pulsing row
 highlight and a waving checkered flag behind them (drawn from `game/RECTMENU.c`
 and the game's colour table; no game art, font or logo). The left side shows a
 cover picture the player picks (none is shipped). The right side takes the
-player's own disc image (drop the `.bin`, its `.cue` or the folder on the
-window, or pick Choose Disc) and has Play, which recompiles the game and starts
+player's own disc image (drop the `.bin`, its `.cue`, an `.iso` or the folder
+on the window, or pick Choose Disc; the launcher judges the file by its sectors,
+not its name: raw 2352-byte sectors play, a cooked 2048-byte `.iso` is refused
+with the reason, since it lacks the music, voice and video sectors) and has
+Play, which recompiles the game and starts
 it with a progress bar per build step. Settings has three tabs: Display,
 Graphics and Controls. Arrows, Enter and Esc, a pad, or the mouse drive it.
 
@@ -165,24 +168,64 @@ bun run build      # src-tauri/target/release/ctr-launcher.exe
 cd src-tauri && cargo test
 ```
 
-Run from a checkout, it builds into `build-launcher/` and keeps its settings
-beside the checkout. Make the self-contained package (the launcher, llvm-mingw,
-CMake and Ninja under `tools/`, this source under `source/`, nothing to install
-for the player):
+Run from a checkout, it builds into `build-launcher/` with CMake and keeps its
+settings beside the checkout. Make the self-contained package (the launcher,
+this source under `source/` and its own compiler under `compiler/`, nothing to
+install for the player):
 
 ```
 python tools/launcher/package_windows.py --zip
 ```
 
-The tool versions are pinned in the script. The first download records each
-archive's sha256 in `tools/launcher/toolchain.lock.json` (commit it), and later
-runs refuse an archive that doesn't match. The zip never holds a disc image, a
-build, saves or settings. `--no-tools` leaves the bundled tools out (the
-launcher then looks on PATH); `--launcher-exe` takes a launcher built elsewhere.
-`--cover my-cover.png` puts your own picture of the cover in the package as
-`cover.png`, which the launcher shows until another is picked. Its slot is
-418 x 474 (shown larger on a bigger window: 836 x 948 stays sharp full screen).
-The picture is never committed; keep it out of a package you share.
+The package carries no CMake and no Ninja. Play runs
+`tools/launcher/build-recipe.json`: every compile, the SDL archive and the link,
+written from `CMakeLists.txt` by `tools/launcher/recipe.py generate` with the
+`{src}`, `{build}` and `{build_id}` of the machine left as placeholders. The
+launcher runs its steps several at once and skips a step whose command and files
+didn't change since it last ran.
+
+`compiler/` is made for this port. The packager builds the packaged source once
+from the recipe with the whole llvm-mingw (the version pinned in the script),
+notes every header and library the build reads, and copies only those, plus
+clang, lld, llvm-ar and the DLLs they load, out of llvm-mingw's Windows release:
+about 160 MB (50 MB zipped) where llvm-mingw, CMake and Ninja were over 700 MB.
+It then builds the game again from scratch with only that, so a missing file
+stops the packaging rather than a player's first Play. Each llvm-mingw archive's
+sha256 is pinned in `tools/launcher/toolchain.lock.json`; a mismatch stops.
+Off Windows the packager also takes llvm-mingw for that machine to run the
+builds.
+
+The window is Microsoft Edge WebView2. Windows 11 has it and so do most Windows
+10 PCs, but not all (LTSC, PCs kept offline), so the package carries Microsoft's
+WebView2 Fixed Version runtime in `webview2/`: download it from
+<https://developer.microsoft.com/microsoft-edge/webview2/> (Fixed Version, x64)
+and pass the `.cab` with `--webview2` (a later run keeps it). The launcher uses
+Windows' own copy when there is one (Windows Update keeps it current) and the
+bundled one otherwise, or always with `webview2 = bundled` under `[window]` in
+`launcher.ini`; `logs/launcher.log` says which. If neither is there it says why
+in a Windows message box instead of closing silently. `--no-webview2` makes a
+package that needs WebView2 on the PC. Last, the packager reads every program in
+the package and the game it just built for the DLLs they load, and stops on any
+that is neither Windows' own nor in the package (a Visual C++ runtime, say), so
+the player needs nothing but 64-bit Windows 10 or 11 and their own disc.
+
+`--no-compiler` leaves `compiler/` out; `--launcher-exe` takes a
+launcher built elsewhere. The zip never holds a disc image, a build, saves or
+settings. `--cover my-cover.png` puts your own picture of the cover in the
+package as `cover.png`, which the launcher shows until another is picked. Its
+slot is 418 x 474 (shown larger on a bigger window: 836 x 948 stays sharp full
+screen). The picture is never committed; keep it out of a package you share.
+
+When a change to `CMakeLists.txt` (or a source added or removed) changes the
+build, write the recipe again and commit it:
+
+```
+python tools/launcher/recipe.py generate --toolchain <llvm-mingw for this machine>
+```
+
+`tools/check.py` compares it with `CMakeLists.txt` when `CTR_LLVM_MINGW` names an
+llvm-mingw (CI does), with the CMake version the recipe was written with
+(`CTR_CMAKE` names another CMake than PATH's).
 
 The disc is never changed: it is hard linked (or, on another drive, copied) to
 `assets/ctr-u.bin`, and a different file already there is renamed `.oldN`.

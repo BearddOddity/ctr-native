@@ -10,8 +10,10 @@ mod cover;
 mod disc;
 mod ini;
 mod paths;
+mod recipe;
 mod settings;
 mod tasks;
+mod webview;
 
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -255,9 +257,33 @@ fn exe_dir() -> PathBuf {
 }
 
 fn main() {
+    let dir = exe_dir();
+    let paths = Paths::find(&dir);
+    // The window needs WebView2: Windows' own, else the one in webview2\ beside the launcher (webview.rs).
+    webview::new_log(&paths.log_dir);
+    let setting = Ini::load(&paths.launcher_ini).get("window", "webview2").unwrap_or_default();
+    let picked = webview::prepare(&dir, &setting, &paths.log_dir);
+    webview::note(&paths.log_dir, &format!("window: {}", picked.describe()));
+    let log_dir = paths.log_dir.clone();
+    let error = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run(paths))) {
+        Ok(Ok(())) => return,
+        Ok(Err(e)) => e.to_string(),
+        Err(panic) => panic
+            .downcast_ref::<String>()
+            .cloned()
+            .or_else(|| panic.downcast_ref::<&str>().map(|s| s.to_string()))
+            .unwrap_or_else(|| "it stopped".to_string()),
+    };
+    // Without a window there is nowhere else to say it: a plain Windows message box, and the log.
+    webview::note(&log_dir, &format!("the window could not start: {error}"));
+    webview::message_box(&webview::missing_text(&picked, &error));
+    std::process::exit(1);
+}
+
+fn run(paths: Paths) -> tauri::Result<()> {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .setup(|app| {
+        .setup(move |app| {
             // The game's window sizes are screen pixels, not the desktop's scaled ones: the physical work area.
             let work = app
                 .primary_monitor()
@@ -265,7 +291,7 @@ fn main() {
                 .flatten()
                 .map(|m| (m.work_area().size.width as i32, m.work_area().size.height as i32))
                 .unwrap_or((1920, 1040));
-            app.manage::<App>(Arc::new(load(Paths::find(&exe_dir()), work)));
+            app.manage::<App>(Arc::new(load(paths.clone(), work)));
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -291,7 +317,6 @@ fn main() {
             quit
         ])
         .run(tauri::generate_context!())
-        .expect("the CTR Launcher window could not start");
 }
 
 #[cfg(test)]

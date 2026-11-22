@@ -21,5 +21,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-multilib cmake ninja-build libx11-dev libxext-dev libgl1-mesa-dev libasound2-dev libudev-dev libdbus-1-dev \
             libx11-dev:i386 libxext-dev:i386 libxcursor-dev:i386 libxfixes-dev:i386 libxi-dev:i386 libxrandr-dev:i386
+      - name: llvm-mingw
+        # tools/check.py checks the launcher's build recipe against CMakeLists.txt with it (the player's compiler is
+        # cut from the Windows release of the same version). The sha256 comes from tools/launcher/toolchain.lock.json.
+        run: |
+          v=$(python3 -c "import re;print(re.search(r'LLVM_MINGW = \"(\\d+)\"', open('tools/launcher/package_windows.py').read()).group(1))")
+          name=llvm-mingw-$v-ucrt-ubuntu-20.04-x86_64
+          url=https://github.com/mstorsjo/llvm-mingw/releases/download/$v/$name.tar.xz
+          curl -sSLfo /tmp/$name.tar.xz "$url"
+          want=$(python3 -c "import json,sys;print(json.load(open('tools/launcher/toolchain.lock.json'))[sys.argv[1]])" "$url")
+          echo "$want  /tmp/$name.tar.xz" | sha256sum -c -
+          sudo tar xJf /tmp/$name.tar.xz -C /opt
+          echo "CTR_LLVM_MINGW=/opt/$name" >> "$GITHUB_ENV"
+          # The image's own CMake comes first on PATH; the recipe is written with Ubuntu's (its version is in it).
+          echo "CTR_CMAKE=/usr/bin/cmake" >> "$GITHUB_ENV"
       - name: Checks
         run: python3 tools/check.py --sanitize

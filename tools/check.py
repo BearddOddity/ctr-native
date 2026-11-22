@@ -7,7 +7,8 @@
     python3 tools/check.py --fast          # matching tests, the lock and the function map (what the git hook runs)
 
 Steps that need something this machine lacks (the PSX toolchain for the lock, a C compiler for the native build,
-replays) say SKIP with the reason; a skip is never counted as a pass. Exit 1 when any step failed.
+replays, an llvm-mingw in CTR_LLVM_MINGW for the launcher's build recipe) say SKIP with the reason; a skip is never
+counted as a pass. Exit 1 when any step failed.
 
 On Windows the native builds use clang-cl in Visual Studio's x86 environment (vcvars32) with Ninja (else NMake):
 plain MSVC can't compile the game's GCC statement expressions. CTR_CLANG_CL names another clang-cl. The match lock
@@ -170,8 +171,11 @@ def main(argv: list[str] | None = None) -> int:
         env={"CC": str(tools.clang.with_name("clang.exe"))} if tools is not None and tools.clang is not None
         and tools.clang.with_name("clang.exe").exists() else None,
         base=tools.env if tools is not None and tools.env is not None else None)
+    run("launcher unit tests", [PY, "-m", "unittest", "discover", "-s", "tools/launcher", "-p", "test_*.py"], results)
     build = ROOT / "build-check"
     if not args.fast:
+        # The launcher package builds from tools/launcher/build-recipe.json, not CMakeLists.txt: they must agree.
+        run("launcher build recipe", [PY, "tools/launcher/recipe.py", "check"], results, skip_codes=(2,))
         native("native", build, None, results, args.jobs, tools)
         if args.sanitize:
             # MSVC's AddressSanitizer has no UndefinedBehaviorSanitizer: address only there.

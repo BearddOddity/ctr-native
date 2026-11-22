@@ -1,4 +1,6 @@
-//! The player's disc: a folder, a .cue or the .bin itself -> the raw image, and whether it is CTR NTSC-U.
+//! The player's disc: a folder, a .cue, or the image itself (.bin, .img or .iso) -> the raw image, and whether it
+//! is CTR NTSC-U. The name doesn't decide: a raw .iso (2352-byte sectors, as many rippers write them) plays like a
+//! .bin; a cooked one (2048-byte sectors) is refused with the reason.
 //! The image is only read (a few hundred sectors), never changed.
 
 use serde::Serialize;
@@ -7,6 +9,9 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 pub const SECTOR_RAW: u64 = 2352;
+pub const SECTOR_COOKED: u64 = 2048;
+/// The file names a disc image goes by.
+pub const DISC_EXTS: [&str; 3] = ["bin", "img", "iso"];
 const SYNC: [u8; 12] = [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00];
 const MIN_SIZE: u64 = 16 * 1024 * 1024;
 
@@ -74,8 +79,15 @@ pub fn analyze_bin(bin: &Path) -> DiscInfo {
     let (id, raw) = read_disc_id(bin);
     if !raw || size % SECTOR_RAW != 0 {
         info.state = 3;
-        info.title = "Not a raw (2352-byte sector) disc image".into();
-        info.detail = "Rip the disc as BIN/CUE (MODE2/2352). A cooked .iso loses the audio and video sectors.".into();
+        if is_cooked_iso(bin, size) {
+            info.title = "This copy has 2048-byte sectors (a cooked .iso)".into();
+            info.detail = "It leaves out the disc's music, voice and video sectors, which the game plays. Copy \
+                your disc again as raw sectors: BIN/CUE (MODE2/2352), or an .iso of 2352-byte sectors."
+                .into();
+        } else {
+            info.title = "Not a raw (2352-byte sector) disc image".into();
+            info.detail = "Copy your disc as BIN/CUE (MODE2/2352), or an .iso of 2352-byte sectors.".into();
+        }
         return info;
     }
     let mb = size / (1024 * 1024);
@@ -98,6 +110,21 @@ pub fn analyze_bin(bin: &Path) -> DiscInfo {
         info.detail = format!("{mb} MB \u{00B7} {}. It should be the NTSC-U release.", file_name(bin));
     }
     info
+}
+
+/// An ISO 9660 image of 2048-byte sectors: its volume descriptor ("\x01CD001") right at sector 16.
+fn is_cooked_iso(path: &Path, size: u64) -> bool {
+    let mut head = [0u8; 6];
+    let at = SECTOR_COOKED * 16;
+    size % SECTOR_COOKED == 0
+        && fs::File::open(path)
+            .and_then(|mut f| {
+                use std::io::{Seek, SeekFrom};
+                f.seek(SeekFrom::Start(at))?;
+                f.read_exact(&mut head)
+            })
+            .is_ok()
+        && &head == b"\x01CD001"
 }
 
 /// A .cue -> the first FILE "x.bin" it names, beside it.
@@ -128,13 +155,15 @@ pub struct Scan {
     pub bin: Option<PathBuf>,
     size: u64,
     named: bool,
+    raw: bool,
     pub image: Option<PathBuf>,
     image_score: u8,
     seen: usize,
 }
 
-/// The folder and two levels below: the best disc image (a name with CTR or Crash first, then the
-/// biggest raw-sized one) and the best cover picture (a "front" or "cover" one first).
+/// The folder and two levels below: the best disc image (a raw-sized one first, then a name with CTR or Crash,
+/// then the biggest; a cooked one only when nothing else is there, so the player is told why) and the best cover
+/// picture (a "front" or "cover" one first).
 pub fn scan_folder(dir: &Path, depth: u32, best: &mut Scan) {
     let Ok(entries) = fs::read_dir(dir) else { return };
     for entry in entries.flatten() {
@@ -152,13 +181,15 @@ pub fn scan_folder(dir: &Path, depth: u32, best: &mut Scan) {
         }
         let name = file_name(&path);
         let lower = name.to_ascii_lowercase();
-        if has_ext(&path, &["bin", "img"]) {
+        if has_ext(&path, &DISC_EXTS) {
             let size = meta.len();
             let named = lower.contains("ctr") || lower.starts_with("crash");
-            if size % SECTOR_RAW == 0 && size >= MIN_SIZE && ((named && !best.named) || (named == best.named && size > best.size)) {
+            let raw = size % SECTOR_RAW == 0;
+            if size >= MIN_SIZE && (raw, named, size) > (best.raw, best.named, best.size) {
                 best.bin = Some(path);
                 best.size = size;
                 best.named = named;
+                best.raw = raw;
             }
         } else if has_ext(&path, &IMAGE_EXTS) {
             let score = if lower.contains("front") || lower.contains("cover") { 2 } else { 1 };
@@ -191,7 +222,7 @@ pub fn choose(path: &Path) -> (DiscInfo, Option<PathBuf>) {
             DiscInfo {
                 state: 3,
                 title: "No disc image there".into(),
-                detail: "Drop the folder holding your CTR .bin/.cue, or the .bin itself.".into(),
+                detail: "Drop the folder holding your CTR disc image (.bin/.cue or .iso), or the file itself.".into(),
                 ..Default::default()
             },
             image,
@@ -236,6 +267,39 @@ mod tests {
         fs::write(dir.join("small.bin"), b"tiny").unwrap();
         assert_eq!(choose(&dir.join("small.bin")).0.state, 3);
         assert_eq!(choose(&dir.join("missing")).0.title, "No disc image there");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn takes_a_raw_iso_and_explains_a_cooked_one() {
+        let dir = std::env::temp_dir().join(format!("ctr-launcher-iso-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        // Laid out like a download: the .iso two folders down, its raw 2352-byte sectors under an .iso name.
+        let inner = dir.join("CTR - Crash Team Racing (USA) (ISO) - 1").join("CTR - Crash Team Racing (USA) (ISO)");
+        fs::create_dir_all(&inner).unwrap();
+        let iso = inner.join("CTR - Crash Team Racing (USA) (ISO).iso");
+        fs::write(&iso, image_with("SCUS_944.26", MIN_SIZE / SECTOR_RAW + 1)).unwrap();
+        assert_eq!(choose(&iso).0.state, 1);
+        let (info, _) = choose(&dir);
+        assert_eq!(info.state, 1, "{info:?}");
+        assert!(info.bin.ends_with("(ISO).iso"));
+
+        // A cooked copy: 2048-byte sectors, the volume descriptor right at sector 16.
+        let cooked_dir = dir.join("cooked");
+        fs::create_dir_all(&cooked_dir).unwrap();
+        let mut data = vec![0u8; (MIN_SIZE / SECTOR_COOKED * SECTOR_COOKED + SECTOR_COOKED * 4) as usize];
+        if data.len() as u64 % SECTOR_RAW == 0 {
+            data.extend_from_slice(&[0u8; SECTOR_COOKED as usize]);
+        }
+        let at = (SECTOR_COOKED * 16) as usize;
+        data[at..at + 6].copy_from_slice(b"\x01CD001");
+        fs::write(cooked_dir.join("ctr.iso"), &data).unwrap();
+        let (cooked, _) = choose(&cooked_dir);
+        assert_eq!(cooked.state, 3);
+        assert!(cooked.title.contains("2048-byte sectors"), "{cooked:?}");
+        // Beside a raw image, the raw one is taken.
+        fs::copy(&iso, cooked_dir.join("zz.bin")).unwrap();
+        assert_eq!(choose(&cooked_dir).0.state, 1);
         let _ = fs::remove_dir_all(&dir);
     }
 }
