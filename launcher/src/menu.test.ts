@@ -22,6 +22,7 @@ function settings(over: Partial<Settings> = {}): Settings {
     crt: 0,
     brightness: 0,
     texfilter: false,
+    renderscale: 1,
     keyboard: true,
     controller: true,
     xbox: true,
@@ -124,6 +125,9 @@ describe("settings", () => {
     expect(change(settings({ crt: 0 }), "crt", -1, RES).crt).toBe(2);
     expect(change(settings({ brightness: 2 }), "brightness", 1, RES).brightness).toBe(2);
     expect(change(settings({ brightness: -2 }), "brightness", -1, RES).brightness).toBe(-2);
+    expect(change(settings({ renderscale: 1 }), "renderscale", -1, RES).renderscale).toBe(1);
+    expect(change(settings({ renderscale: 7 }), "renderscale", 1, RES).renderscale).toBe(8);
+    expect(change(settings({ renderscale: 8 }), "renderscale", 1, RES).renderscale).toBe(8);
     expect(change(settings(), "vsync", 1, RES).vsync).toBe(false);
   });
 

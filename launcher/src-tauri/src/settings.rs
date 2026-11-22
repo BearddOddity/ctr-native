@@ -29,6 +29,9 @@ pub const RESOLUTIONS: [Resolution; 10] = [
     Resolution { w: 2560, h: 1440, aspect: "16:9" },
 ];
 
+/// The game's own limit (NATIVE_CONFIG_MAX_RENDER_SCALE).
+pub const MAX_RENDER_SCALE: i32 = 8;
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Settings {
     pub width: i32,
@@ -43,6 +46,8 @@ pub struct Settings {
     pub crt: usize,
     pub brightness: i32,
     pub texfilter: bool,
+    /// Internal resolution: the 3D drawn at the PlayStation's size times this, 1 (its own) to 8.
+    pub renderscale: i32,
     pub keyboard: bool,
     pub controller: bool,
     pub xbox: bool,
@@ -81,6 +86,7 @@ impl Settings {
             crt: choice(ini, "graphics", "crt", &CRT, 0),
             brightness: ini.get_int("graphics", "brightness", 0) as i32,
             texfilter: ini.get_bool("graphics", "texture_filter", false),
+            renderscale: ini.get_int("graphics", "render_scale", 1) as i32,
             keyboard: ini.get_bool("input", "keyboard", true),
             controller: ini.get_bool("input", "controller", true),
             xbox: ini.get_bool("input", "xbox", true),
@@ -112,6 +118,7 @@ impl Settings {
         if !(-2..=2).contains(&self.brightness) {
             self.brightness = 0;
         }
+        self.renderscale = self.renderscale.clamp(1, MAX_RENDER_SCALE);
         if self.width < 320 || self.height < 240 {
             self.width = RESOLUTIONS[0].w;
             self.height = RESOLUTIONS[0].h;
@@ -140,6 +147,7 @@ impl Settings {
         ini.set("graphics", "brightness", &self.brightness.to_string());
         ini.set("graphics", "texture_filter", b(self.texfilter));
         ini.set("graphics", "integer_scale", b(self.intscale));
+        ini.set("graphics", "render_scale", &self.renderscale.to_string());
     }
 }
 
@@ -155,14 +163,17 @@ mod tests {
         s.upscale = 2;
         s.crt = 2;
         s.brightness = -1;
+        s.renderscale = 12; // a hand edit past the game's limit
         s.keyboard = false;
         s.controller = false;
         s.tidy();
         assert!(s.keyboard);
+        assert_eq!(s.renderscale, 8);
         let mut out = Ini::parse("[graphics]\n; kept\n");
         s.save(&mut out);
         assert_eq!(out.get("graphics", "upscale").as_deref(), Some("fsr"));
         assert_eq!(out.get("graphics", "crt").as_deref(), Some("curved"));
+        assert_eq!(out.get("graphics", "render_scale").as_deref(), Some("8"));
         assert!(out.text().contains("; kept"));
         assert_eq!(Settings::load(&out, (1, 1)), s);
     }

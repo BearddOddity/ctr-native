@@ -39,6 +39,7 @@ export function demoBackend(q: URLSearchParams): Backend {
     crt: 0,
     brightness: 0,
     texfilter: false,
+    renderscale: 2,
     keyboard: true,
     controller: true,
     xbox: true,

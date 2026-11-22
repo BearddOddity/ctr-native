@@ -21,6 +21,11 @@ export const SHARPNESS = ["LOW", "MEDIUM", "HIGH"];
 export const ANTIALIASING = ["OFF", "FXAA"];
 export const CRT = ["OFF", "SCANLINES", "CURVED CRT"];
 export const BRIGHTNESS = ["DARKER", "DARK", "NORMAL", "BRIGHT", "BRIGHTER"];
+export const MAX_RENDER_SCALE = 8;
+
+export function renderScaleLabel(n: number): string {
+  return n <= 1 ? "1X  PS1" : `${n}X`;
+}
 
 const UPSCALE_HINT = [
   "Sharp pixels: the original PlayStation picture, every pixel kept square and crisp.",
@@ -83,6 +88,14 @@ export function settingsRows(v: View, tab: number): Row[] {
     );
   } else if (tab === 1) {
     rows.push(
+      {
+        id: "renderscale",
+        kind: "choice",
+        label: "INTERNAL RESOLUTION",
+        value: renderScaleLabel(s.renderscale),
+        enabled: true,
+        hint: "The 3D is drawn at the PlayStation's own size times this, then scaled to your window: 2X and up are sharper and cost more. A build of the game from before this setting draws at 1X.",
+      },
       { id: "upscale", kind: "choice", label: "UPSCALING", value: UPSCALE[s.upscale], enabled: true, hint: UPSCALE_HINT[s.upscale] },
       {
         id: "sharpness",
@@ -162,6 +175,9 @@ export function change(s: Settings, id: string, dir: 1 | -1, list: Resolution[])
       break;
     case "brightness":
       n.brightness = Math.min(2, Math.max(-2, s.brightness + dir));
+      break;
+    case "renderscale":
+      n.renderscale = Math.min(MAX_RENDER_SCALE, Math.max(1, s.renderscale + dir));
       break;
     default: {
       const key = id as keyof Settings;

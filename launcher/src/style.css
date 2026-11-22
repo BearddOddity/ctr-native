@@ -463,6 +463,7 @@ button:focus {
 }
 
 #hintBox .keys {
+  min-height: 0;
   position: absolute;
   left: 26px;
   right: 26px;

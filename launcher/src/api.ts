@@ -21,6 +21,8 @@ export interface Settings {
   crt: number;
   brightness: number;
   texfilter: boolean;
+  /** internal resolution: the 3D at the PlayStation's size times this, 1 to 8 */
+  renderscale: number;
   keyboard: boolean;
   controller: boolean;
   xbox: boolean;

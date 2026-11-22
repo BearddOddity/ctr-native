@@ -219,7 +219,8 @@ rebuild what changed. Rebuild compiles everything again from scratch.
 Settings has three tabs (left and right on the top row, or PgUp/PgDn, L1/R1):
   Display   resolution (1280x800 to 2560x1440), fullscreen, widescreen, VSync,
             pixel-perfect scaling
-  Graphics  upscaling (sharp pixels, smooth or AMD FSR 1 with its sharpness),
+  Graphics  internal resolution (1x, the PlayStation's own, to 8x),
+            upscaling (sharp pixels, smooth or AMD FSR 1 with its sharpness),
             anti-aliasing (FXAA), CRT effect (scanlines or a curved CRT),
             brightness, texture filtering
   Controls  keyboard, controller, Xbox pads, PlayStation pads, vibration
