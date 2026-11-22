@@ -10,6 +10,7 @@
 #define NATIVE_CONFIG_MIN_HEIGHT  240
 #define NATIVE_CONFIG_MAX_WIDTH   7680
 #define NATIVE_CONFIG_MAX_HEIGHT  4320
+#define NATIVE_CONFIG_MAX_RENDER_SCALE 8
 
 struct NativeConfig
 {
@@ -34,6 +35,8 @@ struct NativeConfig
 	int textureFilter; // bilinear texture filtering in 3D (the PSX had none)
 	int brightness;   // -2 .. 2
 	int integerScale; // whole-number scaling only (sharp pixels, bars around)
+	// Internal resolution: the 3D is drawn at the PSX display size times this (1 = the PlayStation's own).
+	int renderScale;
 };
 
 enum
@@ -66,9 +69,9 @@ int NativeConfig_ParseText(struct NativeConfig *config, const char *text);
 const char *NativeConfig_PathFromArgs(int argc, char **argv);
 // Applies --width N, --height N, --resolution WxH, --fullscreen, --windowed,
 // --widescreen, --no-widescreen, --no-keyboard, --no-controller, --no-xbox, --no-playstation,
-// --vsync, --no-vsync, --upscale sharp|smooth|fsr, --aa off|fxaa, --crt off|scanlines|curved.
+// --vsync, --no-vsync, --upscale sharp|smooth|fsr, --aa off|fxaa, --crt off|scanlines|curved, --render-scale N.
 void NativeConfig_ApplyArgs(struct NativeConfig *config, int argc, char **argv);
-// CTR_NATIVE_WIDTH, _HEIGHT, _FULLSCREEN (1/0), _ASPECT ("16:9", "4:3"), _KEYBOARD, _GAMEPAD.
+// CTR_NATIVE_WIDTH, _HEIGHT, _FULLSCREEN (1/0), _ASPECT ("16:9", "4:3"), _KEYBOARD, _GAMEPAD, _RENDER_SCALE.
 void NativeConfig_ApplyEnv(struct NativeConfig *config);
 void NativeConfig_Clamp(struct NativeConfig *config);
 
