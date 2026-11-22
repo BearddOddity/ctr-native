@@ -1319,6 +1319,20 @@ internal int ProcessFlatLines(P_TAG *polyTag)
 	return 0;
 }
 
+// One segment of a Gouraud polyline: a quad from p0 to p1, its colour running from c0 to c1 (as LINE_G2 draws it).
+internal void NativeGpu_GouraudSegment(VERTTYPE *p0, VERTTYPE *p1, u8 *c0, u8 *c1, bool shadeTexOn)
+{
+	GrVertex *firstVertex = &s_gpu.vertexBuffer[s_gpu.vertexIndex];
+	LineSwapSourceVerts(&p0, &p1, &c0, &c1);
+	MakeLineArray(firstVertex, p0, p1);
+	MakeTexcoordLineZero(firstVertex, 0);
+	MakeColourLine(firstVertex, shadeTexOn, c0, c1);
+
+	TriangulateQuad();
+
+	s_gpu.vertexIndex += 6;
+}
+
 internal int ProcessGouraudLines(P_TAG *polyTag)
 {
 	const bool shadeTexOn = true;
@@ -1352,12 +1366,25 @@ internal int ProcessGouraudLines(P_TAG *polyTag)
 	}
 	case 0x8:
 	{
-		// TODO: LINE_G3
+		// LINE_G3: two connected segments, each shaded between its own two end colours.
+		LINE_G3 *poly = (LINE_G3 *)polyTag;
+
+		AddSplit(semiTrans, false, false);
+		NativeGpu_GouraudSegment(&poly->x0, &poly->x1, &poly->r0, &poly->r1, shadeTexOn);
+		NativeGpu_GouraudSegment(&poly->x1, &poly->x2, &poly->r1, &poly->r2, shadeTexOn);
+
 		return 7;
 	}
 	case 0xC:
 	{
-		// TODO: LINE_G4
+		// LINE_G4: three connected segments.
+		LINE_G4 *poly = (LINE_G4 *)polyTag;
+
+		AddSplit(semiTrans, false, false);
+		NativeGpu_GouraudSegment(&poly->x0, &poly->x1, &poly->r0, &poly->r1, shadeTexOn);
+		NativeGpu_GouraudSegment(&poly->x1, &poly->x2, &poly->r1, &poly->r2, shadeTexOn);
+		NativeGpu_GouraudSegment(&poly->x2, &poly->x3, &poly->r2, &poly->r3, shadeTexOn);
+
 		return 9;
 	}
 	}
