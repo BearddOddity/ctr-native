@@ -35,16 +35,24 @@ void UI_RenderFrame_Racing()
 	int offset;
 	u32 mapPosX;
 	u32 mapPosY;
-	struct GameTracker *gGT;
 	int numPlyr;
-	int gameMode1;
+#ifdef CTR_NATIVE
+	struct GameTracker *gGT;
+	int raceMode1;
+#else
+	// Retail keeps neither the game tracker nor its raceMode1 in a register: it reads both again at each use.
+#define gGT       GAME_TRACKER
+#define raceMode1 (GAME_TRACKER->gameMode1)
+#endif
 
 	offset = 0;
 
-	gGT = sdata->gGT;
+#ifdef CTR_NATIVE
+	gGT = GAME_TRACKER;
+	raceMode1 = gGT->gameMode1;
+#endif
 
 	numPlyr = gGT->numPlyrCurrGame;
-	gameMode1 = gGT->gameMode1;
 
 	// Get pointer to array of HUD structs
 	hudStructPtr = (struct UiElement2D *)data.hudStructPtr[numPlyr - 1];
@@ -74,17 +82,17 @@ void UI_RenderFrame_Racing()
 	}
 
 	// If not drawing intro-race cutscene
-	if ((gameMode1 & START_OF_RACE) == 0)
+	if ((raceMode1 & START_OF_RACE) == 0)
 	{
 		if ((gGT->hudFlags & HUD_FLAG_RENDER_LESS) == 0)
 		{
 			// If you press Triangle
-			if ((sdata->gGamepads->gamepad[0].buttonsTapped & 0x40000) != 0)
+			if ((GAMEPADS->gamepad[0].buttonsTapped & 0x40000) != 0)
 			{
 				// if & 8, remove bit 8,
 				// if !& 8, add bit 8,
 				// toggle map and speedometer
-				sdata->HudAndDebugFlags ^= 8;
+				GAME_SDATA_NAME(HudAndDebugFlags) ^= 8;
 			}
 		}
 		else
@@ -99,7 +107,7 @@ void UI_RenderFrame_Racing()
 	    ((gGT->drivers[0]->actionsFlagSet & ACTION_BOT) != 0))
 	{
 		// force draw speedometer, and not map, why?
-		sdata->HudAndDebugFlags = 8;
+		GAME_SDATA_NAME(HudAndDebugFlags) = 8;
 	}
 
 #ifdef CTR_NATIVE
@@ -115,7 +123,7 @@ void UI_RenderFrame_Racing()
 
 	// If you are not in Relic Race, and not in battle mode,
 	// and not in time trial
-	if ((gameMode1 & (RELIC_RACE | TIME_TRIAL | BATTLE_MODE)) == 0)
+	if ((raceMode1 & (RELIC_RACE | TIME_TRIAL | BATTLE_MODE)) == 0)
 	{
 		UI_DrawRankedDrivers();
 	}
@@ -139,7 +147,7 @@ void UI_RenderFrame_Racing()
 			    ((playerStruct->actionsFlagSet & ACTION_DRIVING_WRONG_WAY) == 0))
 			{
 			LAB_80053260:
-				if ((gameMode1 & PAUSE_ALL) == 0)
+				if ((raceMode1 & PAUSE_ALL) == 0)
 				{
 					// execute Jump meter and landing boost processes
 					UI_JumpMeter_Update(playerStruct);
@@ -150,14 +158,14 @@ void UI_RenderFrame_Racing()
 			// wrong way for too long
 			else
 			{
-				if ((gameMode1 & PAUSE_ALL) == 0)
+				if ((raceMode1 & PAUSE_ALL) == 0)
 				{
 					pb = &gGT->pushBuffer[playerStruct->driverID];
 
 					// if "Time on clock" last 0xXX u8 is greater than 0x80 and less than 0xFF
 					if ((gGT->elapsedEventTime & 0x80) != 0)
 					{
-						DecalFont_DrawLine(sdata->lngStrings[LNG_WRONG_WAY],
+						DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_WRONG_WAY],
 
 						                   // midpointX
 						                   pb->rect.x + (pb->rect.w >> 1),
@@ -180,7 +188,7 @@ void UI_RenderFrame_Racing()
 			    // numPlyrCurrGame is less than 2 (1P mode)
 			    (numPlyr < 2) &&
 			    // if want to draw speedometer
-			    ((sdata->HudAndDebugFlags & 8) != 0))
+			    ((GAME_SDATA_NAME(HudAndDebugFlags) & 8) != 0))
 			{
 				UI_DrawSpeedNeedle(hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].x + offset, hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
 				UI_JumpMeter_Draw(hudStructPtr[UI_HUD_SLOT_JUMP_METER].x, hudStructPtr[UI_HUD_SLOT_JUMP_METER].y, playerStruct);
@@ -191,27 +199,27 @@ void UI_RenderFrame_Racing()
 			if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
 			{
 				// If you're not in Battle Mode
-				if ((gameMode1 & BATTLE_MODE) == 0)
+				if ((raceMode1 & BATTLE_MODE) == 0)
 				{
 					// Draw powerslide meter
 					UI_DrawSlideMeter(hudStructPtr[UI_HUD_SLOT_SLIDE_METER].x + offset, hudStructPtr[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
 				}
 
 				// If you are not in Time Trial or Relic Race
-				if ((gameMode1 & (TIME_TRIAL | RELIC_RACE)) == 0)
+				if ((raceMode1 & (TIME_TRIAL | RELIC_RACE)) == 0)
 				{
 					UI_DrawNumWumpa(hudStructPtr[UI_HUD_SLOT_WUMPA_COUNT].x, hudStructPtr[UI_HUD_SLOT_WUMPA_COUNT].y, playerStruct);
 				}
 			}
 
 			// If you're in a Relic Race
-			if ((gameMode1 & RELIC_RACE) != 0)
+			if ((raceMode1 & RELIC_RACE) != 0)
 			{
 				UI_DrawNumTimebox(hudStructPtr[UI_HUD_SLOT_TIMEBOX].x, hudStructPtr[UI_HUD_SLOT_TIMEBOX].y, playerStruct);
 			}
 
 			// If game is not paused
-			if ((gameMode1 & PAUSE_ALL) == 0)
+			if ((raceMode1 & PAUSE_ALL) == 0)
 			{
 				if (playerStruct->PickupWumpaHUD.numCollected != 0)
 				{
@@ -229,7 +237,7 @@ void UI_RenderFrame_Racing()
 						if (LOAD_IsOpen_RacingOrBattle() &&
 
 						    // If you're not in Adventure Arena
-						    ((gameMode1 & ADVENTURE_ARENA) == 0))
+						    ((raceMode1 & ADVENTURE_ARENA) == 0))
 						{
 							RB_Player_ModifyWumpa(playerStruct, 1);
 						}
@@ -279,32 +287,34 @@ void UI_RenderFrame_Racing()
 				if (playerStruct->PickupLetterHUD.cooldown != 0)
 				{
 					struct Instance *curr;
-					letterCtrPos.x = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].x;
-					letterCtrPos.y = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].y;
 
+					// Retail makes the letter visible and places it in each branch of its own.
 					// C-Letter
 					if (playerStruct->PickupLetterHUD.modelID == STATIC_C)
 					{
 						curr = sdata->ptrHudC;
+						curr->flags &= ~HIDE_MODEL;
+						letterCtrPos.x = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].x;
+						letterCtrPos.y = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].y;
 					}
 
 					// T-letter
 					else if (playerStruct->PickupLetterHUD.modelID == STATIC_T)
 					{
-						letterCtrPos.x += 0x1d;
-						letterCtrPos.y -= 1;
 						curr = sdata->ptrHudT;
+						curr->flags &= ~HIDE_MODEL;
+						letterCtrPos.x = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].x + 0x1d;
+						letterCtrPos.y = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].y - 1;
 					}
 
 					// R-Letter
 					else
 					{
-						letterCtrPos.x += 0x3a;
 						curr = sdata->ptrHudR;
+						curr->flags &= ~HIDE_MODEL;
+						letterCtrPos.x = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].x + 0x3a;
+						letterCtrPos.y = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].y;
 					}
-
-					// make visible
-					curr->flags &= ~HIDE_MODEL;
 
 					// reduce frame counter
 					playerStruct->PickupLetterHUD.cooldown--;
@@ -322,7 +332,7 @@ void UI_RenderFrame_Racing()
 			}
 
 			// If you're not in a Relic Race
-			if ((gameMode1 & RELIC_RACE) == 0)
+			if ((raceMode1 & RELIC_RACE) == 0)
 			{
 				if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
 				{
@@ -365,7 +375,7 @@ void UI_RenderFrame_Racing()
 
 			// if you're in battle mode, while not paused
 			// and you do not have a life limit
-			if ((gameMode1 & (LIFE_LIMIT | BATTLE_MODE | PAUSE_ALL)) == BATTLE_MODE)
+			if ((raceMode1 & (LIFE_LIMIT | BATTLE_MODE | PAUSE_ALL)) == BATTLE_MODE)
 			{
 				// If the animation for adding points is over
 				if (playerStruct->BattleHUD.cooldown == 0)
@@ -382,7 +392,7 @@ void UI_RenderFrame_Racing()
 
 					partTimeVariable1 = playerStruct->BattleHUD.scoreDelta;
 
-					if ((gameMode1 & LIFE_LIMIT) == 0)
+					if ((raceMode1 & LIFE_LIMIT) == 0)
 					{
 						if (partTimeVariable1 < 1)
 						{
@@ -417,7 +427,7 @@ void UI_RenderFrame_Racing()
 				}
 			}
 
-			if ((gameMode1 & BATTLE_MODE) == 0)
+			if ((raceMode1 & BATTLE_MODE) == 0)
 			{
 				if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
 				{
@@ -431,12 +441,12 @@ void UI_RenderFrame_Racing()
 				UI_DrawBattleScores((int)hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].x, (int)hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].y, playerStruct);
 			}
 
-			if (((gameMode1 & (ARCADE_MODE | ADVENTURE_MODE)) != 0) && ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0))
+			if (((raceMode1 & (ARCADE_MODE | ADVENTURE_MODE)) != 0) && ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0))
 			{
 				AA_EndEvent_DisplayTime((u32)playerStruct->driverID, 0);
 			}
 
-			partTimeVariable5 = gameMode1;
+			partTimeVariable5 = raceMode1;
 
 			// If you are in Relic Race, and not in battle mode, and not in time trial
 			if ((partTimeVariable5 & 0x4020020) == 0)
@@ -520,7 +530,7 @@ void UI_RenderFrame_Racing()
 			UI_TrackerSelf(playerStruct);
 
 			// If you're in Battle
-			if ((gameMode1 & BATTLE_MODE) != 0)
+			if ((raceMode1 & BATTLE_MODE) != 0)
 			{
 				// Draw arrows over the heads of other players (not AIs)
 				UI_BattleDrawHeadArrows(playerStruct);
@@ -687,14 +697,14 @@ void UI_RenderFrame_Racing()
 					sprintf((char *)&string[0], &sdata->s_999[0]);
 				}
 
-				i = DecalFont_GetLineWidth(sdata->lngStrings[LNG_TURBOS], 1);
+				i = DecalFont_GetLineWidth(GAME_LANGUAGE_STRINGS[LNG_TURBOS], 1);
 
 				// Draw the string
 				DecalFont_DrawLine((char *)&string[0], (int)(((u32)turboCountPos.x - i) * 0x10000) >> 0x10, (int)turboCountPos.y, FONT_BIG,
 				                   (JUSTIFY_RIGHT | ORANGE_RED));
 
 
-				sprintf((char *)&string[0], &sdata->s_str[0], sdata->lngStrings[LNG_TURBOS]);
+				sprintf((char *)&string[0], &sdata->s_str[0], GAME_LANGUAGE_STRINGS[LNG_TURBOS]);
 
 				// Draw the string
 				DecalFont_DrawLine((char *)&string[0], (int)(s16)turboCountPos.x, (int)turboCountPos.y, FONT_BIG, (JUSTIFY_RIGHT | ORANGE));
@@ -739,7 +749,7 @@ void UI_RenderFrame_Racing()
 	else
 	{
 		// if you have a time limit (battle)
-		if ((gameMode1 & TIME_LIMIT) != 0)
+		if ((raceMode1 & TIME_LIMIT) != 0)
 		{
 			// draw countdown clock
 			UI_DrawLimitClock(0xd7, 0x68, 2);
@@ -751,7 +761,7 @@ void UI_RenderFrame_Racing()
 		if (((numPlyr == 1)
 
 		     // if want to draw map, not speedometer
-		     && (sdata->HudAndDebugFlags & 8) == 0) ||
+		     && (GAME_SDATA_NAME(HudAndDebugFlags) & 8) == 0) ||
 
 		    (numPlyr == 3))
 		{
@@ -806,7 +816,7 @@ void UI_RenderFrame_Racing()
 			playerStruct = gGT->drivers[i];
 			pb = &gGT->pushBuffer[playerStruct->driverID];
 
-			if ((((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((gameMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
+			if ((((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((raceMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
 			    ((
 			        // cooldown is finished
 			        gGT->timerEndOfRaceVS == 0 ||
@@ -824,15 +834,15 @@ void UI_RenderFrame_Racing()
 
 				    // If you're not in Battle Mode
 				    // (winner of battle wont use this function)
-				    ((gameMode1 & BATTLE_MODE) == 0))
+				    ((raceMode1 & BATTLE_MODE) == 0))
 				{
-					pbVar6 = sdata->lngStrings[LNG_FINISHED];
+					pbVar6 = GAME_LANGUAGE_STRINGS[LNG_FINISHED];
 				}
 
 				// If you came in last place, or you're in battle
 				else
 				{
-					pbVar6 = sdata->lngStrings[LNG_LOSER];
+					pbVar6 = GAME_LANGUAGE_STRINGS[LNG_LOSER];
 				}
 
 				DecalFont_DrawLine(pbVar6,
@@ -842,10 +852,10 @@ void UI_RenderFrame_Racing()
 
 				if (
 				    // If you press Cross or Start
-				    ((sdata->gGamepads->gamepad[i].buttonsTapped & 0x1010) != 0) &&
+				    ((GAMEPADS->gamepad[i].buttonsTapped & 0x1010) != 0) &&
 
 				    // If you're in End-Of-Race menu
-				    ((gameMode1 & END_OF_RACE) != 0))
+				    ((raceMode1 & END_OF_RACE) != 0))
 				{
 					// make "Finished" and "Loser" disappear, start
 					// drawing the on-screen comments
@@ -867,13 +877,13 @@ void UI_RenderFrame_Racing()
 	}
 	if ((
 	        // If game is not paused
-	        ((gameMode1 & PAUSE_ALL) == 0) &&
+	        ((raceMode1 & PAUSE_ALL) == 0) &&
 
 	        // item roll is done
 	        (!bVar3)) &&
 
 	    // If you're drawing Weapon Roulette (randomizing)
-	    ((gameMode1 & ROLLING_ITEM) != 0))
+	    ((raceMode1 & ROLLING_ITEM) != 0))
 	{
 		// stop weapon shuffle sound
 		OtherFX_Stop2(0x5d);
@@ -881,6 +891,10 @@ void UI_RenderFrame_Racing()
 		// disable the randomizing effect in the HUD
 		gGT->gameMode1 &= ~ROLLING_ITEM;
 	}
+#ifndef CTR_NATIVE
+#undef gGT
+#undef raceMode1
+#endif
 }
 
 void UI_RenderFrame_AdvHub(void)
