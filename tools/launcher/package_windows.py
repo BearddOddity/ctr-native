@@ -5,7 +5,7 @@
 
 The folder it writes:
 
-    CTR Launcher.exe     the launcher (book-style window)
+    CTR Launcher.exe     the launcher (launcher/: Tauri, Bun and Rust; its menus look like the game's)
     source/              the game's source (what Play recompiles)
     tools/llvm-mingw/    the compiler (clang for 32-bit Windows, with its own headers and libraries)
     tools/cmake/         CMake
@@ -19,9 +19,12 @@ bundled tools and starts it. No game data is ever put in the package.
 The tools are downloaded once into --cache and checked against
 tools/launcher/toolchain.lock.json (sha256). A tool with no entry there yet has its
 hash written in on first download (commit the file afterwards); a mismatch stops.
-Run it on Windows (the launcher is compiled with the downloaded llvm-mingw) or on
-Linux with a MinGW cross compiler on PATH (i686-w64-mingw32-gcc), or pass a
-launcher built some other way with --launcher-exe.
+The launcher is built from launcher/ with Bun and Cargo (`bun install`, then
+`tauri build`): run it on Windows with both on PATH, or pass a launcher built some
+other way with --launcher-exe. Off Windows it cross-builds for x86_64-pc-windows-gnu
+(rustup target add x86_64-pc-windows-gnu, and mingw-w64), which also needs
+WebView2Loader.dll beside the exe; it is copied in. The window is Microsoft Edge
+WebView2, which Windows 10 and 11 already have.
 """
 
 from __future__ import annotations
@@ -45,7 +48,7 @@ LLVM_MINGW = "20241217"
 CMAKE = "3.31.6"
 NINJA = "1.12.1"
 
-# What Play compiles: the game, its platform layer, SDL, and the launcher's own source.
+# What Play compiles: the game, its platform layer and SDL (the launcher is built here, not by Play).
 SOURCE_PATHS = [
     "CMakeLists.txt",
     "main.c",
@@ -55,7 +58,6 @@ SOURCE_PATHS = [
     "game/",
     "include/",
     "platform/",
-    "launcher/",
     "externals/SDL/",
 ]
 
@@ -167,29 +169,34 @@ def copy_source(out: Path) -> int:
     return count
 
 
-def build_launcher(out: Path, tools: Path, given: str | None) -> Path:
+def build_launcher(out: Path, given: str | None) -> Path:
     exe = out / "CTR Launcher.exe"
     if given:
         shutil.copy2(given, exe)
         return exe
     here = ROOT / "launcher"
-    work = ROOT / "build-package" / "launcher"
-    work.mkdir(parents=True, exist_ok=True)
-    if os.name == "nt":
-        bindir = tools / "llvm-mingw" / "bin"
-        cc = bindir / "i686-w64-mingw32-clang.exe"
-        rc = bindir / "i686-w64-mingw32-windres.exe"
-    else:
-        cc = shutil.which("i686-w64-mingw32-gcc") or shutil.which("i686-w64-mingw32-clang")
-        rc = shutil.which("i686-w64-mingw32-windres")
-    if not cc or not rc or not Path(cc).exists():
-        raise SystemExit("no MinGW compiler for the launcher: run on Windows with the tools, install "
-                         "i686-w64-mingw32-gcc, or pass --launcher-exe")
-    res = work / "ctr_launcher_res.o"
-    subprocess.run([str(rc), str(here / "ctr_launcher.rc"), "-O", "coff", "-o", str(res)], cwd=here, check=True)
-    subprocess.run([str(cc), "-std=c17", "-O2", "-Wall", "-Wextra", str(here / "ctr_launcher.c"), str(res),
-                    "-o", str(exe), "-mwindows", "-static", "-lgdi32", "-lcomdlg32", "-lshell32", "-lole32",
-                    "-luuid"], check=True)
+    bun = shutil.which("bun")
+    if not bun or not shutil.which("cargo"):
+        raise SystemExit("the launcher needs Bun (bun.sh) and Rust (rustup.rs) to build, or pass --launcher-exe")
+    cmd = [bun, "x", "tauri", "build", "--no-bundle"]
+    built = here / "src-tauri" / "target" / "release" / "ctr-launcher.exe"
+    if os.name != "nt":
+        target = "x86_64-pc-windows-gnu"
+        cmd += ["--target", target]
+        built = here / "src-tauri" / "target" / target / "release" / "ctr-launcher.exe"
+    subprocess.run([bun, "install", "--frozen-lockfile"], cwd=here, check=True)
+    subprocess.run([bun, "run", "icons"], cwd=here, check=True)
+    subprocess.run(cmd, cwd=here, check=True)
+    if not built.exists():
+        raise SystemExit(f"the launcher build left no {built}")
+    shutil.copy2(built, exe)
+    # A windows-gnu build loads WebView2 through this DLL; an MSVC build has it linked in.
+    loader = built.with_name("WebView2Loader.dll")
+    stale = out / loader.name
+    if loader.exists():
+        shutil.copy2(loader, stale)
+    elif stale.exists():
+        stale.unlink()
     return exe
 
 
@@ -197,19 +204,23 @@ README = """CTR Launcher
 ============
 
 1. Start "CTR Launcher.exe".
-2. Drop the folder with your own Crash Team Racing disc image on the right side
-   (or press Browse). It must be the NTSC-U disc (SCUS-94426) ripped as BIN/CUE
-   (raw 2352-byte sectors).
-3. Press Play.
+2. Drop the folder with your own Crash Team Racing disc image on the window
+   (or pick Choose Disc). It must be the NTSC-U disc (SCUS-94426) ripped as
+   BIN/CUE (raw 2352-byte sectors).
+3. Pick Play.
+
+The menus work like the game's: the arrow keys or a pad's D-pad move, Enter or
+Cross/A picks, Esc or Circle/B goes back, and the mouse points and clicks.
 
 The first Play recompiles the game from source/ with the compiler in tools/
 (a few minutes; the bar shows each step), then starts it. Later Plays only
 rebuild what changed. Rebuild compiles everything again from scratch.
 
-Settings (the blue button at the top right) has three tabs:
+Settings has three tabs (left and right on the top row, or PgUp/PgDn, L1/R1):
   Display   resolution (1280x800 to 2560x1440), fullscreen, widescreen, VSync,
             pixel-perfect scaling
-  Graphics  upscaling (sharp pixels, smooth or AMD FSR 1 with its sharpness),
+  Graphics  internal resolution (1x, the PlayStation's own, to 8x),
+            upscaling (sharp pixels, smooth or AMD FSR 1 with its sharpness),
             anti-aliasing (FXAA), CRT effect (scanlines or a curved CRT),
             brightness, texture filtering
   Controls  keyboard, controller, Xbox pads, PlayStation pads, vibration
@@ -219,8 +230,12 @@ press Play.
 Your disc file is never changed: it is linked (or, on another drive, copied)
 into assets\\ctr-u.bin. Logs are in logs\\. Nothing here needs installing.
 
-Cover: click the cover or "Add cover art" (or drop a picture on the window) to
+Cover: click the cover or "Add cover" (or drop a picture on the window) to
 use your own art. None is included.
+
+The window is drawn by Microsoft Edge WebView2, which comes with Windows 10
+and 11. On an older or stripped-down Windows, install the WebView2 Runtime from
+Microsoft first.
 
 Included tools and their licenses: tools\\llvm-mingw (Apache-2.0 with LLVM
 exception, mingw-w64 headers and libraries), tools\\cmake (BSD-3-Clause),
@@ -263,7 +278,7 @@ def main() -> int:
 
     n = copy_source(out)
     print(f"source: {n} files")
-    exe = build_launcher(out, tools, args.launcher_exe)
+    exe = build_launcher(out, args.launcher_exe)
     print(f"launcher: {exe.name}")
     (out / "README.txt").write_text(README.replace("\n", "\r\n"), encoding="utf-8")
 

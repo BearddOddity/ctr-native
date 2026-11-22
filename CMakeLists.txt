@@ -57,11 +57,10 @@ else()
     set(CTR_NATIVE_BUILD_ID "${CTR_NATIVE_GIT_HASH}-dirty")
 endif()
 # The CTR Launcher package carries the source without .git: BUILD_ID names its commit.
+# (The launcher itself is launcher/, a Tauri app built with Bun and Cargo, not by this file.)
 if(CTR_NATIVE_GIT_HASH STREQUAL "unknown" AND EXISTS "${CMAKE_SOURCE_DIR}/BUILD_ID")
     file(STRINGS "${CMAKE_SOURCE_DIR}/BUILD_ID" CTR_NATIVE_BUILD_ID LIMIT_COUNT 1)
 endif()
-
-option(CTR_NATIVE_BUILD_LAUNCHER "Build the CTR Launcher (Windows only)" ON)
 
 function(ctr_native_add_label_warning_if_supported target warning flag_check)
     set(saved_required_flags "${CMAKE_REQUIRED_FLAGS}")
@@ -203,27 +202,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 endif()
 if(MINGW)
     target_link_options(ctr_native PRIVATE -static)
-endif()
-
-# CTR Launcher: the book-style front end that recompiles and starts the game.
-if(WIN32 AND CTR_NATIVE_BUILD_LAUNCHER)
-    if(CTR_NATIVE_MSVC_FRONTEND)
-        add_executable(ctr_launcher WIN32 launcher/ctr_launcher.c launcher/ctr_launcher.manifest)
-    else()
-        enable_language(RC)
-        add_executable(ctr_launcher WIN32 launcher/ctr_launcher.c launcher/ctr_launcher.rc)
-    endif()
-    set_target_properties(ctr_launcher PROPERTIES
-        C_STANDARD 17
-        C_STANDARD_REQUIRED ON
-        C_EXTENSIONS OFF
-        OUTPUT_NAME "CTR Launcher"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-    )
-    target_link_libraries(ctr_launcher PRIVATE user32 gdi32 comdlg32 shell32 ole32 uuid)
-    if(MINGW)
-        target_link_options(ctr_launcher PRIVATE -static)
-    endif()
 endif()
 
 include(CTest)

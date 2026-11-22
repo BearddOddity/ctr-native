@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTR Launcher</title>
+    <link rel="icon" href="/icon.svg" />
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <linearGradient id="og" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.24" stop-color="#ffc800" />
+          <stop offset="0.84" stop-color="#ff0000" />
+        </linearGradient>
+      </defs>
+    </svg>
+    <canvas id="flag" aria-hidden="true"></canvas>
+    <main id="stage">
+      <section class="box" id="coverBox">
+        <button class="cover" id="cover" title="Choose a cover picture"></button>
+        <div class="coverTitle"><span class="gt" data-text="CRASH TEAM RACING">CRASH TEAM RACING</span></div>
+        <div class="small center" id="coverSub">NATIVE PC &middot; RECOMPILED FROM YOUR OWN DISC</div>
+        <button class="link" id="coverLink"><span class="gt peri" data-text="CHANGE COVER">CHANGE COVER</span></button>
+      </section>
+      <div id="right"></div>
+    </main>
+    <div id="modal" hidden></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
