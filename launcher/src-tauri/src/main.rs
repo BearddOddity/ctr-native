@@ -224,7 +224,7 @@ fn load(paths: Paths, work_area: (i32, i32)) -> Shared {
     };
 
     if cover_path.is_empty() || !Path::new(&cover_path).is_file() {
-        let names = ["cover.png", "cover.jpg", "cover.jpeg", "cover.webp", "cover.bmp"];
+        let names = ["cover.png", "cover.jpg", "cover.jpeg", "cover.webp", "cover.bmp", "cover.gif"];
         cover_path = names
             .iter()
             .flat_map(|n| [paths.data_root.join(n), paths.assets().join(n)])
