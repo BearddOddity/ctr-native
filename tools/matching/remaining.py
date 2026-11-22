@@ -144,7 +144,8 @@ def main() -> int:
                 row["error"] = (function or {}).get("error", "no result")
             else:
                 row.update(exact=function["exact"], matching_words=function["matching_words"],
-                           total_words=function["total_words"], matching_bytes=function["matching_bytes"])
+                           total_words=function["total_words"], matching_bytes=function["matching_bytes"],
+                           diff=function.get("objdump_diff"))
         results.append(row)
 
     if not args.compile_only:
@@ -156,7 +157,8 @@ def main() -> int:
             else:
                 share = 100.0 * row["matching_words"] / row["total_words"] if row["total_words"] else 0.0
                 state = "MATCH" if row["exact"] else f"{share:.1f}%"
-                print(f"{row['name']:<26} {row['matching_words']:>6}/{row['total_words']:<7}  {state}")
+                print(f"{row['name']:<26} {row['matching_words']:>6}/{row['total_words']:<7}  {state}"
+                      + (f"  (asm side by side: {row['diff']})" if row.get("diff") and not row["exact"] else ""))
     if args.json:
         Path(args.json).write_text(json.dumps(results, indent=2) + "\n")
     return 0 if args.compile_only or all(row.get("exact") for row in results) else 1
