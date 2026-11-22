@@ -9,10 +9,12 @@ The folder it writes:
     source/              the game's source (what Play recompiles), with its build recipe
     compiler/            the compiler made for this port: clang, lld and llvm-ar from llvm-mingw, with only
                          the headers and libraries the game's build reads (tools/launcher/recipe.py)
+    webview2/            Microsoft's Edge WebView2 runtime (its Fixed Version, x64), which draws the window on a
+                         PC whose Windows has none (--webview2; Windows' own copy is used when there is one)
     cover.png            only with --cover: your own picture of the cover, shown until another is picked
     README.txt
 
-The player drops their own CTR disc (NTSC-U .bin/.cue) on the launcher and presses
+The player drops their own CTR disc (NTSC-U .bin/.cue or raw .iso) on the launcher and presses
 Play: it links the disc into assets/, recompiles the game into build/ by running
 source/tools/launcher/build-recipe.json with compiler/ (no CMake, no Ninja) and
 starts it. No game data is ever put in the package, and no cover unless you name
@@ -31,8 +33,18 @@ The launcher is built from launcher/ with Bun and Cargo (`bun install`, then
 `tauri build`): run it on Windows with both on PATH, or pass a launcher built some
 other way with --launcher-exe. Off Windows it cross-builds for x86_64-pc-windows-gnu
 (rustup target add x86_64-pc-windows-gnu, and mingw-w64), which also needs
-WebView2Loader.dll beside the exe; it is copied in. The window is Microsoft Edge
-WebView2, which Windows 10 and 11 already have.
+WebView2Loader.dll beside the exe; it is copied in.
+
+The window is Microsoft Edge WebView2. Windows 11 has it and so do most Windows 10
+PCs, but not all (LTSC, PCs kept offline), so the package carries Microsoft's
+Fixed Version runtime: download it from the WebView2 page (Fixed Version, x64)
+and pass the .cab with --webview2 (or a link to it, fetched and pinned in the lock
+like llvm-mingw, or the folder it unpacks to). A package made once keeps its
+webview2/ for later runs. --no-webview2 makes one that needs WebView2 on the PC.
+
+Last, every program in the package (the launcher, compiler/, and the game it just
+built) is read for the DLLs it loads: one that is neither Windows' own nor in the
+package stops the packaging, so nothing but the player's disc is ever needed.
 """
 
 from __future__ import annotations
@@ -72,6 +84,27 @@ SOURCE_PATHS = [
     "platform/",
     "externals/SDL/",
 ]
+
+# Microsoft's Edge WebView2, which draws the window (launcher/src-tauri/src/webview.rs): its Fixed Version runtime.
+WEBVIEW2_PAGE = "https://developer.microsoft.com/microsoft-edge/webview2/ (Fixed Version, x64)"
+
+# DLLs every 64-bit Windows 10 and 11 has. A program in the package may load these, its own neighbours in the package,
+# and Windows' API sets (api-ms-win-*, ext-ms-win-*). Anything else (vcruntime140.dll, msvcp140.dll, a mingw
+# runtime DLL, WebView2Loader.dll left out) would be a dependency the player has to install.
+WINDOWS_DLLS = {
+    "advapi32.dll", "avrt.dll", "bcrypt.dll", "bcryptprimitives.dll", "cfgmgr32.dll", "combase.dll", "comctl32.dll",
+    "comdlg32.dll", "credui.dll", "crypt32.dll", "cryptbase.dll", "d2d1.dll", "d3d11.dll", "d3d12.dll", "d3d9.dll",
+    "d3dcompiler_47.dll", "dbghelp.dll", "dcomp.dll", "dinput8.dll", "dnsapi.dll", "dsound.dll", "dwmapi.dll",
+    "dwrite.dll", "dxgi.dll", "gdi32.dll", "gdiplus.dll", "glu32.dll", "hid.dll", "imagehlp.dll", "imm32.dll",
+    "iphlpapi.dll", "kernel32.dll", "kernelbase.dll", "ksuser.dll", "mf.dll", "mfplat.dll", "mfreadwrite.dll",
+    "mpr.dll", "msimg32.dll", "msvcp_win.dll", "msvcrt.dll", "mswsock.dll", "ncrypt.dll", "netapi32.dll",
+    "normaliz.dll", "ntdll.dll", "ole32.dll", "oleacc.dll", "oleaut32.dll", "opengl32.dll", "powrprof.dll",
+    "propsys.dll", "psapi.dll", "rpcrt4.dll", "secur32.dll", "setupapi.dll", "shcore.dll", "shell32.dll",
+    "shlwapi.dll", "sspicli.dll", "ucrtbase.dll", "uiautomationcore.dll", "urlmon.dll", "user32.dll", "userenv.dll",
+    "uxtheme.dll", "version.dll", "winhttp.dll", "wininet.dll", "winmm.dll", "winspool.drv", "wintrust.dll",
+    "wldap32.dll", "ws2_32.dll", "wsock32.dll", "wtsapi32.dll", "xinput1_4.dll", "xinput9_1_0.dll",
+    "windowscodecs.dll", "dxcore.dll", "coremessaging.dll", "sechost.dll", "winusb.dll", "wevtapi.dll", "pdh.dll",
+}
 
 # Made by playing from the folder (the player's disc, builds, logs, settings): never packaged.
 RUN_ONLY = ["assets", "build", "logs", "memcards", "ctr_native.ini", "launcher.ini"]
@@ -231,6 +264,111 @@ def copy_source(out: Path) -> int:
     return count
 
 
+def unpack_cab(cab: Path, dest: Path) -> None:
+    """A .cab, unpacked once: with Windows' own expand.exe (as Microsoft's WebView2 steps say), else cabextract."""
+    done = dest / ".unpacked"
+    if done.exists():
+        return
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True)
+    print(f"unpacking {cab.name}")
+    if os.name == "nt":
+        cmd = ["expand", str(cab), "-F:*", str(dest)]
+    elif shutil.which("cabextract"):
+        cmd = ["cabextract", "-q", "-d", str(dest), str(cab)]
+    else:
+        raise SystemExit("--webview2: a .cab needs cabextract off Windows (or pass the folder it unpacks to)")
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
+    done.write_text(cab.name + "\n", encoding="utf-8")
+
+
+def runtime_folder(root: Path) -> Path | None:
+    """The folder holding msedgewebview2.exe: `root` itself or the one folder in it that does (as launcher's
+    webview.rs looks)."""
+    if (root / "msedgewebview2.exe").is_file():
+        return root
+    dirs = [d for d in root.iterdir() if d.is_dir()] if root.is_dir() else []
+    return dirs[0] if len(dirs) == 1 and (dirs[0] / "msedgewebview2.exe").is_file() else None
+
+
+def place_webview2(out: Path, given: str | None, cache: Path, offline: bool) -> str | None:
+    """webview2/: Microsoft's WebView2 Fixed Version runtime from --webview2 (a .cab, its link, a .zip of it or the
+    folder it unpacks to), or the one an earlier run put there. Returns the version, or None with --no-webview2."""
+    dest = out / "webview2"
+    if not given:
+        if runtime_folder(dest) == dest:
+            return (dest / ".version").read_text(encoding="utf-8").strip() if (dest / ".version").exists() else "?"
+        raise SystemExit(
+            "The package needs Microsoft's WebView2 runtime for PCs without one (some Windows 10 PCs). Download it "
+            f"from {WEBVIEW2_PAGE} and pass the .cab with --webview2, or --no-webview2 for a package that needs "
+            "WebView2 on the player's PC.")
+    if given.startswith("https://"):
+        lock = load_lock()
+        try:
+            source = fetch(given, cache, lock, offline)
+        finally:
+            LOCK.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    else:
+        source = Path(given)
+        if not source.exists():
+            raise SystemExit(f"--webview2: no such file or folder: {source}")
+    if source.is_dir():
+        unpacked = source
+    elif source.suffix.lower() == ".cab":
+        unpacked = cache / "webview2" / source.stem
+        unpack_cab(source, unpacked)
+    elif source.suffix.lower() == ".zip":
+        unpacked = cache / "webview2" / source.stem
+        if not (unpacked / ".unpacked").exists():
+            shutil.rmtree(unpacked, ignore_errors=True)
+            with zipfile.ZipFile(source) as z:
+                z.extractall(unpacked)
+            (unpacked / ".unpacked").write_text(source.name + "\n", encoding="utf-8")
+    else:
+        raise SystemExit("--webview2: give the Fixed Version .cab, a .zip of it, or the folder it unpacks to")
+    folder = runtime_folder(unpacked)
+    if folder is None:
+        raise SystemExit(f"--webview2: no msedgewebview2.exe in {unpacked}: is it the WebView2 Fixed Version runtime?")
+    machine = recipe.pe_machine(folder / "msedgewebview2.exe")
+    if machine != 0x8664:
+        raise SystemExit(f"--webview2: that runtime is for machine {machine:#x}; the launcher is 64-bit x86: use the "
+                         "x64 Fixed Version")
+    version = folder.name.removeprefix("Microsoft.WebView2.FixedVersionRuntime.").removesuffix(".x64")
+    if dest.exists():
+        shutil.rmtree(dest)
+    shutil.copytree(folder, dest, ignore=shutil.ignore_patterns(".unpacked"))
+    (dest / ".version").write_text(version + "\n", encoding="utf-8")
+    return version
+
+
+def foreign_dlls(program: Path, beside: set[str]) -> list[str]:
+    """The DLLs a program loads that are neither Windows' own nor among `beside` (the package's, lower case)."""
+    out = []
+    for dll in recipe.pe_imports(program):
+        low = dll.lower()
+        if low in WINDOWS_DLLS or low in beside or low.startswith(("api-ms-win-", "ext-ms-win-")):
+            continue
+        out.append(dll)
+    return out
+
+
+def audit(out: Path, game: Path | None) -> list[str]:
+    """Every program a player runs from the package, and the game it builds: what each loads from outside."""
+    programs = [out / "CTR Launcher.exe"] + sorted((out / "compiler").rglob("*.exe")) + \
+        sorted((out / "compiler").rglob("*.dll"))
+    if game is not None and game.is_file():
+        programs.append(game)
+    problems = []
+    for prog in programs:
+        if not prog.is_file():
+            continue
+        beside = {p.name.lower() for p in prog.parent.iterdir() if p.suffix.lower() == ".dll"}
+        for dll in foreign_dlls(prog, beside):
+            problems.append(f"{prog.name} loads {dll}, which Windows doesn't have and the package doesn't carry")
+    return problems
+
+
 def build_launcher(out: Path, given: str | None) -> Path:
     exe = out / "CTR Launcher.exe"
     if given:
@@ -266,9 +404,11 @@ README = """CTR Launcher
 ============
 
 1. Start "CTR Launcher.exe".
-2. Drop the folder with your own Crash Team Racing disc image on the window
-   (or pick Choose Disc). It must be the NTSC-U disc (SCUS-94426) ripped as
-   BIN/CUE (raw 2352-byte sectors).
+2. Drop your own Crash Team Racing disc image on the window: the .bin, its
+   .cue, an .iso or the folder holding it (or pick Choose Disc). It must be the
+   NTSC-U disc (SCUS-94426) copied with raw 2352-byte sectors, as BIN/CUE or
+   an .iso of that kind. A cooked .iso (2048-byte sectors) lacks the music,
+   voice and video sectors, and the launcher says so.
 3. Pick Play.
 
 The menus work like the game's: the arrow keys or a pad's D-pad move, Enter or
@@ -291,13 +431,11 @@ They are saved in ctr_native.ini as you change them and used the next time you
 press Play.
 
 Your disc file is never changed: it is linked (or, on another drive, copied)
-into assets\\ctr-u.bin. Logs are in logs\\. Nothing here needs installing.
+into assets\\ctr-u.bin. Logs are in logs\\.
 
 {cover}
 
-The window is drawn by Microsoft Edge WebView2, which comes with Windows 10
-and 11. On an older or stripped-down Windows, install the WebView2 Runtime from
-Microsoft first.
+{webview2}
 
 compiler\\ is cut from llvm-mingw: clang, lld and llvm-ar (Apache-2.0 with LLVM
 exception, see compiler\\LICENSE.TXT) with only the mingw-w64 headers and
@@ -306,6 +444,18 @@ source\\THIRD_PARTY_NOTICES.md. Crash Team Racing is a trademark of Sony
 Interactive Entertainment; no game data is included.
 """
 
+
+WEBVIEW2_GIVEN = """Nothing here needs installing: all it needs is 64-bit Windows 10 or 11 and your
+own disc. The window is drawn by Microsoft Edge WebView2. Windows 11 and most
+Windows 10 PCs have it; for the rest, webview2\\ holds Microsoft's own copy (the
+WebView2 Fixed Version runtime {version}), which the launcher uses when Windows has
+none. To use it always, put this in launcher.ini:
+  [window]
+  webview2 = bundled"""
+
+WEBVIEW2_NONE = """The window is drawn by Microsoft Edge WebView2, which Windows 11 and most
+Windows 10 PCs have. This package doesn't carry its own copy: on a PC without
+it, install the WebView2 Runtime from Microsoft first."""
 
 COVER_NAMES = ["cover.png", "cover.jpg", "cover.jpeg", "cover.webp", "cover.bmp", "cover.gif"]
 
@@ -358,6 +508,9 @@ def main() -> int:
     ap.add_argument("--llvm-mingw", default=LLVM_MINGW, help="llvm-mingw release tag")
     ap.add_argument("--launcher-exe", help="use this launcher build instead of compiling one")
     ap.add_argument("--cover", help="your own picture of the game's cover, put in the package as cover.png (never in git)")
+    ap.add_argument("--webview2", help="Microsoft's WebView2 Fixed Version runtime (x64): its .cab, a link to it, a "
+                    ".zip of it or the folder it unpacks to; put in the package as webview2/")
+    ap.add_argument("--no-webview2", action="store_true", help="no webview2/: the package then needs WebView2 on the PC")
     ap.add_argument("--no-compiler", action="store_true", help="leave compiler/ out (for testing the layout)")
     ap.add_argument("--offline", action="store_true", help="only use downloads already in --cache")
     ap.add_argument("--zip", action="store_true", help="also write <out>.zip")
@@ -368,16 +521,30 @@ def main() -> int:
     if (out / "tools").exists():
         shutil.rmtree(out / "tools")  # an older package's llvm-mingw, CMake and Ninja
 
+    cache, work = Path(args.cache), Path(args.cache).parent / "work"
+    if args.no_webview2:
+        shutil.rmtree(out / "webview2", ignore_errors=True)
+        webview2 = None
+    else:
+        webview2 = place_webview2(out, args.webview2, cache, args.offline)  # first: it may stop before the builds
+    print(f"webview2: {'Fixed Version ' + webview2 if webview2 else 'none (the PC must have WebView2)'}")
     n = copy_source(out)
     print(f"source: {n} files")
     if not args.no_compiler:
-        make_compiler(out, Path(args.cache), Path(args.cache).parent / "work", args.llvm_mingw, args.offline)
+        make_compiler(out, cache, work, args.llvm_mingw, args.offline)
     exe = build_launcher(out, args.launcher_exe)
     print(f"launcher: {exe.name}")
     cover = place_cover(out, args.cover)
     print(f"cover: {cover.name if cover else 'none'}")
     note = COVER_GIVEN.format(name=cover.name) if cover else COVER_NONE
-    (out / "README.txt").write_text(README.format(cover=note).replace("\n", "\r\n"), encoding="utf-8")
+    web = WEBVIEW2_GIVEN.format(version=webview2) if webview2 else WEBVIEW2_NONE
+    (out / "README.txt").write_text(README.format(cover=note, webview2=web).replace("\n", "\r\n"), encoding="utf-8")
+
+    problems = audit(out, None if args.no_compiler else work / "verify" / "ctr_native.exe")
+    if problems:
+        raise SystemExit("the package would need more than the player's disc:\n  " + "\n  ".join(problems))
+    print("needs: nothing but 64-bit Windows 10 or 11 and the player's disc" if webview2 else
+          "needs: 64-bit Windows 10 or 11 with WebView2, and the player's disc")
 
     if args.zip:
         archive = out.with_suffix(".zip")
@@ -385,7 +552,7 @@ def main() -> int:
             for path in sorted(out.rglob("*")):
                 rel = path.relative_to(out)
                 # A folder someone played from holds their disc and builds: never ship those.
-                if path.is_dir() or rel.parts[0] in RUN_ONLY:
+                if path.is_dir() or rel.parts[0] in RUN_ONLY or path.name == ".ctr-launcher-acl":
                     continue
                 z.write(path, Path(out.name) / rel)
         print(f"zip: {archive}")

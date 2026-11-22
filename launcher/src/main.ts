@@ -172,8 +172,8 @@ function update() {
     $("discBox").classList.toggle("off", v.busy);
     if (d.state === 0) {
       body.innerHTML = `<div class="line">${gt("DROP YOUR CTR DISC HERE")}</div>
-        <div class="small">The folder with your .bin/.cue, or the .bin itself. Or click here to pick it.</div>
-        <div class="small faint">CTR Native plays the NTSC-U disc, SCUS-94426, ripped as BIN/CUE.</div>`;
+        <div class="small">The folder with your .bin/.cue or .iso, or the file itself. Or click here to pick it.</div>
+        <div class="small faint">CTR Native plays the NTSC-U disc, SCUS-94426, copied with raw 2352-byte sectors.</div>`;
     } else {
       const cls = d.state === 1 ? "green" : d.state === 3 ? "red" : "";
       body.innerHTML = `<div class="line">${gt(d.title.toUpperCase(), cls)}</div>

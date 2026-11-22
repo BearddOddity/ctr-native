@@ -471,24 +471,41 @@ def measure(recipe: dict, toolchain: Path, build: Path, repro: Path) -> list[str
 # --------------------------------------------------------------------------------------------- compiler
 
 
-def pe_imports(path: Path) -> list[str]:
-    """The DLL names a Windows program imports (its import directory)."""
-    data = path.read_bytes()
-    if data[:2] != b"MZ":
-        return []
+def pe_headers(data: bytes):
+    """A PE image's (machine, image base, data directories offset, sections) or None."""
+    if data[:2] != b"MZ" or len(data) < 0x40:
+        return None
     pe = struct.unpack_from("<I", data, 0x3C)[0]
     if data[pe:pe + 4] != b"PE\0\0":
-        return []
-    nsec, optsize = struct.unpack_from("<H", data, pe + 6)[0], struct.unpack_from("<H", data, pe + 20)[0]
+        return None
+    machine, nsec = struct.unpack_from("<HH", data, pe + 4)
+    optsize = struct.unpack_from("<H", data, pe + 20)[0]
     opt = pe + 24
     magic = struct.unpack_from("<H", data, opt)[0]
+    base = struct.unpack_from("<I", data, opt + 28)[0] if magic == 0x10B else struct.unpack_from("<Q", data, opt + 24)[0]
     dd = opt + (96 if magic == 0x10B else 112)
-    imp_rva = struct.unpack_from("<I", data, dd + 8)[0]
     secs = []
     for i in range(nsec):
         s = opt + optsize + 40 * i
         vsize, va, rsize, raw = struct.unpack_from("<IIII", data, s + 8)
         secs.append((va, max(vsize, rsize), raw))
+    return machine, base, dd, secs
+
+
+def pe_machine(path: Path) -> int | None:
+    """The machine a Windows program is built for: 0x14C x86, 0x8664 x64, 0xAA64 arm64."""
+    with path.open("rb") as f:
+        head = pe_headers(f.read(4096))
+    return head[0] if head else None
+
+
+def pe_imports(path: Path) -> list[str]:
+    """The DLL names a Windows program imports: its import directory, then its delay-load one."""
+    data = path.read_bytes()
+    head = pe_headers(data)
+    if head is None:
+        return []
+    _machine, base, dd, secs = head
 
     def off(rva: int) -> int | None:
         for va, size, raw in secs:
@@ -496,17 +513,34 @@ def pe_imports(path: Path) -> list[str]:
                 return raw + rva - va
         return None
 
+    def name_at(rva: int) -> str | None:
+        o = off(rva)
+        if o is None or o >= len(data):
+            return None
+        end = data.find(b"\0", o)
+        return data[o:end if end >= 0 else len(data)].decode("ascii", "replace")
+
     names = []
+    imp_rva = struct.unpack_from("<I", data, dd + 8)[0]
     at = off(imp_rva) if imp_rva else None
-    while at is not None:
+    while at is not None and at + 20 <= len(data):
         name_rva = struct.unpack_from("<I", data, at + 12)[0]
+        name = name_at(name_rva) if name_rva else None
+        if name is None:
+            break
+        names.append(name)
+        at += 20
+    delay_rva = struct.unpack_from("<I", data, dd + 13 * 8)[0] if dd + 13 * 8 + 4 <= len(data) else 0
+    at = off(delay_rva) if delay_rva else None
+    while at is not None and at + 32 <= len(data):
+        attrs, name_rva = struct.unpack_from("<II", data, at)
         if name_rva == 0:
             break
-        o = off(name_rva)
-        if o is None:
+        name = name_at(name_rva if attrs & 1 else name_rva - base)  # bit 0 clear: an old table of addresses
+        if name is None:
             break
-        names.append(data[o:data.index(b"\0", o)].decode("ascii", "replace"))
-        at += 20
+        names.append(name)
+        at += 32
     return names
 
 

@@ -145,8 +145,11 @@ the game's edge colour and drop shadow, its orange lettering, the pulsing row
 highlight and a waving checkered flag behind them (drawn from `game/RECTMENU.c`
 and the game's colour table; no game art, font or logo). The left side shows a
 cover picture the player picks (none is shipped). The right side takes the
-player's own disc image (drop the `.bin`, its `.cue` or the folder on the
-window, or pick Choose Disc) and has Play, which recompiles the game and starts
+player's own disc image (drop the `.bin`, its `.cue`, an `.iso` or the folder
+on the window, or pick Choose Disc; the launcher judges the file by its sectors,
+not its name: raw 2352-byte sectors play, a cooked 2048-byte `.iso` is refused
+with the reason, since it lacks the music, voice and video sectors) and has
+Play, which recompiles the game and starts
 it with a progress bar per build step. Settings has three tabs: Display,
 Graphics and Controls. Arrows, Enter and Esc, a pad, or the mouse drive it.
 
@@ -190,7 +193,23 @@ It then builds the game again from scratch with only that, so a missing file
 stops the packaging rather than a player's first Play. Each llvm-mingw archive's
 sha256 is pinned in `tools/launcher/toolchain.lock.json`; a mismatch stops.
 Off Windows the packager also takes llvm-mingw for that machine to run the
-builds. `--no-compiler` leaves `compiler/` out; `--launcher-exe` takes a
+builds.
+
+The window is Microsoft Edge WebView2. Windows 11 has it and so do most Windows
+10 PCs, but not all (LTSC, PCs kept offline), so the package carries Microsoft's
+WebView2 Fixed Version runtime in `webview2/`: download it from
+<https://developer.microsoft.com/microsoft-edge/webview2/> (Fixed Version, x64)
+and pass the `.cab` with `--webview2` (a later run keeps it). The launcher uses
+Windows' own copy when there is one (Windows Update keeps it current) and the
+bundled one otherwise, or always with `webview2 = bundled` under `[window]` in
+`launcher.ini`; `logs/launcher.log` says which. If neither is there it says why
+in a Windows message box instead of closing silently. `--no-webview2` makes a
+package that needs WebView2 on the PC. Last, the packager reads every program in
+the package and the game it just built for the DLLs they load, and stops on any
+that is neither Windows' own nor in the package (a Visual C++ runtime, say), so
+the player needs nothing but 64-bit Windows 10 or 11 and their own disc.
+
+`--no-compiler` leaves `compiler/` out; `--launcher-exe` takes a
 launcher built elsewhere. The zip never holds a disc image, a build, saves or
 settings. `--cover my-cover.png` puts your own picture of the cover in the
 package as `cover.png`, which the launcher shows until another is picked. Its

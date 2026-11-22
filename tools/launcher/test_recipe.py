@@ -11,13 +11,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import recipe  # noqa: E402
 
 
-def tiny_pe(dlls: list[str]) -> bytes:
+def tiny_pe(dlls: list[str], machine: int = 0x14C) -> bytes:
     """A PE32 image with one section holding an import directory that names `dlls`."""
     data = bytearray(0x400)
     data[0:2] = b"MZ"
     struct.pack_into("<I", data, 0x3C, 0x40)
     data[0x40:0x44] = b"PE\0\0"
-    struct.pack_into("<HH", data, 0x44, 0x14C, 1)  # machine, one section
+    struct.pack_into("<HH", data, 0x44, machine, 1)  # machine, one section
     struct.pack_into("<H", data, 0x54, 0xE0)  # optional header size
     opt = 0x58
     struct.pack_into("<H", data, opt, 0x10B)

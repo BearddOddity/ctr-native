@@ -106,10 +106,10 @@ function tauriBackend(): Backend {
     pickDisc: async () =>
       picked(
         await open({
-          title: "Your Crash Team Racing disc image (.cue or .bin)",
+          title: "Your Crash Team Racing disc image (.cue, .bin or .iso)",
           multiple: false,
           directory: false,
-          filters: [{ name: "PS1 disc image", extensions: ["cue", "bin", "img"] }],
+          filters: [{ name: "PS1 disc image", extensions: ["cue", "bin", "img", "iso"] }],
         }),
       ),
     pickCover: async () =>

@@ -400,7 +400,7 @@ impl Worker {
         let disc = self.shared.inner.lock().unwrap().disc.clone();
         if !disc.playable() {
             self.status("Add your Crash Team Racing disc first");
-            self.detail("Drop the folder with your .bin/.cue on the window, or choose it in the menu.");
+            self.detail("Drop the folder with your .bin/.cue or .iso on the window, or choose it in the menu.");
             return false;
         }
         let bin = PathBuf::from(&disc.bin);
