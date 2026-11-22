@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Make the CTR Launcher release folder: everything a player needs, nothing to install.
 
-    python tools/launcher/package_windows.py [--out dist/CTR-Launcher] [--zip]
+    python tools/launcher/package_windows.py [--out dist/CTR-Launcher] [--cover my-cover.png] [--zip]
 
 The folder it writes:
 
@@ -10,11 +10,13 @@ The folder it writes:
     tools/llvm-mingw/    the compiler (clang for 32-bit Windows, with its own headers and libraries)
     tools/cmake/         CMake
     tools/ninja/         Ninja
+    cover.png            only with --cover: your own picture of the cover, shown until another is picked
     README.txt
 
 The player drops their own CTR disc (NTSC-U .bin/.cue) on the launcher and presses
 Play: it links the disc into assets/, recompiles the game into build/ with the
-bundled tools and starts it. No game data is ever put in the package.
+bundled tools and starts it. No game data is ever put in the package, and no
+cover unless you name your own with --cover (it is never committed to git).
 
 The tools are downloaded once into --cache and checked against
 tools/launcher/toolchain.lock.json (sha256). A tool with no entry there yet has its
@@ -230,8 +232,7 @@ press Play.
 Your disc file is never changed: it is linked (or, on another drive, copied)
 into assets\\ctr-u.bin. Logs are in logs\\. Nothing here needs installing.
 
-Cover: click the cover or "Add cover" (or drop a picture on the window) to
-use your own art. None is included.
+{cover}
 
 The window is drawn by Microsoft Edge WebView2, which comes with Windows 10
 and 11. On an older or stripped-down Windows, install the WebView2 Runtime from
@@ -245,6 +246,50 @@ Interactive Entertainment; no game data is included.
 """
 
 
+COVER_NAMES = ["cover.png", "cover.jpg", "cover.jpeg", "cover.webp", "cover.bmp", "cover.gif"]
+
+COVER_NONE = """Cover: click the cover or "Add cover" (or drop a picture on the window) to
+use your own art. None is included."""
+
+COVER_GIVEN = """Cover: {name} beside the launcher is the cover it shows, put in by whoever made
+this package. Click the cover or "Change cover" (or drop a picture on the window)
+to use another."""
+
+
+def picture_ext(head: bytes) -> str | None:
+    """A picture's type from its first bytes, as the launcher reads it (launcher/src-tauri/src/cover.rs)."""
+    if head.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png"
+    if head.startswith(b"\xff\xd8\xff"):
+        return ".jpg"
+    if head.startswith((b"GIF87a", b"GIF89a")):
+        return ".gif"
+    if head.startswith(b"BM"):
+        return ".bmp"
+    if len(head) >= 12 and head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return ".webp"
+    return None
+
+
+def place_cover(out: Path, given: str | None) -> Path | None:
+    """--cover: the person's own picture beside the launcher as cover.<type>, which it shows (main.rs `load`)
+    until another is picked. Without --cover, a cover already in the folder is left as it is."""
+    if given:
+        src = Path(given)
+        if not src.is_file():
+            raise SystemExit(f"--cover: no such file: {src}")
+        if src.stat().st_size > 40 << 20:
+            raise SystemExit("--cover: the picture is over 40 MB, which the launcher refuses")
+        with open(src, "rb") as f:
+            ext = picture_ext(f.read(16))
+        if not ext:
+            raise SystemExit("--cover: use a PNG, JPEG, BMP, GIF or WebP picture")
+        for name in COVER_NAMES:
+            (out / name).unlink(missing_ok=True)
+        shutil.copyfile(src, out / f"cover{ext}")
+    return next((out / n for n in COVER_NAMES if (out / n).is_file()), None)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", default=str(ROOT / "dist" / "CTR-Launcher"))
@@ -253,6 +298,7 @@ def main() -> int:
     ap.add_argument("--cmake", default=CMAKE)
     ap.add_argument("--ninja", default=NINJA)
     ap.add_argument("--launcher-exe", help="use this launcher build instead of compiling one")
+    ap.add_argument("--cover", help="your own picture of the game's cover, put in the package as cover.png (never in git)")
     ap.add_argument("--no-tools", action="store_true", help="leave tools/ out (for testing the layout)")
     ap.add_argument("--offline", action="store_true", help="only use downloads already in --cache")
     ap.add_argument("--zip", action="store_true", help="also write <out>.zip")
@@ -280,7 +326,10 @@ def main() -> int:
     print(f"source: {n} files")
     exe = build_launcher(out, args.launcher_exe)
     print(f"launcher: {exe.name}")
-    (out / "README.txt").write_text(README.replace("\n", "\r\n"), encoding="utf-8")
+    cover = place_cover(out, args.cover)
+    print(f"cover: {cover.name if cover else 'none'}")
+    note = COVER_GIVEN.format(name=cover.name) if cover else COVER_NONE
+    (out / "README.txt").write_text(README.format(cover=note).replace("\n", "\r\n"), encoding="utf-8")
 
     if args.zip:
         archive = out.with_suffix(".zip")

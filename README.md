@@ -179,6 +179,10 @@ archive's sha256 in `tools/launcher/toolchain.lock.json` (commit it), and later
 runs refuse an archive that doesn't match. The zip never holds a disc image, a
 build, saves or settings. `--no-tools` leaves the bundled tools out (the
 launcher then looks on PATH); `--launcher-exe` takes a launcher built elsewhere.
+`--cover my-cover.png` puts your own picture of the cover in the package as
+`cover.png`, which the launcher shows until another is picked. Its slot is
+418 x 474 (shown larger on a bigger window: 836 x 948 stays sharp full screen).
+The picture is never committed; keep it out of a package you share.
 
 The disc is never changed: it is hard linked (or, on another drive, copied) to
 `assets/ctr-u.bin`, and a different file already there is renamed `.oldN`.
