@@ -107,6 +107,22 @@ class RecipeTests(unittest.TestCase):
                     self.assertLess(st, s["stage"], f"{s['out']} runs before {out}, which it reads")
         json.dumps(plan)
 
+    def test_the_recipe_names_no_commit(self):
+        # SDL's revision was this repo's `git describe`: every commit put the recipe out of date.
+        text = recipe.RECIPE.read_text(encoding="utf-8")
+        self.assertIn(f'"{recipe.sdl_revision()}"', recipe.load()["generated"][
+            "externals/SDL/include-revision/SDL3/SDL_revision.h"].replace('\\"', '"'))
+        head = recipe.subprocess.run(["git", "rev-parse", "--short=7", "HEAD"], cwd=recipe.ROOT, capture_output=True,
+                                     text=True).stdout.strip()
+        if head:
+            self.assertNotIn(head, text)
+
+    def test_recipe_diff(self):
+        have = recipe.dump({"steps": [1], "generated": {"a.h": "x\ny\n"}})
+        want = recipe.dump({"steps": [1], "generated": {"a.h": "x\nz\n"}})
+        self.assertEqual(recipe.recipe_diff(have, want, 40)[-2:], ["-a.h: y", "+a.h: z"])
+        self.assertEqual(recipe.recipe_diff(have, have, 40), [])
+
 
 if __name__ == "__main__":
     unittest.main()

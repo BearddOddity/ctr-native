@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import difflib
 import hashlib
 import json
 import os
@@ -91,9 +92,18 @@ def cmake() -> str:
     return os.environ.get("CTR_CMAKE") or "cmake"
 
 
+def sdl_revision() -> str:
+    """SDL's revision string, fixed. Left to SDL, it is `git describe` of this repo (externals/SDL is vendored, not a
+    submodule), so every commit would change SDL_revision.h and the recipe with it."""
+    text = (ROOT / "externals/SDL/include/SDL3/SDL_version.h").read_text(encoding="utf-8")
+    parts = [re.search(rf"#define SDL_{k}_VERSION\s+(\d+)", text) for k in ("MAJOR", "MINOR", "MICRO")]
+    version = ".".join(m.group(1) for m in parts) if all(parts) else "3"
+    return f"SDL-{version}-ctr-native"
+
+
 def configure(toolchain: Path, build: Path) -> None:
     bin_dir = toolchain / "bin"
-    cmd = [cmake(), "-S", str(ROOT), "-B", str(build), "-G", "Ninja",
+    cmd = [cmake(), "-S", str(ROOT), "-B", str(build), "-G", "Ninja", f"-DSDL_REVISION={sdl_revision()}",
            f"-DCMAKE_C_COMPILER={(bin_dir / exe(f'{TARGET}-clang')).as_posix()}",
            f"-DCMAKE_CXX_COMPILER={(bin_dir / exe(f'{TARGET}-clang++')).as_posix()}",
            f"-DCMAKE_RC_COMPILER={(bin_dir / exe(f'{TARGET}-windres')).as_posix()}",
@@ -218,6 +228,23 @@ def generate_recipe(toolchain: Path) -> dict:
 
 def dump(recipe: dict) -> str:
     return json.dumps(recipe, indent=1, sort_keys=False) + "\n"
+
+
+def recipe_diff(have: str, want: str, limit: int) -> list[str]:
+    """What changed between two recipe texts, short: a generated file is compared line by line, any line is cut."""
+    def lines(text: str) -> list[str]:
+        try:
+            recipe = json.loads(text) if text else {}
+        except ValueError:
+            return text.splitlines()
+        generated = recipe.pop("generated", {}) if isinstance(recipe, dict) else {}
+        out = dump(recipe).splitlines()
+        for name, body in sorted(generated.items()):
+            out += [f"{name}: {line}" for line in str(body).splitlines()]
+        return out
+    diff = [d if len(d) <= 200 else d[:197] + "..." for d in
+            difflib.unified_diff(lines(have), lines(want), "committed", "from CMakeLists.txt", n=0, lineterm="")]
+    return diff[:limit] + ([f"... {len(diff) - limit} more diff lines"] if len(diff) > limit else [])
 
 
 # --------------------------------------------------------------------------------------------- run
@@ -609,6 +636,8 @@ def main(argv: list[str] | None = None) -> int:
         if want != have:
             print(f"{RECIPE.relative_to(ROOT)} is out of date: run `python tools/launcher/recipe.py generate "
                   f"--toolchain DIR` and commit it")
+            for line in recipe_diff(have, want, 40):
+                print(line)
             return 1
         print(f"{RECIPE.relative_to(ROOT)} is up to date ({len(json.loads(want)['steps'])} steps)")
         return 0
