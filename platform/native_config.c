@@ -34,6 +34,7 @@ void NativeConfig_SetDefaults(struct NativeConfig *config)
 	config->textureFilter = 0;
 	config->brightness = 0;
 	config->integerScale = 0;
+	config->renderScale = 1;
 }
 
 static int NativeConfig_EqualsNoCase(const char *a, const char *b)
@@ -211,6 +212,14 @@ static void NativeConfig_SetKey(struct NativeConfig *config, const char *key, co
 	else if (NativeConfig_EqualsNoCase(key, "integer_scale"))
 	{
 		NativeConfig_ParseBool(value, &config->integerScale);
+	}
+	else if (NativeConfig_EqualsNoCase(key, "render_scale"))
+	{
+		int number;
+		if (NativeConfig_ParseInt(value, &number))
+		{
+			config->renderScale = number;
+		}
 	}
 	// Unknown keys (the launcher's own, newer settings) are left alone.
 }
@@ -403,6 +412,15 @@ void NativeConfig_ApplyArgs(struct NativeConfig *config, int argc, char **argv)
 			NativeConfig_ParseChoice(next, s_crtWords, 3, &config->crt);
 			i++;
 		}
+		else if ((strcmp(arg, "--render-scale") == 0) && (next != NULL))
+		{
+			int number;
+			if (NativeConfig_ParseInt(next, &number))
+			{
+				config->renderScale = number;
+			}
+			i++;
+		}
 	}
 
 	NativeConfig_Clamp(config);
@@ -445,6 +463,10 @@ void NativeConfig_ApplyEnv(struct NativeConfig *config)
 	{
 		NativeConfig_ParseBool(value, &config->controller);
 	}
+	if (((value = getenv("CTR_NATIVE_RENDER_SCALE")) != NULL) && NativeConfig_ParseInt(value, &number))
+	{
+		config->renderScale = number;
+	}
 	NativeConfig_Clamp(config);
 }
 
@@ -473,5 +495,13 @@ void NativeConfig_Clamp(struct NativeConfig *config)
 	if (config->brightness > 2)
 	{
 		config->brightness = 2;
+	}
+	if (config->renderScale < 1)
+	{
+		config->renderScale = 1;
+	}
+	if (config->renderScale > NATIVE_CONFIG_MAX_RENDER_SCALE)
+	{
+		config->renderScale = NATIVE_CONFIG_MAX_RENDER_SCALE;
 	}
 }
