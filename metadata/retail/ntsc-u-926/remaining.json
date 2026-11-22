@@ -1,0 +1,42 @@
+{
+  "about": "The game functions no matching target covers yet. tools/matching/remaining.py builds each from its whole source file with these flags and scores it against the retail exe. When one matches, move it into a real target in matching.json and take it out of here.",
+  "functions": [
+    {
+      "name": "CAM_ThTick",
+      "end_symbol": "CDSYS_Init",
+      "source": "game/CAM.c",
+      "like": "cam-pose"
+    },
+    {
+      "name": "CAM_FollowDriver_Normal",
+      "end_symbol": "CAM_MapRange_PosPoints",
+      "source": "game/CAM.c",
+      "like": "cam-pose"
+    },
+    {
+      "name": "BOTS_ThTick_Drive",
+      "end_symbol": "BOTS_ChangeState",
+      "source": "game/BOTS.c",
+      "like": "bots-support"
+    },
+    {
+      "name": "main",
+      "end_symbol": "MainRaceTrack_StartLoad",
+      "source": "game/MAIN/MainMain.c",
+      "like": "main-race-track",
+      "forced_includes": ["tools/matching/retail_bindings.h"]
+    },
+    {
+      "name": "UI_RenderFrame_Racing",
+      "end_symbol": "UI_RenderFrame_AdvHub",
+      "source": "game/UI/UI_RenderFrame.c",
+      "like": "ui-render-frame-adv-crystal"
+    },
+    {
+      "name": "CAM_SkyboxGlow",
+      "end_symbol": "CAM_ClearScreen",
+      "source": "game/CAM.c",
+      "like": "cam-pose"
+    }
+  ]
+}
