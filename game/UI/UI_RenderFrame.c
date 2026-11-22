@@ -35,14 +35,17 @@ void UI_RenderFrame_Racing()
 	int offset;
 	u32 mapPosX;
 	u32 mapPosY;
-	int numPlyr;
+	int rank;
 #ifdef CTR_NATIVE
 	struct GameTracker *gGT;
 	int raceMode1;
+	int numPlyr;
 #else
-	// Retail keeps neither the game tracker nor its raceMode1 in a register: it reads both again at each use.
+	// Retail keeps none of the game tracker, its gameMode1 or its player count in a register: it reads each again
+	// at each use.
 #define gGT       GAME_TRACKER
 #define raceMode1 (GAME_TRACKER->gameMode1)
+#define numPlyr   (GAME_TRACKER->numPlyrCurrGame)
 #endif
 
 	offset = 0;
@@ -50,41 +53,47 @@ void UI_RenderFrame_Racing()
 #ifdef CTR_NATIVE
 	gGT = GAME_TRACKER;
 	raceMode1 = gGT->gameMode1;
+	numPlyr = gGT->numPlyrCurrGame;
 #endif
 
-	numPlyr = gGT->numPlyrCurrGame;
-
 	// Get pointer to array of HUD structs
-	hudStructPtr = (struct UiElement2D *)data.hudStructPtr[numPlyr - 1];
+	hudStructPtr = (struct UiElement2D *)GAME_HUD_LAYOUTS[numPlyr - 1];
 
 	levPtrMap = 0;
 
-	// adding this here so the compiler doesn't complain
+#ifdef CTR_NATIVE
+	// adding this here so the compiler doesn't complain (retail sets neither here)
 	wumpaModelPos.x = 0;
 	wumpaModelPos.y = 0;
 	turboCountPos.x = 0;
 	turboCountPos.y = 0;
+#endif
 
 	UI_WeaponBG_AnimateShine();
 
 	// if time on clock is zero
 	if (gGT->elapsedEventTime == 0)
 	{
-		for (i = 0; i < 8; i++)
+		// a counter of its own: retail keeps it in a register no call outlives
+		for (rank = 0; rank < 8; rank++)
 		{
-			data.rankIconsTransitionTimer[i] = 0;
+			GAME_DATA_NAME(rankIconsTransitionTimer)[rank] = 0;
 
-			pbVar6 = &sdata->kartSpawnOrderArray[i];
+			pbVar6 = &GAME_SDATA_NAME(kartSpawnOrderArray)[rank];
 
-			data.rankIconsCurr[i] = (u16)*pbVar6;
-			data.rankIconsDesired[i] = (u16)*pbVar6;
+			GAME_DATA_NAME(rankIconsDesired)[rank] = (u16)*pbVar6;
+			GAME_DATA_NAME(rankIconsCurr)[rank] = (u16)*pbVar6;
 		}
 	}
 
 	// If not drawing intro-race cutscene
 	if ((raceMode1 & START_OF_RACE) == 0)
 	{
-		if ((gGT->hudFlags & HUD_FLAG_RENDER_LESS) == 0)
+		if ((gGT->hudFlags & HUD_FLAG_RENDER_LESS) != 0)
+		{
+			gGT->hudFlags &= HUD_FLAG_CLEAR_RENDER_LESS_MASK;
+		}
+		else
 		{
 			// If you press Triangle
 			if ((GAMEPADS->gamepad[0].buttonsTapped & 0x40000) != 0)
@@ -94,10 +103,6 @@ void UI_RenderFrame_Racing()
 				// toggle map and speedometer
 				GAME_SDATA_NAME(HudAndDebugFlags) ^= 8;
 			}
-		}
-		else
-		{
-			gGT->hudFlags &= HUD_FLAG_CLEAR_RENDER_LESS_MASK;
 		}
 	}
 
@@ -894,6 +899,7 @@ void UI_RenderFrame_Racing()
 #ifndef CTR_NATIVE
 #undef gGT
 #undef raceMode1
+#undef numPlyr
 #endif
 }
 
