@@ -165,24 +165,48 @@ bun run build      # src-tauri/target/release/ctr-launcher.exe
 cd src-tauri && cargo test
 ```
 
-Run from a checkout, it builds into `build-launcher/` and keeps its settings
-beside the checkout. Make the self-contained package (the launcher, llvm-mingw,
-CMake and Ninja under `tools/`, this source under `source/`, nothing to install
-for the player):
+Run from a checkout, it builds into `build-launcher/` with CMake and keeps its
+settings beside the checkout. Make the self-contained package (the launcher,
+this source under `source/` and its own compiler under `compiler/`, nothing to
+install for the player):
 
 ```
 python tools/launcher/package_windows.py --zip
 ```
 
-The tool versions are pinned in the script. The first download records each
-archive's sha256 in `tools/launcher/toolchain.lock.json` (commit it), and later
-runs refuse an archive that doesn't match. The zip never holds a disc image, a
-build, saves or settings. `--no-tools` leaves the bundled tools out (the
-launcher then looks on PATH); `--launcher-exe` takes a launcher built elsewhere.
-`--cover my-cover.png` puts your own picture of the cover in the package as
-`cover.png`, which the launcher shows until another is picked. Its slot is
-418 x 474 (shown larger on a bigger window: 836 x 948 stays sharp full screen).
-The picture is never committed; keep it out of a package you share.
+The package carries no CMake and no Ninja. Play runs
+`tools/launcher/build-recipe.json`: every compile, the SDL archive and the link,
+written from `CMakeLists.txt` by `tools/launcher/recipe.py generate` with the
+`{src}`, `{build}` and `{build_id}` of the machine left as placeholders. The
+launcher runs its steps several at once and skips a step whose command and files
+didn't change since it last ran.
+
+`compiler/` is made for this port. The packager builds the packaged source once
+from the recipe with the whole llvm-mingw (the version pinned in the script),
+notes every header and library the build reads, and copies only those, plus
+clang, lld, llvm-ar and the DLLs they load, out of llvm-mingw's Windows release:
+about 160 MB (50 MB zipped) where llvm-mingw, CMake and Ninja were over 700 MB.
+It then builds the game again from scratch with only that, so a missing file
+stops the packaging rather than a player's first Play. Each llvm-mingw archive's
+sha256 is pinned in `tools/launcher/toolchain.lock.json`; a mismatch stops.
+Off Windows the packager also takes llvm-mingw for that machine to run the
+builds. `--no-compiler` leaves `compiler/` out; `--launcher-exe` takes a
+launcher built elsewhere. The zip never holds a disc image, a build, saves or
+settings. `--cover my-cover.png` puts your own picture of the cover in the
+package as `cover.png`, which the launcher shows until another is picked. Its
+slot is 418 x 474 (shown larger on a bigger window: 836 x 948 stays sharp full
+screen). The picture is never committed; keep it out of a package you share.
+
+When a change to `CMakeLists.txt` (or a source added or removed) changes the
+build, write the recipe again and commit it:
+
+```
+python tools/launcher/recipe.py generate --toolchain <llvm-mingw for this machine>
+```
+
+`tools/check.py` compares it with `CMakeLists.txt` when `CTR_LLVM_MINGW` names an
+llvm-mingw (CI does), with the CMake version the recipe was written with
+(`CTR_CMAKE` names another CMake than PATH's).
 
 The disc is never changed: it is hard linked (or, on another drive, copied) to
 `assets/ctr-u.bin`, and a different file already there is renamed `.oldN`.

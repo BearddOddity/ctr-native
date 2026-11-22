@@ -10,6 +10,7 @@ mod cover;
 mod disc;
 mod ini;
 mod paths;
+mod recipe;
 mod settings;
 mod tasks;
 

@@ -1,6 +1,7 @@
-//! Play: put the player's disc where the game reads it, recompile the game from source with the bundled
-//! compiler (llvm-mingw, CMake and Ninja in tools\, so nothing has to be installed), then start it with the
-//! settings in ctr_native.ini. Runs on its own thread and tells the window how it goes.
+//! Play: put the player's disc where the game reads it, recompile the game from source with the compiler made
+//! for this port (compiler\ beside the launcher, run by the build recipe: nothing has to be installed), then
+//! start it with the settings in ctr_native.ini. Runs on its own thread and tells the window how it goes.
+//! A checkout, or an older package with tools\ (llvm-mingw, CMake, Ninja), builds with CMake instead.
 
 use serde::Serialize;
 use std::fs;
@@ -14,6 +15,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::ini::Ini;
 use crate::paths::Mode;
+use crate::recipe::{self, Note, Recipe};
 use crate::Shared;
 
 #[derive(Serialize, Clone, Copy, Debug, PartialEq)]
@@ -188,6 +190,17 @@ pub fn which(name: &str) -> Option<PathBuf> {
 
 fn found(p: PathBuf) -> Option<PathBuf> {
     p.is_file().then_some(p)
+}
+
+/// compiler\bin beside the launcher, when the source has its build recipe and launcher.ini's [build] names no
+/// other tools.
+pub fn own_compiler(exe_dir: &Path, src: &Path, launcher: &Ini) -> Option<PathBuf> {
+    if ["command", "cc", "cmake", "ninja"].iter().any(|k| launcher.get("build", k).is_some_and(|v| !v.trim().is_empty())) {
+        return None;
+    }
+    let bin = exe_dir.join("compiler").join("bin");
+    let clang = bin.join(if cfg!(windows) { "clang.exe" } else { "clang" });
+    (clang.is_file() && src.join("tools").join("launcher").join("build-recipe.json").is_file()).then_some(bin)
 }
 
 pub fn find_tools(exe_dir: &Path, launcher: &Ini) -> Option<Tools> {
@@ -445,6 +458,11 @@ impl Worker {
     fn build_game(&mut self, clean: bool) -> bool {
         let paths = self.shared.paths.clone();
         let launcher = Ini::load(&paths.launcher_ini);
+        if let Some(src) = paths.src_root.clone() {
+            if let Some(bin) = own_compiler(&paths.exe_dir, &src, &launcher) {
+                return self.build_with_recipe(&src, &bin, clean);
+            }
+        }
         let tools = paths.src_root.as_ref().and_then(|_| find_tools(&paths.exe_dir, &launcher));
         let (Some(src), Some(t)) = (paths.src_root.clone(), tools) else {
             if !clean && paths.game_exe().is_some() {
@@ -453,7 +471,7 @@ impl Worker {
             }
             self.status("The compiler bundle is missing");
             self.detail(if paths.src_root.is_some() {
-                "tools\\ (llvm-mingw, CMake, Ninja) should sit next to the launcher. Download the full CTR Launcher package again."
+                "compiler\\ should sit next to the launcher. Download the full CTR Launcher package again."
             } else {
                 "No game source next to the launcher. Download the full CTR Launcher package again."
             });
@@ -551,6 +569,94 @@ impl Worker {
         if rc != 0 {
             self.status("The build failed");
             let why = if self.first_error.is_empty() { "See the log.".to_string() } else { self.first_error.clone() };
+            self.detail(why);
+            return false;
+        }
+        if paths.game_exe().is_none() {
+            self.status("The build finished but ctr_native.exe is missing");
+            self.detail("See the log.");
+            return false;
+        }
+        true
+    }
+
+    /// The package's way: the build recipe with compiler\, several steps at once, skipping what is done.
+    fn build_with_recipe(&mut self, src: &Path, bin: &Path, clean: bool) -> bool {
+        let paths = self.shared.paths.clone();
+        let mut log = Log::create(&paths.build_log);
+        log.line("CTR Launcher build log");
+        log.line(&format!("compiler: {}", bin.display()));
+        self.first_error.clear();
+        let recipe = match Recipe::load(&src.join("tools").join("launcher").join("build-recipe.json")) {
+            Ok(r) => r,
+            Err(e) => {
+                log.line(&e);
+                self.status("The build recipe can't be read");
+                self.detail(e);
+                return false;
+            }
+        };
+
+        // A build folder of another source, compiler or way of building starts afresh.
+        let stamp = format!("{}|{}|recipe", src.display(), bin.display());
+        let launcher = Ini::load(&paths.launcher_ini);
+        if (clean || launcher.get("launcher", "build_stamp").as_deref() != Some(stamp.as_str())) && paths.build_dir.exists() {
+            let ours = paths.build_dir.file_name().is_some_and(|n| n.to_string_lossy().starts_with("build"));
+            if ours {
+                self.status("Clearing the old build");
+                let _ = fs::remove_dir_all(&paths.build_dir);
+            }
+        }
+        let mut ini = Ini::load(&paths.launcher_ini);
+        ini.set("launcher", "build_stamp", &stamp);
+        let _ = ini.save(&paths.launcher_ini);
+
+        self.phase(Phase::Build);
+        self.status("Recompiling the game from source");
+        self.detail("Starting the compiler");
+        let values = recipe::Values::new(src, &paths.build_dir);
+        let jobs = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
+        let shared = self.shared.clone();
+        let for_spawn = self.shared.clone();
+        let spawn = move |c: &mut Command| {
+            no_window(c);
+            let child = c.spawn()?;
+            for_spawn.job.assign(&child);
+            Ok(child)
+        };
+        let result = recipe::run(&recipe, bin, &values, &paths.build_dir, jobs, &shared.cancel, &spawn, &mut |n| match n {
+            Note::Step(done, total, out, linking) => {
+                let name = out.rsplit('/').next().unwrap_or(&out).to_string();
+                let name = name.strip_suffix(".obj").unwrap_or(&name).to_string();
+                log.line(&format!("[{done}/{total}] {out}"));
+                self.step(done, total);
+                self.detail(if linking {
+                    format!("Step {done} of {total} \u{00B7} linking {name}")
+                } else {
+                    format!("Step {done} of {total} \u{00B7} {name}")
+                });
+            }
+            Note::Output(text) => {
+                for line in text.lines() {
+                    log.line(line);
+                    if self.first_error.is_empty() && is_build_error(line) {
+                        self.first_error = line.to_string();
+                    }
+                }
+            }
+        });
+        if let Err(e) = &result {
+            log.line(e);
+        }
+        drop(log);
+        if self.cancelled() {
+            self.status("Stopped");
+            self.detail("The build was cancelled.");
+            return false;
+        }
+        if let Err(e) = result {
+            self.status("The build failed");
+            let why = if self.first_error.is_empty() { e.lines().next().unwrap_or("See the log.").to_string() } else { self.first_error.clone() };
             self.detail(why);
             return false;
         }

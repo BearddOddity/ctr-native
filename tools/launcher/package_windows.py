@@ -6,21 +6,27 @@
 The folder it writes:
 
     CTR Launcher.exe     the launcher (launcher/: Tauri, Bun and Rust; its menus look like the game's)
-    source/              the game's source (what Play recompiles)
-    tools/llvm-mingw/    the compiler (clang for 32-bit Windows, with its own headers and libraries)
-    tools/cmake/         CMake
-    tools/ninja/         Ninja
+    source/              the game's source (what Play recompiles), with its build recipe
+    compiler/            the compiler made for this port: clang, lld and llvm-ar from llvm-mingw, with only
+                         the headers and libraries the game's build reads (tools/launcher/recipe.py)
     cover.png            only with --cover: your own picture of the cover, shown until another is picked
     README.txt
 
 The player drops their own CTR disc (NTSC-U .bin/.cue) on the launcher and presses
-Play: it links the disc into assets/, recompiles the game into build/ with the
-bundled tools and starts it. No game data is ever put in the package, and no
-cover unless you name your own with --cover (it is never committed to git).
+Play: it links the disc into assets/, recompiles the game into build/ by running
+source/tools/launcher/build-recipe.json with compiler/ (no CMake, no Ninja) and
+starts it. No game data is ever put in the package, and no cover unless you name
+your own with --cover (it is never committed to git).
 
-The tools are downloaded once into --cache and checked against
-tools/launcher/toolchain.lock.json (sha256). A tool with no entry there yet has its
-hash written in on first download (commit the file afterwards); a mismatch stops.
+How compiler/ is made: llvm-mingw for Windows, and off Windows one for this machine
+too, are downloaded once into --cache and checked against
+tools/launcher/toolchain.lock.json (sha256; an archive with no entry yet has its
+hash written in on first download: commit the file afterwards; a mismatch stops).
+The packaged source is built from the recipe with the whole llvm-mingw, noting
+every file the build reads; compiler/ gets those files and the programs and DLLs
+that read them. Then the source is built again from scratch with only compiler/
+(off Windows, with the same files cut out of this machine's llvm-mingw): a file it
+lacks stops the packaging.
 The launcher is built from launcher/ with Bun and Cargo (`bun install`, then
 `tauri build`): run it on Windows with both on PATH, or pass a launcher built some
 other way with --launcher-exe. Off Windows it cross-builds for x86_64-pc-windows-gnu
@@ -35,20 +41,23 @@ import argparse
 import hashlib
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
+import tarfile
 import urllib.request
 import zipfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import recipe  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 LOCK = Path(__file__).with_name("toolchain.lock.json")
 
-# Pinned tool releases (override with the flags below).
+# The pinned llvm-mingw release the compiler is cut from (tools/launcher/build-recipe.json is written with it).
 LLVM_MINGW = "20241217"
-CMAKE = "3.31.6"
-NINJA = "1.12.1"
 
 # What Play compiles: the game, its platform layer and SDL (the launcher is built here, not by Play).
 SOURCE_PATHS = [
@@ -57,27 +66,31 @@ SOURCE_PATHS = [
     "LICENSE",
     "THIRD_PARTY_NOTICES.md",
     "README.md",
+    "tools/launcher/build-recipe.json",
     "game/",
     "include/",
     "platform/",
     "externals/SDL/",
 ]
 
-# llvm-mingw ships every target; the game only needs 32-bit x86.
-LLVM_MINGW_DROP = ["aarch64-w64-mingw32", "armv7-w64-mingw32", "x86_64-w64-mingw32", "arm64ec-w64-mingw32"]
-CMAKE_DROP = ["doc", "man"]
-
 # Made by playing from the folder (the player's disc, builds, logs, settings): never packaged.
 RUN_ONLY = ["assets", "build", "logs", "memcards", "ctr_native.ini", "launcher.ini"]
 
 
-def tool_urls(args: argparse.Namespace) -> dict[str, str]:
-    v = args.llvm_mingw
-    return {
-        "llvm-mingw": f"https://github.com/mstorsjo/llvm-mingw/releases/download/{v}/llvm-mingw-{v}-ucrt-x86_64.zip",
-        "cmake": f"https://github.com/Kitware/CMake/releases/download/v{args.cmake}/cmake-{args.cmake}-windows-x86_64.zip",
-        "ninja": f"https://github.com/ninja-build/ninja/releases/download/v{args.ninja}/ninja-win.zip",
-    }
+def tool_urls(version: str) -> dict[str, str]:
+    """llvm-mingw for Windows (what compiler/ is cut from) and, off Windows, one that runs here."""
+    base = f"https://github.com/mstorsjo/llvm-mingw/releases/download/{version}/llvm-mingw-{version}-ucrt"
+    urls = {"windows": f"{base}-x86_64.zip"}
+    if os.name != "nt":
+        if sys.platform == "darwin":
+            urls["host"] = f"{base}-macos-universal.tar.xz"
+        elif platform.machine().lower() in ("x86_64", "amd64"):
+            urls["host"] = f"{base}-ubuntu-20.04-x86_64.tar.xz"
+        elif platform.machine().lower() in ("aarch64", "arm64"):
+            urls["host"] = f"{base}-ubuntu-20.04-aarch64.tar.xz"
+        else:
+            raise SystemExit(f"no llvm-mingw release runs on this {platform.machine()}: package on Windows")
+    return urls
 
 
 def sha256(path: Path) -> str:
@@ -117,25 +130,72 @@ def fetch(url: str, cache: Path, lock: dict[str, str], offline: bool) -> Path:
     return dest
 
 
-def unzip_into(archive: Path, dest: Path, drop: list[str]) -> None:
-    """Extracts a zip whose files sit under one top folder into dest, minus drop."""
-    if dest.exists():
-        shutil.rmtree(dest)
-    dest.mkdir(parents=True)
-    with zipfile.ZipFile(archive) as z:
-        names = [n for n in z.namelist() if not n.endswith("/")]
-        tops = {n.split("/", 1)[0] for n in names}
-        strip = len(tops) == 1 and all("/" in n for n in names)
-        for info in z.infolist():
-            if info.is_dir():
-                continue
-            rel = info.filename.split("/", 1)[1] if strip else info.filename
-            if rel.split("/", 1)[0] in drop:
-                continue
-            out = dest / rel
-            out.parent.mkdir(parents=True, exist_ok=True)
-            with z.open(info) as src, out.open("wb") as f:
-                shutil.copyfileobj(src, f)
+def unpack(archive: Path, dest: Path) -> Path:
+    """A whole llvm-mingw archive, unpacked once next to it; its one top folder."""
+    done = dest / ".unpacked"
+    if not done.exists():
+        if dest.exists():
+            shutil.rmtree(dest)
+        dest.mkdir(parents=True)
+        print(f"unpacking {archive.name}")
+        if archive.suffix == ".zip":
+            with zipfile.ZipFile(archive) as z:
+                z.extractall(dest)
+        else:
+            with tarfile.open(archive) as t:
+                t.extractall(dest, filter="tar") if hasattr(tarfile, "data_filter") else t.extractall(dest)
+        done.write_text(archive.name + "\n", encoding="utf-8")
+    tops = [p for p in dest.iterdir() if p.is_dir()]
+    if len(tops) != 1:
+        raise SystemExit(f"{archive.name} should hold one folder")
+    return tops[0]
+
+
+def make_compiler(out: Path, cache: Path, work: Path, version: str, offline: bool) -> None:
+    """compiler/: llvm-mingw cut down to what this port's build reads, proven by building the game with it."""
+    lock = load_lock()
+    try:
+        archives = {k: fetch(u, cache, lock, offline) for k, u in tool_urls(version).items()}
+    finally:
+        LOCK.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    windows = unpack(archives["windows"], cache / f"llvm-mingw-{version}-windows")
+    host = unpack(archives["host"], cache / f"llvm-mingw-{version}-host") if "host" in archives else windows
+    plan = recipe.load(out / "source" / "tools" / "launcher" / "build-recipe.json")
+    src = out / "source"
+
+    print("measuring: building the game once with the whole llvm-mingw")
+    used_file = work / "used.json"
+    if not recipe.run_recipe(plan, host, src, work / "measure", used=used_file, log=quiet_log(work / "measure.log")):
+        raise SystemExit(f"the game didn't build with the whole llvm-mingw: see {work / 'measure.log'}")
+    used = json.loads(used_file.read_text(encoding="utf-8"))
+    about = recipe.make_compiler(windows, used, out / "compiler", plan, windows=True)
+    print(f"compiler: {about['files']} files, {about['bytes'] / 1e6:.1f} MB")
+
+    print("proving it: building the game from scratch with only those files")
+    shutil.rmtree(work / "verify", ignore_errors=True)
+    proof = out / "compiler" if host == windows else work / "compiler-here"
+    if proof != out / "compiler":
+        recipe.make_compiler(host, used, proof, plan, windows=False)
+    if not recipe.run_recipe(plan, proof, src, work / "verify", log=quiet_log(work / "verify.log")):
+        raise SystemExit(f"the cut compiler is missing something: see {work / 'verify.log'}")
+    print("  the game builds with it")
+
+
+def quiet_log(path: Path):
+    """A recipe run's log in a file, and one line in ten on the screen."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    f = path.open("w", encoding="utf-8")
+    seen = [0]
+
+    def log(line: str) -> None:
+        f.write(line + "\n")
+        f.flush()
+        if line.startswith("["):
+            seen[0] += 1
+            if seen[0] % 50 == 0:
+                print(f"  {line}")
+
+    return log
 
 
 def tracked_files() -> list[str]:
@@ -214,9 +274,10 @@ README = """CTR Launcher
 The menus work like the game's: the arrow keys or a pad's D-pad move, Enter or
 Cross/A picks, Esc or Circle/B goes back, and the mouse points and clicks.
 
-The first Play recompiles the game from source/ with the compiler in tools/
-(a few minutes; the bar shows each step), then starts it. Later Plays only
-rebuild what changed. Rebuild compiles everything again from scratch.
+The first Play recompiles the game from source/ with compiler/, the compiler
+made for this port (a minute or two; the bar shows each step), then starts it.
+Later Plays only rebuild what changed. Rebuild compiles everything again from
+scratch.
 
 Settings has three tabs (left and right on the top row, or PgUp/PgDn, L1/R1):
   Display   resolution (1280x800 to 2560x1440), fullscreen, widescreen, VSync,
@@ -238,9 +299,9 @@ The window is drawn by Microsoft Edge WebView2, which comes with Windows 10
 and 11. On an older or stripped-down Windows, install the WebView2 Runtime from
 Microsoft first.
 
-Included tools and their licenses: tools\\llvm-mingw (Apache-2.0 with LLVM
-exception, mingw-w64 headers and libraries), tools\\cmake (BSD-3-Clause),
-tools\\ninja (Apache-2.0). Game source: see source\\LICENSE and
+compiler\\ is cut from llvm-mingw: clang, lld and llvm-ar (Apache-2.0 with LLVM
+exception, see compiler\\LICENSE.TXT) with only the mingw-w64 headers and
+libraries the game's build reads. Game source: see source\\LICENSE and
 source\\THIRD_PARTY_NOTICES.md. Crash Team Racing is a trademark of Sony
 Interactive Entertainment; no game data is included.
 """
@@ -295,35 +356,22 @@ def main() -> int:
     ap.add_argument("--out", default=str(ROOT / "dist" / "CTR-Launcher"))
     ap.add_argument("--cache", default=str(ROOT / "build-package" / "cache"))
     ap.add_argument("--llvm-mingw", default=LLVM_MINGW, help="llvm-mingw release tag")
-    ap.add_argument("--cmake", default=CMAKE)
-    ap.add_argument("--ninja", default=NINJA)
     ap.add_argument("--launcher-exe", help="use this launcher build instead of compiling one")
     ap.add_argument("--cover", help="your own picture of the game's cover, put in the package as cover.png (never in git)")
-    ap.add_argument("--no-tools", action="store_true", help="leave tools/ out (for testing the layout)")
+    ap.add_argument("--no-compiler", action="store_true", help="leave compiler/ out (for testing the layout)")
     ap.add_argument("--offline", action="store_true", help="only use downloads already in --cache")
     ap.add_argument("--zip", action="store_true", help="also write <out>.zip")
     args = ap.parse_args()
 
     out = Path(args.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    tools = out / "tools"
-
-    if not args.no_tools:
-        lock = load_lock()
-        urls = tool_urls(args)
-        try:
-            archives = {name: fetch(url, Path(args.cache), lock, args.offline) for name, url in urls.items()}
-        finally:
-            LOCK.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        unzip_into(archives["llvm-mingw"], tools / "llvm-mingw", LLVM_MINGW_DROP)
-        unzip_into(archives["cmake"], tools / "cmake", CMAKE_DROP)
-        unzip_into(archives["ninja"], tools / "ninja", [])
-        for need in ["llvm-mingw/bin/i686-w64-mingw32-clang.exe", "cmake/bin/cmake.exe", "ninja/ninja.exe"]:
-            if not (tools / need).exists():
-                raise SystemExit(f"the tools are missing {need}: check the versions")
+    if (out / "tools").exists():
+        shutil.rmtree(out / "tools")  # an older package's llvm-mingw, CMake and Ninja
 
     n = copy_source(out)
     print(f"source: {n} files")
+    if not args.no_compiler:
+        make_compiler(out, Path(args.cache), Path(args.cache).parent / "work", args.llvm_mingw, args.offline)
     exe = build_launcher(out, args.launcher_exe)
     print(f"launcher: {exe.name}")
     cover = place_cover(out, args.cover)
