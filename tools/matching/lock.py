@@ -154,7 +154,7 @@ _SYMBOLS: dict[str, dict[str, int]] = {}
 def retail_symbols(config: dict[str, Any]) -> dict[str, int]:
     """The main executable's symbols, with the target's own symbol file (an overlay's) on top, and the target's
     read-only data (`.rodata`, `.rdata`) at the address its linked block gives it."""
-    files = [str(ctr_match.SYMBOL_FILE.relative_to(ctr_match.ROOT))]
+    files = [ctr_match.SYMBOL_FILE.relative_to(ctr_match.ROOT).as_posix()]
     if config.get("symbol_file") and config["symbol_file"] not in files:
         files.append(config["symbol_file"])
     merged: dict[str, int] = {}

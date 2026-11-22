@@ -730,7 +730,7 @@ def compare_binary_files(
         )
     )
 
-    return {**binary_comparison(expected, actual), "objdump_diff": str(diff_path.relative_to(ROOT))}
+    return {**binary_comparison(expected, actual), "objdump_diff": diff_path.relative_to(ROOT).as_posix()}
 
 
 def binary_comparison(expected: bytes, actual: bytes) -> dict[str, Any]:
@@ -767,7 +767,7 @@ def dependency_inputs(path: Path) -> list[str]:
     inputs: list[str] = []
     for value in values.split():
         dependency = repository_path(value)
-        inputs.append(str(dependency.relative_to(ROOT)))
+        inputs.append(dependency.relative_to(ROOT).as_posix())
     return inputs
 
 
@@ -833,7 +833,7 @@ def source_paths(config: dict[str, Any]) -> list[str]:
     if isinstance(sources, dict):
         directory = repository_path(sources["directory"])
         paths = sorted(directory.glob(sources["glob"]))
-        sources = [str(path.relative_to(ROOT)) for path in paths]
+        sources = [path.relative_to(ROOT).as_posix() for path in paths]
     if not sources:
         sources = [config["source"]] if "source" in config else []
     if not sources:
@@ -846,7 +846,7 @@ def source_paths(config: dict[str, Any]) -> list[str]:
     for path, flags in overrides.items():
         if path not in sources or Path(path).suffix.lower() != ".c":
             raise MatchError(f"source_flags entry {path!r} is not a declared C input")
-        if path != str(repository_path(path).relative_to(ROOT)):
+        if path != repository_path(path).relative_to(ROOT).as_posix():
             raise MatchError(f"source_flags path {path!r} must be repository-relative and canonical")
         if not isinstance(flags, list) or not all(isinstance(flag, str) for flag in flags):
             raise MatchError(f"source_flags entry {path!r} must be a flag list")
@@ -876,7 +876,7 @@ def source_compiler_flags(config: dict[str, Any]) -> dict[str, list[str]] | None
 def declared_inputs(config: dict[str, Any]) -> set[str]:
     paths = set(source_paths(config)) | set(config.get("forced_includes", []))
     if config["kind"] != "probe":
-        paths.add(config.get("symbol_file", str(SYMBOL_FILE.relative_to(ROOT))))
+        paths.add(config.get("symbol_file", SYMBOL_FILE.relative_to(ROOT).as_posix()))
     if "linker_script" in config:
         paths.add(config["linker_script"])
     return paths
@@ -1153,7 +1153,7 @@ def build_object(
             toolchain,
             source,
             assembly,
-            effective_flags(config, str(source.relative_to(ROOT))),
+            effective_flags(config, source.relative_to(ROOT).as_posix()),
             includes,
             [repository_path(path) for path in config.get("forced_includes", [])],
             dependency_file,
@@ -1456,7 +1456,7 @@ def compare_initialized_ranges(
             **comparison, "name": interval["symbol"], "kind": "data", "size": len(actual),
             "address": f"0x{address:08x}", "placement_delta": 0,
             "section": {"name": name, **sections[name]}, "data_range": interval,
-            "candidate": str(candidate.relative_to(ROOT)),
+            "candidate": candidate.relative_to(ROOT).as_posix(),
             "first_mismatch_location": mismatch_location(artifact, file_offset + mismatch[0]) if mismatch else None,
         })
     reject_overlapping_ranges(ranges, "initialized data ranges")
@@ -1582,7 +1582,7 @@ def build_artifact(
             else None
         ),
         "ranges": range_comparison(expected, actual, ranges, symbols),
-        "candidate": str(candidate_binary.relative_to(ROOT)),
+        "candidate": candidate_binary.relative_to(ROOT).as_posix(),
     }
     (output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
@@ -1673,7 +1673,7 @@ def build_probe(
         "compiler_flags": flags,
         "optimization": optimization,
         "aspsx_version": aspsx_version,
-        "candidate": str(candidate_binary.relative_to(ROOT)),
+        "candidate": candidate_binary.relative_to(ROOT).as_posix(),
     }
     (output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
