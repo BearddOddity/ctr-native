@@ -1471,7 +1471,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	struct ScratchpadStruct *sps = CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108);
 	struct Driver *botDriver = (struct Driver *)botThread->object;     // iVar17
 	struct Instance *botInstance = (struct Instance *)botThread->inst; // iVar22
-	struct GameTracker *gGT = sdata->gGT;
+	struct GameTracker *gGT = GAME_TRACKER;
 
 	// local_34 = gGT->elapsedTimeMS;
 
