@@ -342,10 +342,10 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	s32 fromRight;
 	u32 mask;
 	register struct SkyboxGlowGradient *g CTR_PSX_REGISTER("$30");
-	u32 x1;
-	s32 fromLeft;
 	s32 ratio1;
 	struct Level *level;
+	u32 x1;
+	s32 fromLeft;
 	u32 *p;
 
 	tilt = MATH_Sin(pb->rot.z) << 12;
@@ -361,18 +361,18 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	SKYGLOW->centerY1 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
 	SKYGLOW->centerY2 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
 
-	g = grad;
 	width = pb->rect.w;
 	widthXY = width & 0xffff;
+	g = grad;
 
 	for (i = 0; i < 3; i++, g++)
 	{
 		toLeft = SKYGLOW->centerY2 - g->pointTo - tilt;
-		toRight = SKYGLOW->centerY2 - g->pointTo + tilt;
 		mask = (u32)~toLeft >> 31;
+		toRight = SKYGLOW->centerY2 - g->pointTo + tilt;
 		SKYGLOW->color[1].w = SKYGLOW->color[0].w = g->colorFrom & 0xffffff;
-		fromRight = SKYGLOW->centerY1 - g->pointFrom + tilt;
 		fromLeft = SKYGLOW->centerY1 - g->pointFrom - tilt;
+		fromRight = SKYGLOW->centerY1 - g->pointFrom + tilt;
 		SKYGLOW->color[3].w = SKYGLOW->color[2].w = g->colorTo & 0xffffff;
 
 		if (toRight >= 0)
@@ -397,11 +397,11 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			SKYGLOW_LERP(3, 2, 3, ratio1);
 
 			p = (u32 *)primMem->cursor;
+			p[4] = toLeft << 16;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x30000000;
 			p[3] = SKYGLOW->color[2].w;
-			p[2] = 0;
 			p[5] = SKYGLOW->color[3].w;
-			p[4] = toLeft << 16;
+			p[2] = 0;
 			p[6] = (width * ratio1 >> 12) & 0xffff;
 			p[0] = *ptrOT | 0x6000000;
 			xy = (u32)p << 8 >> 8;
@@ -416,12 +416,12 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[2].w << 8 >> 8) | 0x30000000;
-			p[3] = SKYGLOW->color[1].w;
-			p[5] = SKYGLOW->color[3].w;
 			p[4] = widthXY;
+			p[5] = SKYGLOW->color[3].w;
 			p[2] = (width * ratio1 >> 12) & 0xffff;
 			p[6] = widthXY | (toRight << 16);
 			p[0] = *ptrOT | 0x6000000;
+			p[3] = SKYGLOW->color[1].w;
 			xy = (u32)p << 8 >> 8;
 			p = p + 7;
 			goto LinkPrim;
@@ -433,14 +433,14 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			SKYGLOW_LERP(1, 1, 3, ratio1);
 
 			p = (u32 *)primMem->cursor;
+			p[4] = widthXY;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x38000000;
 			p[3] = SKYGLOW->color[1].w;
 			p[5] = SKYGLOW->color[2].w;
 			p[7] = SKYGLOW->color[3].w;
 			p[6] = toLeft << 16;
-			p[2] = 0;
 			p[8] = widthXY | (toRight << 16);
-			p[4] = widthXY;
+			p[2] = 0;
 			p[0] = *ptrOT | 0x8000000;
 			xy = (u32)p << 8 >> 8;
 			p = p + 9;
@@ -460,9 +460,9 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[3] = SKYGLOW->color[1].w;
 			p[5] = SKYGLOW->color[2].w;
 			p[7] = SKYGLOW->color[3].w;
-			p[8] = (width * ratio1 >> 12) & 0xffff;
-			p[6] = toLeft << 16;
 			p[4] = x1;
+			p[6] = toLeft << 16;
+			p[8] = (width * ratio1 >> 12) & 0xffff;
 			p[0] = *ptrOT | 0x8000000;
 			*ptrOT = (u32)p << 8 >> 8;
 			primMem->cursor = p + 9;
@@ -470,9 +470,9 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
 			{
 				p[10] = (*(u32 *)&level->clearColor[2] << 8 >> 8) | 0x20000000;
-				p[12] = 0;
 				p[13] = fromLeft << 16;
 				p[11] = x1;
+				p[12] = 0;
 				p[9] = *ptrOT | 0x4000000;
 				*ptrOT = (u32)(p + 9) << 8 >> 8;
 				p = p + 14;
@@ -492,11 +492,11 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x30000000;
 			p[3] = SKYGLOW->color[4].w;
-			p[2] = fromLeft << 16;
-			p[4] = x1;
 			p[5] = SKYGLOW->color[1].w;
+			p[2] = fromLeft << 16;
 			p[6] = widthXY;
 			p[0] = *ptrOT | 0x6000000;
+			p[4] = x1;
 			*ptrOT = (u32)p << 8 >> 8;
 			primMem->cursor = p + 7;
 
@@ -505,9 +505,9 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[12] = SKYGLOW->color[2].w;
 			p[14] = SKYGLOW->color[3].w;
 			p[11] = widthXY;
-			p[9] = fromLeft << 16;
 			p[13] = toLeft << 16;
 			p[15] = widthXY | (toRight << 16);
+			p[9] = fromLeft << 16;
 			p[7] = *ptrOT | 0x8000000;
 			*ptrOT = (u32)(p + 7) << 8 >> 8;
 			primMem->cursor = p + 16;
@@ -516,8 +516,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			{
 				p[17] = (*(u32 *)&level->clearColor[2] << 8 >> 8) | 0x20000000;
 				p[20] = fromLeft << 16;
-				p[18] = x1;
 				p[19] = 0;
+				p[18] = x1;
 				p[16] = *ptrOT | 0x4000000;
 				*ptrOT = (u32)(p + 16) << 8 >> 8;
 				p = p + 21;
@@ -526,30 +526,30 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			break;
 
 		case 10:
-			xy = widthXY | (fromRight << 16);
 			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
 			x1 = (width * ratio1 >> 12) & 0xffff;
 			ratio1 = (toLeft << 12) / (toLeft - toRight);
+			xy = widthXY | (fromRight << 16);
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x38000000;
-			p[5] = SKYGLOW->color[2].w;
+			p[4] = xy;
 			p[3] = SKYGLOW->color[1].w;
+			p[5] = SKYGLOW->color[2].w;
+			p[7] = SKYGLOW->color[3].w;
 			p[2] = x1;
 			p[8] = widthXY | (toRight << 16);
 			p[6] = (width * ratio1 >> 12) & 0xffff;
-			p[4] = xy;
 			p[0] = *ptrOT | 0x8000000;
-			p[7] = SKYGLOW->color[3].w;
 			*ptrOT = (u32)p << 8 >> 8;
 			primMem->cursor = p + 9;
 
 			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
 			{
-				p[11] = x1;
 				p[10] = (*(u32 *)&level->clearColor[2] << 8 >> 8) | 0x20000000;
-				p[13] = xy;
 				p[12] = widthXY;
+				p[13] = xy;
+				p[11] = x1;
 				p[9] = *ptrOT | 0x4000000;
 				*ptrOT = (u32)(p + 9) << 8 >> 8;
 				p = p + 14;
@@ -568,12 +568,12 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x30000000;
-			p[4] = x1;
 			p[3] = SKYGLOW->color[4].w;
 			p[5] = SKYGLOW->color[1].w;
 			p[2] = 0;
 			p[6] = xy;
 			p[0] = *ptrOT | 0x6000000;
+			p[4] = x1;
 			*ptrOT = (u32)p << 8 >> 8;
 			primMem->cursor = p + 7;
 
@@ -581,8 +581,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[10] = SKYGLOW->color[1].w;
 			p[12] = SKYGLOW->color[2].w;
 			p[14] = SKYGLOW->color[3].w;
-			p[9] = 0;
 			p[11] = xy;
+			p[9] = 0;
 			p[13] = toLeft << 16;
 			p[15] = widthXY | (toRight << 16);
 			p[7] = *ptrOT | 0x8000000;
@@ -591,10 +591,10 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 
 			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
 			{
-				p[18] = x1;
 				p[17] = (*(u32 *)&level->clearColor[2] << 8 >> 8) | 0x20000000;
-				p[19] = widthXY;
 				p[20] = xy;
+				p[19] = widthXY;
+				p[18] = x1;
 				p[16] = *ptrOT | 0x4000000;
 				*ptrOT = (u32)(p + 16) << 8 >> 8;
 				p = p + 21;
@@ -603,17 +603,17 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			break;
 
 		case 15:
-			x1 = fromLeft << 16;
 			xy = widthXY | (fromRight << 16);
+			x1 = fromLeft << 16;
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x38000000;
-			p[5] = SKYGLOW->color[2].w;
-			p[6] = toLeft << 16;
 			p[3] = SKYGLOW->color[1].w;
 			p[2] = x1;
-			p[4] = xy;
+			p[5] = SKYGLOW->color[2].w;
 			p[7] = SKYGLOW->color[3].w;
+			p[4] = xy;
+			p[6] = toLeft << 16;
 			p[8] = widthXY | (toRight << 16);
 			p[0] = *ptrOT | 0x8000000;
 			*ptrOT = (u32)p << 8 >> 8;
@@ -622,10 +622,10 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
 			{
 				p[10] = (*(u32 *)&level->clearColor[2] << 8 >> 8) | 0x28000000;
-				p[13] = x1;
-				p[14] = xy;
-				p[11] = 0;
 				p[12] = widthXY;
+				p[13] = x1;
+				p[11] = 0;
+				p[14] = xy;
 				p[9] = *ptrOT | 0x5000000;
 				*ptrOT = (u32)(p + 9) << 8 >> 8;
 				p = p + 15;
