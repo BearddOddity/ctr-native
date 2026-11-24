@@ -342,7 +342,6 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	s32 fromRight;
 	u32 mask;
 	s32 ratio1;
-	s32 ratio2;
 	u32 x1;
 	u32 xy;
 	u32 *p;
@@ -394,8 +393,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 		case 1:
 			ratio1 = (fromLeft << 12) / (fromLeft - toLeft);
 			SKYGLOW_LERP(0, 0, 2, ratio1);
-			ratio2 = (toLeft << 12) / (toLeft - toRight);
-			SKYGLOW_LERP(3, 2, 3, ratio2);
+			ratio1 = (toLeft << 12) / (toLeft - toRight);
+			SKYGLOW_LERP(3, 2, 3, ratio1);
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x30000000;
@@ -403,7 +402,7 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[2] = 0;
 			p[4] = toLeft << 16;
 			p[5] = SKYGLOW->color[3].w;
-			p[6] = (width * ratio2 >> 12) & 0xffff;
+			p[6] = (width * ratio1 >> 12) & 0xffff;
 			p[0] = *ptrOT | 0x6000000;
 			xy = (u32)p << 8 >> 8;
 			p = p + 7;
@@ -412,15 +411,15 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 		case 2:
 			ratio1 = (fromRight << 12) / (fromRight - toRight);
 			SKYGLOW_LERP(1, 1, 3, ratio1);
-			ratio2 = (toLeft << 12) / (toLeft - toRight);
-			SKYGLOW_LERP(2, 2, 3, ratio2);
+			ratio1 = (toLeft << 12) / (toLeft - toRight);
+			SKYGLOW_LERP(2, 2, 3, ratio1);
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[2].w << 8 >> 8) | 0x30000000;
 			p[3] = SKYGLOW->color[1].w;
 			p[4] = widthXY;
 			p[5] = SKYGLOW->color[3].w;
-			p[2] = (width * ratio2 >> 12) & 0xffff;
+			p[2] = (width * ratio1 >> 12) & 0xffff;
 			p[6] = widthXY | (toRight << 16);
 			p[0] = *ptrOT | 0x6000000;
 			xy = (u32)p << 8 >> 8;
@@ -430,8 +429,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 		case 3:
 			ratio1 = (fromLeft << 12) / (fromLeft - toLeft);
 			SKYGLOW_LERP(0, 0, 2, ratio1);
-			ratio2 = (fromRight << 12) / (fromRight - toRight);
-			SKYGLOW_LERP(1, 1, 3, ratio2);
+			ratio1 = (fromRight << 12) / (fromRight - toRight);
+			SKYGLOW_LERP(1, 1, 3, ratio1);
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x38000000;
@@ -453,7 +452,7 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 		case 5:
 			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
 			x1 = (width * ratio1 >> 12) & 0xffff;
-			ratio2 = (toLeft << 12) / (toLeft - toRight);
+			ratio1 = (toLeft << 12) / (toLeft - toRight);
 
 			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | 0x38000000;
@@ -463,7 +462,7 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[6] = toLeft << 16;
 			p[4] = x1;
 			p[7] = SKYGLOW->color[3].w;
-			p[8] = (width * ratio2 >> 12) & 0xffff;
+			p[8] = (width * ratio1 >> 12) & 0xffff;
 			p[0] = *ptrOT | 0x8000000;
 			*ptrOT = (u32)p << 8 >> 8;
 			primMem->cursor = p + 9;
@@ -486,8 +485,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
 			x1 = width * ratio1;
 			SKYGLOW_LERP(4, 0, 1, ratio1);
-			ratio2 = (fromRight << 12) / (fromRight - toRight);
-			SKYGLOW_LERP(1, 1, 3, ratio2);
+			ratio1 = (fromRight << 12) / (fromRight - toRight);
+			SKYGLOW_LERP(1, 1, 3, ratio1);
 			x1 = (x1 >> 12) & 0xffff;
 
 			p = (u32 *)primMem->cursor;
@@ -529,7 +528,7 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 		case 10:
 			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
 			x1 = (width * ratio1 >> 12) & 0xffff;
-			ratio2 = (toLeft << 12) / (toLeft - toRight);
+			ratio1 = (toLeft << 12) / (toLeft - toRight);
 			xy = widthXY | (fromRight << 16);
 
 			p = (u32 *)primMem->cursor;
@@ -540,7 +539,7 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[8] = widthXY | (toRight << 16);
 			p[2] = x1;
 			p[7] = SKYGLOW->color[3].w;
-			p[6] = (width * ratio2 >> 12) & 0xffff;
+			p[6] = (width * ratio1 >> 12) & 0xffff;
 			p[0] = *ptrOT | 0x8000000;
 			*ptrOT = (u32)p << 8 >> 8;
 			primMem->cursor = p + 9;
@@ -562,8 +561,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
 			x1 = width * ratio1;
 			SKYGLOW_LERP(4, 0, 1, ratio1);
-			ratio2 = (fromLeft << 12) / (fromLeft - toLeft);
-			SKYGLOW_LERP(0, 0, 2, ratio2);
+			ratio1 = (fromLeft << 12) / (fromLeft - toLeft);
+			SKYGLOW_LERP(0, 0, 2, ratio1);
 			xy = widthXY | (fromRight << 16);
 			x1 = (x1 >> 12) & 0xffff;
 
