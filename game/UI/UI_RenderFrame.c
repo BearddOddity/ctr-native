@@ -806,19 +806,21 @@ void UI_RenderFrame_Racing()
 				    // (winner of battle wont use this function)
 				    ((raceMode1 & BATTLE_MODE) == 0))
 				{
-					pbVar6 = GAME_LANGUAGE_STRINGS[LNG_FINISHED];
+					// retail sets each case's call up whole and shares only the call itself
+					DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_FINISHED],
+					                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
+					                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
+					                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
 				}
 
 				// If you came in last place, or you're in battle
 				else
 				{
-					pbVar6 = GAME_LANGUAGE_STRINGS[LNG_LOSER];
+					DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_LOSER],
+					                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
+					                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
+					                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
 				}
-
-				DecalFont_DrawLine(pbVar6,
-				                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
-				                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
-				                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
 
 				if (
 				    // If you press Cross or Start
