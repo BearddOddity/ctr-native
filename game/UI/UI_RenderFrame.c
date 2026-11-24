@@ -48,6 +48,12 @@ void UI_RenderFrame_Racing()
 #define raceMode1 (GAME_TRACKER->gameMode1)
 #define numPlyr   (GAME_TRACKER->numPlyrCurrGame)
 #endif
+#ifdef CTR_NATIVE
+#define scoreText (&string[0])
+#else
+	// Retail prints the battle score change into the letter position's stack slot, not into string.
+#define scoreText ((char *)&letterCtrPos)
+#endif
 
 
 #ifdef CTR_NATIVE
@@ -393,7 +399,7 @@ void UI_RenderFrame_Racing()
 						}
 					}
 
-					sprintf((char *)&string[0], fmt, partTimeVariable1);
+					sprintf(scoreText, fmt, partTimeVariable1);
 
 					UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->BattleHUD.startX, (int)playerStruct->BattleHUD.startY,
 					              (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20), (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y + 8),
@@ -403,7 +409,7 @@ void UI_RenderFrame_Racing()
 					playerStruct->BattleHUD.cooldown--;
 
 					// print the string that shows the change in your score
-					DecalFont_DrawLine((char *)&string[0], (int)wumpaModelPos.x, (int)wumpaModelPos.y, FONT_SMALL, RED);
+					DecalFont_DrawLine(scoreText, (int)wumpaModelPos.x, (int)wumpaModelPos.y, FONT_SMALL, RED);
 				}
 
 				// the animation for adding points is over
@@ -844,6 +850,7 @@ void UI_RenderFrame_Racing()
 #undef raceMode1
 #undef numPlyr
 #endif
+#undef scoreText
 }
 
 void UI_RenderFrame_AdvHub(void)
