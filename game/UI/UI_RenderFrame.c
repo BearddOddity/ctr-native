@@ -139,8 +139,9 @@ void UI_RenderFrame_Racing()
 	cVar22 = '\0';
 	if (playerThread != 0)
 	{
-		// Loop through all player threads
-		do
+		// Loop through all player threads (a label and a goto: retail's loop gets no strength reduction, which a
+		// do-while would give it)
+	PlayerLoop:
 		{
 			// pointer to player structure
 			playerStruct = (struct Driver *)playerThread->object;
@@ -538,7 +539,11 @@ void UI_RenderFrame_Racing()
 
 			hudStructPtr += UI_HUD_SLOT_COUNT;
 
-		} while (playerThread != 0);
+		}
+		if (playerThread != 0)
+		{
+			goto PlayerLoop;
+		}
 	}
 
 	if (sdata->WrongWayDirection_bool != cVar22)
