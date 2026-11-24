@@ -355,7 +355,9 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	{
 		cosine = 1;
 	}
-	tilt = -(((tilt / cosine) << 8) >> 12) / 2;
+	tilt = tilt / cosine;
+	tilt = (tilt << 8) >> 12;
+	tilt = -tilt / 2;
 
 	SKYGLOW->centerY1 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
 	SKYGLOW->centerY2 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
