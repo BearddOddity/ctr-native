@@ -1447,6 +1447,7 @@ void BOTS_Killplane(struct Thread *botThread)
 #define CTR_MipsNegLo(a)    (-(s32)(a))
 #define CTR_MipsSll(a, b)   ((s32)(a) << (b))
 #define CTR_MipsSra(a, b)   ((s32)(a) >> (b))
+#define CTR_MipsDiv(a, b)   ((s32)(a) / (s32)(b))
 #endif
 #ifndef CTR_NATIVE
 // Retail reaches sdata's arrays and structs by their absolute address (only scalars of 8 bytes or less are $gp-relative
@@ -3517,6 +3518,7 @@ FinishHazardTimerUpdate:
 #undef CTR_MipsNegLo
 #undef CTR_MipsSll
 #undef CTR_MipsSra
+#undef CTR_MipsDiv
 #endif
 
 u32 BOTS_ChangeState(struct Driver *driverVictim, int damageType, struct Driver *driverAttacker, int reason)
