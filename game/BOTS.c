@@ -3237,23 +3237,26 @@ UpdateTireColorTimer:
 	{
 		int wiggleX;
 		int wiggleZ;
-		SVECTOR wiggle;
 	badEffectKartWiggle:;
-		wiggleX = CTR_MipsSra(CTR_MipsMulLo(MATH_Sin(CTR_MipsMulLo(badnessRecieveTimer, 0xc)), 50), 10);
-		wiggleZ = CTR_MipsSra(CTR_MipsMulLo(MATH_Cos(CTR_MipsMulLo(badnessRecieveTimer, 0xc)), 50), 10);
-		wiggle.vx = (s16)wiggleX;
-		wiggle.vy = 0;
-		wiggle.vz = (s16)wiggleZ;
-		wiggle.pad = 0;
+		{
+			SVECTOR wiggle;
 
-		CTR_GteLoadSV0(&wiggle);
-		gte_mvmva(1, 0, 0, 3, 0);
+			wiggleX = CTR_MipsSra(CTR_MipsMulLo(MATH_Sin(CTR_MipsMulLo(badnessRecieveTimer, 0xc)), 50), 10);
+			wiggleZ = CTR_MipsSra(CTR_MipsMulLo(MATH_Cos(CTR_MipsMulLo(badnessRecieveTimer, 0xc)), 50), 10);
+			wiggle.vx = (s16)wiggleX;
+			wiggle.vy = 0;
+			wiggle.vz = (s16)wiggleZ;
+			wiggle.pad = 0;
 
-		botDriver->botData.aiPhysics.turboMeter = 0;
+			CTR_GteLoadSV0(&wiggle);
+			gte_mvmva(1, 0, 0, 3, 0);
 
-		botDriver->rotCurr.x = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.x, (s16)MFC2(25));
-		botDriver->rotCurr.y = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.y, (s16)MFC2(26));
-		botDriver->rotCurr.z = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.z, (s16)MFC2(27));
+			botDriver->botData.aiPhysics.turboMeter = 0;
+
+			botDriver->rotCurr.x = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.x, (s16)MFC2(25));
+			botDriver->rotCurr.y = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.y, (s16)MFC2(26));
+			botDriver->rotCurr.z = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.z, (s16)MFC2(27));
+		}
 	}
 
 	if ((botDriver->botData.botFlags & (BOT_FLAG_ESTIMATE_NAV | BOT_FLAG_FREE_PHYSICS)) == 0)
