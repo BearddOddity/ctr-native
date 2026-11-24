@@ -4,6 +4,10 @@
 #include "RenderBucket_ProjectedBounds.h"
 #include "RenderBucket_ExecuteScratch.h"
 
+#if defined(CTR_NATIVE)
+#include <platform/native_log.h>
+#endif
+
 struct RenderBucketEntry
 {
 	struct Instance *inst;
@@ -635,6 +639,41 @@ static const u8 sRenderBucketKeyRelicBrightness8008a2c4[0x80] = {
 CTR_STATIC_ASSERT(VISIBLE_DURING_GAMEPLAY == RB_INSTANCE_SKIP_OT_RANGE);
 
 #include "RenderBucket_CopyDispatchTables.c"
+
+// NOTE: QueueDraw writes only the handlers the dispatchers below know, with one exception: selector row 7 (instance
+// flags 0x70000) reads one word past each 7-entry retail table, so its setup word is the primitive table's first label
+// and its primitive word is the func2 table's first. Retail jumps there with registers neither expects. Native draws
+// nothing for it, and names it (and any other selector without a handler) once in the log, so a missing handler is
+// never silent.
+#if defined(CTR_NATIVE)
+static void RenderBucket_NoteUnhandledSelector(const char *slot, u32 selector)
+{
+	static const char *seenSlot[16];
+	static u32 seenSelector[16];
+	static int seenCount;
+
+	for (int i = 0; i < seenCount; i++)
+	{
+		if ((seenSlot[i] == slot) && (seenSelector[i] == selector))
+		{
+			return;
+		}
+	}
+
+	if (seenCount == (int)(sizeof(seenSelector) / sizeof(seenSelector[0])))
+	{
+		return;
+	}
+
+	seenSlot[seenCount] = slot;
+	seenSelector[seenCount] = selector;
+	seenCount++;
+	Platform_LogWarn("[CTR RenderBucket] no %s handler for retail label 0x%08x; instance part not drawn\n", slot, (unsigned)selector);
+}
+#define RB_NOTE_UNHANDLED(slot, selector) RenderBucket_NoteUnhandledSelector((slot), (u32)(uintptr_t)(selector))
+#else
+#define RB_NOTE_UNHANDLED(slot, selector) ((void)0)
+#endif
 
 #ifndef CTR_NATIVE
 // NOTE(aalhendi): Keep the typed C provider apart from the scratch-register entry.
@@ -3076,8 +3115,8 @@ static int RenderBucket_DispatchDrawInstPrimAtRange(struct RenderBucketDrawConte
 		return RenderBucket_DrawInstPrim_GhostAtRange(ctx, command, tex, activeRange, depthMac0);
 
 	default:
-		// TODO(aalhendi): Port any newly observed Instance+0x60 primitive writers.
 		// Do not draw through the normal writer here; that masks live retail rows.
+		RB_NOTE_UNHANDLED("primitive (Instance+0x60)", ctx->inst->funcPtr[1]);
 		return 0;
 	}
 }
@@ -3116,8 +3155,8 @@ static int RenderBucket_DispatchDrawInstPrim(struct RenderBucketDrawContext *ctx
 		return RenderBucket_DrawInstPrim_Ghost(ctx, command, tex, depthMac0);
 
 	default:
-		// TODO(aalhendi): Port any newly observed Instance+0x60 primitive writers.
 		// Do not draw through the normal writer here; that masks live retail rows.
+		RB_NOTE_UNHANDLED("primitive (Instance+0x60)", ctx->inst->funcPtr[1]);
 		return 0;
 	}
 }
@@ -4576,9 +4615,8 @@ static int RenderBucket_RunInstanceSetupCallback(struct RenderBucketDrawContext 
 		return 1;
 
 	default:
-		// TODO(aalhendi): Port the remaining Instance+0x5c setup callbacks when
-		// their selector rows become live. Do not substitute the common-color path;
-		// that hides missing retail setup callbacks.
+		// Do not substitute the common-color path; that hides missing retail setup callbacks.
+		RB_NOTE_UNHANDLED("setup (Instance+0x5c)", ctx->inst->funcPtr[0]);
 		return 0;
 	}
 }
@@ -4627,8 +4665,8 @@ static void RenderBucket_DispatchDrawFunc(struct RenderBucketDrawContext *ctx)
 		return;
 
 	default:
-		// TODO(aalhendi): Port any newly observed draw handlers.
 		// Do not fall through to normal draw; that masks live retail handler rows.
+		RB_NOTE_UNHANDLED("draw (InstDrawPerPlayer+0xEC)", ctx->idpp->unkEC);
 		return;
 	}
 }

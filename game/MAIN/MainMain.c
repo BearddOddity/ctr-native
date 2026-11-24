@@ -51,6 +51,204 @@ static struct NativeReplaySchedulerFrameInfo MainReplayScheduler_FrameInfo(struc
 }
 #endif
 
+// Retail has no StateZero of its own: its code sits inside main (0x8003c614-0x8003c984). The PS1 build writes it in
+// place there (GNU89 extern inline: no copy of its own, so it has to come before main); the native build keeps it a
+// function of its own, so a mod can replace it.
+#ifdef CTR_NATIVE
+#define MAIN_STATE_ZERO_LINKAGE
+#else
+#define MAIN_STATE_ZERO_LINKAGE extern __inline__
+#endif
+
+// NOTE(aalhendi): Source split of retail main's state-0 body
+// 0x8003c614-0x8003c984.
+// By separating this, it can be overwritten dynamically (oxide fix).
+MAIN_STATE_ZERO_LINKAGE void StateZero(void)
+{
+	u16 *clockEffect;
+	u32 vramSize;
+
+	struct GameTracker *gGT;
+	struct GamepadSystem *gGS;
+
+	gGT = sdata->gGT;
+	gGS = sdata->gGamepads;
+
+	memset(gGT, 0, sizeof(*gGT));
+
+	// Set Video Mode to NTSC
+	SetVideoMode(0);
+	ResetCallback();
+
+#define MEMPACK_SIZE 0x200000 // 2mb
+
+	MEMPACK_Init(MEMPACK_SIZE);
+	LOAD_InitCD();
+	RaceFlag_SetFullyOffScreen();
+
+	ResetGraph(0);
+	SetGraphDebug(0);
+
+	MainInit_VRAMClear();
+
+	SetDispMask(1);
+
+	SetDefDrawEnv(&gGT->db[0].drawEnv, 0, 0, 0x200, 0xd8);
+	SetDefDrawEnv(&gGT->db[1].drawEnv, 0, 0x128, 0x200, 0xd8);
+	SetDefDispEnv(&gGT->db[0].dispEnv, 0, 0x128, 0x200, 0xd8);
+	SetDefDispEnv(&gGT->db[1].dispEnv, 0, 0, 0x200, 0xd8);
+
+	gGT->db[0].dispEnv.screen.x = 0;
+	gGT->db[0].dispEnv.screen.y = 0xc;
+	gGT->db[0].dispEnv.screen.w = 0x100;
+	gGT->db[0].dispEnv.screen.h = 0xd8;
+
+	gGT->db[1].dispEnv.screen.x = 0;
+	gGT->db[1].dispEnv.screen.y = 0xc;
+	gGT->db[1].dispEnv.screen.w = 0x100;
+	gGT->db[1].dispEnv.screen.h = 0xd8;
+
+	gGT->db[0].drawEnv.isbg = 1;
+	gGT->db[0].drawEnv.r0 = 0;
+	gGT->db[0].drawEnv.g0 = 0;
+	gGT->db[0].drawEnv.b0 = 0;
+
+	gGT->db[1].drawEnv.isbg = 1;
+	gGT->db[1].drawEnv.r0 = 0;
+	gGT->db[1].drawEnv.g0 = 0;
+	gGT->db[1].drawEnv.b0 = 0;
+
+	// default number of lives in battle
+	// this is left over from prototypes, useless in retail
+	gGT->battleLifeLimit = 5;
+
+	// 30 second counter?
+	gGT->constVal_9000 = 9000;
+
+	// set lap count to 3
+	gGT->numLaps = 3;
+
+	gGT->battleSetup.enabledWeapons |= BATTLE_DEFAULT_WEAPON_FLAGS;
+	gGT->numPlyrCurrGame = 1;
+	gGT->numPlyrNextGame = 1;
+	*(u32 *)&gGT->battleSetup.teamOfEachPlayer = 0x3020100;
+
+	// traffic light countdown timer, set to negative one second
+	gGT->trafficLightsTimer = 0xfffffc40;
+
+	Timer_Init();
+	EnterCriticalSection();
+	sdata->MainDrawCb_DrawSyncPtr = (void *)(u32)DrawSyncCallback(&MainDrawCb_DrawSync);
+	ExitCriticalSection();
+
+	MEMCARD_InitCard();
+	VSync(0);
+	GAMEPAD_Init(gGS);
+	VSync(0);
+	GAMEPAD_GetNumConnected(gGS);
+
+#ifdef CTR_NATIVE
+#define BIGPATH "\\BIGFILE.BIG;1"
+#else
+#define BIGPATH rdata.s_PathTo_Bigfile
+#endif
+
+	// Get CD Position fo BIGFILE
+	sdata->ptrBigfile1 = LOAD_ReadDirectory(BIGPATH);
+
+// Defrag to save heap space,
+// required because MEMPACK_Init moves heap
+#if 0
+	// NOTE(aalhendi): Retail main does not rewrite BIGFILE overlay sizes here.
+	extern char RB_NewEndFile[4];
+
+	// Dont load full overlay file, cut off the end
+	struct BigEntry *firstEntry = BIG_GETENTRY(sdata->ptrBigfile1);
+	firstEntry[231].size = 28 * 0x800;
+	// firstEntry[231].size = (u32)RB_NewEndFile - (u32)OVR_Region3;
+	// printf("Size: %08x\n", firstEntry[231].size);
+
+	// Cut off Region1 overlays at 2 sectors (not 3),
+	// This protects Region2 RAM so it is not overwritten
+	// during Region1 disc streaming, saves loading time
+	for (int i = 221; i <= 225; i++)
+		firstEntry[i].size = 2 * 0x800;
+#endif
+
+	// English=1
+	LOAD_LangFile((int)sdata->ptrBigfile1, 1);
+	GAMEPROG_NewGame_OnBoot();
+	gGT->overlayIndex_null_notUsed = 0;
+
+	gGT->levelID = NAUGHTY_DOG_CRATE;
+	memcpy(gGT->levelName, sdata->s_ndi, sizeof(sdata->s_ndi));
+	// gGT->levelID = OXIDE_TRUE_ENDING;
+
+	InitGeom();
+	SetGeomOffset(0x100, 0x78); // width/2, height/2
+	SetGeomScreen(0x140);       // "distance" to screen, alters FOV
+
+	// NOTE(aalhendi): Retail calls 0x8006ae74 here; keep the verified depth
+	// scale setup on every target.
+	RenderBucket_InitDepthGTE();
+	// NOTE(aalhendi): Retail bakes these authored matrix tables in place.
+	Vector_BakeMatrixTable();
+
+	gGT->swapchainIndex = 0;
+	gGT->backBuffer = &gGT->db[0];
+
+	gGT->overlayIndex_EndOfRace = 0xff;
+	gGT->overlayIndex_LOD = OVERLAY_INDEX_NONE;
+	gGT->overlayIndex_Threads = OVERLAY_INDEX_NONE;
+
+	PutDispEnv(&gGT->db[1].dispEnv);
+	PutDrawEnv(&gGT->db[1].drawEnv);
+	DrawSync(0);
+
+	// Load Intro TIM for "SCEA Presents" from VRAM file
+	LOAD_VramFile(sdata->ptrBigfile1, 0x1fd, NULL, &vramSize, -1);
+	MainInit_VRAMDisplay();
+
+	// \SOUNDS\KART.HWL;1
+	howl_InitGlobals(data.kartHwlPath);
+
+	VSyncCallback(MainDrawCb_Vsync);
+
+	Music_SetIntro();
+	CseqMusic_StopAll();
+	CseqMusic_Start(CSEQ_SONG_LEVEL, 0, NULL, 0, 0);
+	Music_Start(0);
+
+	// "Start your engines, for Sony Computer..."
+	CDSYS_XAPlay(CDSYS_XA_TYPE_EXTRA, 0x50);
+
+	while (sdata->XA_State != 0)
+	{
+		// WARNING: Read-only address (ram, 0x8008d888) is written
+#ifdef CTR_NATIVE
+		// NOTE(aalhendi): Retail hardware interrupts keep XA/audio moving while
+		// this loop spins. Native owns VBlank in VSync(), so pump it here.
+		VSync(0);
+#endif
+		CDSYS_XAPauseAtEnd();
+	}
+
+	DecalGlobal_Clear(gGT);
+
+	// This loads UI textures (shared.vrm)
+	// This includes traffic lights, font, and more
+	LOAD_VramFile(sdata->ptrBigfile1, 0x102, NULL, &vramSize, -1);
+
+	sdata->mainGameState = 3;
+
+	// start loading
+	sdata->Loading.stage = LOAD_TEN_STAGES_0;
+
+	clockEffect = &gGT->clockEffectEnabled;
+	gGT->gameMode1 |= LOADING;
+	gGT->clockEffectEnabled = *clockEffect & 0xfffe;
+}
+
 #ifdef CTR_NATIVE
 u32 CTR_Main(void)
 #else
@@ -67,9 +265,9 @@ u32 main(void)
 	u32 uVar12;
 
 	struct GameTracker *gGT;
-	gGT = sdata->gGT;
-
 	struct GamepadSystem *gGS;
+
+	gGT = sdata->gGT;
 	gGS = sdata->gGamepads;
 
 	// NOTE(aalhendi): Retail main calls __main before the state loop. Native has
@@ -484,193 +682,4 @@ u32 main(void)
 #endif
 		}
 	} while (true);
-}
-
-// NOTE(aalhendi): Source split of retail main's state-0 body
-// 0x8003c614-0x8003c984.
-// By separating this, it can be overwritten dynamically (oxide fix).
-void StateZero()
-{
-	u16 *clockEffect;
-	u32 vramSize;
-
-	struct GameTracker *gGT;
-	gGT = sdata->gGT;
-
-	struct GamepadSystem *gGS;
-	gGS = sdata->gGamepads;
-
-	memset(gGT, 0, sizeof(*gGT));
-
-	// Set Video Mode to NTSC
-	SetVideoMode(0);
-	ResetCallback();
-
-#define MEMPACK_SIZE 0x200000 // 2mb
-
-	MEMPACK_Init(MEMPACK_SIZE);
-	LOAD_InitCD();
-	RaceFlag_SetFullyOffScreen();
-
-	ResetGraph(0);
-	SetGraphDebug(0);
-
-	MainInit_VRAMClear();
-
-	SetDispMask(1);
-
-	SetDefDrawEnv(&gGT->db[0].drawEnv, 0, 0, 0x200, 0xd8);
-	SetDefDrawEnv(&gGT->db[1].drawEnv, 0, 0x128, 0x200, 0xd8);
-	SetDefDispEnv(&gGT->db[0].dispEnv, 0, 0x128, 0x200, 0xd8);
-	SetDefDispEnv(&gGT->db[1].dispEnv, 0, 0, 0x200, 0xd8);
-
-	gGT->db[0].dispEnv.screen.x = 0;
-	gGT->db[0].dispEnv.screen.y = 0xc;
-	gGT->db[0].dispEnv.screen.w = 0x100;
-	gGT->db[0].dispEnv.screen.h = 0xd8;
-
-	gGT->db[1].dispEnv.screen.x = 0;
-	gGT->db[1].dispEnv.screen.y = 0xc;
-	gGT->db[1].dispEnv.screen.w = 0x100;
-	gGT->db[1].dispEnv.screen.h = 0xd8;
-
-	gGT->db[0].drawEnv.isbg = 1;
-	gGT->db[0].drawEnv.r0 = 0;
-	gGT->db[0].drawEnv.g0 = 0;
-	gGT->db[0].drawEnv.b0 = 0;
-
-	gGT->db[1].drawEnv.isbg = 1;
-	gGT->db[1].drawEnv.r0 = 0;
-	gGT->db[1].drawEnv.g0 = 0;
-	gGT->db[1].drawEnv.b0 = 0;
-
-	// default number of lives in battle
-	// this is left over from prototypes, useless in retail
-	gGT->battleLifeLimit = 5;
-
-	// 30 second counter?
-	gGT->constVal_9000 = 9000;
-
-	// set lap count to 3
-	gGT->numLaps = 3;
-
-	gGT->battleSetup.enabledWeapons |= BATTLE_DEFAULT_WEAPON_FLAGS;
-	gGT->numPlyrCurrGame = 1;
-	gGT->numPlyrNextGame = 1;
-	*(u32 *)&gGT->battleSetup.teamOfEachPlayer = 0x3020100;
-
-	// traffic light countdown timer, set to negative one second
-	gGT->trafficLightsTimer = 0xfffffc40;
-
-	Timer_Init();
-	EnterCriticalSection();
-	sdata->MainDrawCb_DrawSyncPtr = (void *)(u32)DrawSyncCallback(&MainDrawCb_DrawSync);
-	ExitCriticalSection();
-
-	MEMCARD_InitCard();
-	VSync(0);
-	GAMEPAD_Init(gGS);
-	VSync(0);
-	GAMEPAD_GetNumConnected(gGS);
-
-#ifdef CTR_NATIVE
-#define BIGPATH "\\BIGFILE.BIG;1"
-#else
-#define BIGPATH rdata.s_PathTo_Bigfile
-#endif
-
-	// Get CD Position fo BIGFILE
-	sdata->ptrBigfile1 = LOAD_ReadDirectory(BIGPATH);
-
-// Defrag to save heap space,
-// required because MEMPACK_Init moves heap
-#if 0
-	// NOTE(aalhendi): Retail main does not rewrite BIGFILE overlay sizes here.
-	extern char RB_NewEndFile[4];
-
-	// Dont load full overlay file, cut off the end
-	struct BigEntry *firstEntry = BIG_GETENTRY(sdata->ptrBigfile1);
-	firstEntry[231].size = 28 * 0x800;
-	// firstEntry[231].size = (u32)RB_NewEndFile - (u32)OVR_Region3;
-	// printf("Size: %08x\n", firstEntry[231].size);
-
-	// Cut off Region1 overlays at 2 sectors (not 3),
-	// This protects Region2 RAM so it is not overwritten
-	// during Region1 disc streaming, saves loading time
-	for (int i = 221; i <= 225; i++)
-		firstEntry[i].size = 2 * 0x800;
-#endif
-
-	// English=1
-	LOAD_LangFile((int)sdata->ptrBigfile1, 1);
-	GAMEPROG_NewGame_OnBoot();
-	gGT->overlayIndex_null_notUsed = 0;
-
-	gGT->levelID = NAUGHTY_DOG_CRATE;
-	memcpy(gGT->levelName, sdata->s_ndi, sizeof(sdata->s_ndi));
-	// gGT->levelID = OXIDE_TRUE_ENDING;
-
-	InitGeom();
-	SetGeomOffset(0x100, 0x78); // width/2, height/2
-	SetGeomScreen(0x140);       // "distance" to screen, alters FOV
-
-	// NOTE(aalhendi): Retail calls 0x8006ae74 here; keep the verified depth
-	// scale setup on every target.
-	RenderBucket_InitDepthGTE();
-	// NOTE(aalhendi): Retail bakes these authored matrix tables in place.
-	Vector_BakeMatrixTable();
-
-	gGT->swapchainIndex = 0;
-	gGT->backBuffer = &gGT->db[0];
-
-	gGT->overlayIndex_EndOfRace = 0xff;
-	gGT->overlayIndex_LOD = OVERLAY_INDEX_NONE;
-	gGT->overlayIndex_Threads = OVERLAY_INDEX_NONE;
-
-	PutDispEnv(&gGT->db[1].dispEnv);
-	PutDrawEnv(&gGT->db[1].drawEnv);
-	DrawSync(0);
-
-	// Load Intro TIM for "SCEA Presents" from VRAM file
-	LOAD_VramFile(sdata->ptrBigfile1, 0x1fd, NULL, &vramSize, -1);
-	MainInit_VRAMDisplay();
-
-	// \SOUNDS\KART.HWL;1
-	howl_InitGlobals(data.kartHwlPath);
-
-	VSyncCallback(MainDrawCb_Vsync);
-
-	Music_SetIntro();
-	CseqMusic_StopAll();
-	CseqMusic_Start(CSEQ_SONG_LEVEL, 0, NULL, 0, 0);
-	Music_Start(0);
-
-	// "Start your engines, for Sony Computer..."
-	CDSYS_XAPlay(CDSYS_XA_TYPE_EXTRA, 0x50);
-
-	while (sdata->XA_State != 0)
-	{
-		// WARNING: Read-only address (ram, 0x8008d888) is written
-#ifdef CTR_NATIVE
-		// NOTE(aalhendi): Retail hardware interrupts keep XA/audio moving while
-		// this loop spins. Native owns VBlank in VSync(), so pump it here.
-		VSync(0);
-#endif
-		CDSYS_XAPauseAtEnd();
-	}
-
-	DecalGlobal_Clear(gGT);
-
-	// This loads UI textures (shared.vrm)
-	// This includes traffic lights, font, and more
-	LOAD_VramFile(sdata->ptrBigfile1, 0x102, NULL, &vramSize, -1);
-
-	sdata->mainGameState = 3;
-
-	// start loading
-	sdata->Loading.stage = LOAD_TEN_STAGES_0;
-
-	clockEffect = &gGT->clockEffectEnabled;
-	gGT->gameMode1 |= LOADING;
-	gGT->clockEffectEnabled = *clockEffect & 0xfffe;
 }

@@ -205,7 +205,7 @@ def discover_function_ranges(
             if count == 1:
                 owners.append(source)
         if len(owners) != 1:
-            relative = [str(path.relative_to(ctr_match.ROOT)) for path in owners]
+            relative = [path.relative_to(ctr_match.ROOT).as_posix() for path in owners]
             raise ctr_match.MatchError(
                 f"expected one production definition of {candidate}, "
                 f"found {len(owners)}: {', '.join(relative) or 'none'}"
@@ -215,7 +215,7 @@ def discover_function_ranges(
                 name=symbol.name,
                 address=symbol.address,
                 size=size,
-                source=str(owners[0].relative_to(ctr_match.ROOT)),
+                source=owners[0].relative_to(ctr_match.ROOT).as_posix(),
                 candidate_symbol=candidate if candidate != symbol.name else None,
                 padding_size=padding.get(symbol.name, 0),
             )
@@ -225,7 +225,7 @@ def discover_function_ranges(
     unowned = [source for source in sources if source not in owners]
     if unowned and "bss_ranges" not in config:
         relative = ", ".join(
-            str(source.relative_to(ctr_match.ROOT)) for source in unowned
+            source.relative_to(ctr_match.ROOT).as_posix() for source in unowned
         )
         raise ctr_match.MatchError(
             f"namespace {config['name']!r} has source(s) without a retail "
@@ -280,11 +280,11 @@ def compile_source(
     except ctr_match.MatchError as exc:
         error_file.write_text(f"{exc}\n")
         return {
-            "source": str(source.relative_to(ctr_match.ROOT)),
+            "source": source.relative_to(ctr_match.ROOT).as_posix(),
             "source_sha256": ctr_match.sha256_file(source),
             "compiled": False,
             "error": str(exc),
-            "error_file": str(error_file.relative_to(ctr_match.ROOT)),
+            "error_file": error_file.relative_to(ctr_match.ROOT).as_posix(),
         }
 
     error_file.unlink(missing_ok=True)
@@ -554,8 +554,8 @@ def link_function(
         **function.result_fields(),
         "address": f"0x{function.address:08x}",
         **comparison,
-        "candidate": str(candidate_binary.relative_to(ctr_match.ROOT)),
-        "linker_script": str(linker_script.relative_to(ctr_match.ROOT)),
+        "candidate": candidate_binary.relative_to(ctr_match.ROOT).as_posix(),
+        "linker_script": linker_script.relative_to(ctr_match.ROOT).as_posix(),
     }
 
 
@@ -688,7 +688,7 @@ def compare_linked_intervals(
                 **function.result_fields(), "address": f"0x{function.address:08x}",
                 **body, "placement_exact": function_placed,
                 "exact": body["exact"] and function_placed,
-                "candidate": str(candidate.relative_to(ctr_match.ROOT)),
+                "candidate": candidate.relative_to(ctr_match.ROOT).as_posix(),
                 **({"owner": owners[function.emitted_name]} if joint else {}),
             })
         spans.append({
@@ -696,7 +696,7 @@ def compare_linked_intervals(
             "address": f"0x{start.address:08x}", "size": end.address - start.address,
             "placement_exact": placed, **comparison,
             "exact": comparison["exact"] and placed,
-            "candidate": str(code.relative_to(ctr_match.ROOT)),
+            "candidate": code.relative_to(ctr_match.ROOT).as_posix(),
         })
     data = []
     if "data_ranges" in config:
@@ -706,7 +706,7 @@ def compare_linked_intervals(
         for item in data:
             item["owner"] = owners[item["name"]]
     return {
-        "elf": str(linked_object.relative_to(ctr_match.ROOT)),
+        "elf": linked_object.relative_to(ctr_match.ROOT).as_posix(),
         "elf_sha256": ctr_match.sha256_file(linked_object),
         "code_intervals": spans, "functions": results,
         "code_placed": all(span["placement_exact"] for span in spans),
@@ -780,7 +780,7 @@ def link_contiguous_block(
             table = (relocatable_symbols(toolchain, object_file) if any(key in config for key in ("bss_ranges", "function_padding"))
                      else ctr_match.linked_symbols(toolchain.binutils["objdump"], object_file, 0))
             if any(key in config for key in ("bss_ranges", "function_padding")):
-                input_proofs.append({"object": str(object_file.relative_to(ctr_match.ROOT)),
+                input_proofs.append({"object": object_file.relative_to(ctr_match.ROOT).as_posix(),
                                      "sha256": ctr_match.sha256_file(object_file),
                                      "owners": {name: owner for name, owner in table.items() if name in selected}})
             for name, owner in table.items():
@@ -1151,7 +1151,7 @@ def build_resident(
         for function in (inventory if multiple_intervals else functions)
     }
     if "bss_ranges" in config:
-        sources = {str(path.relative_to(ctr_match.ROOT)): path for path in namespace_sources(config)}
+        sources = {path.relative_to(ctr_match.ROOT).as_posix(): path for path in namespace_sources(config)}
     source_results: dict[str, dict[str, Any]] = {}
     for source_name, source in sources.items():
         compiled = compile_source(config, toolchain, source)
@@ -1224,7 +1224,7 @@ def build_resident(
             result = error_result(
                 function,
                 str(exc),
-                str(error_file.relative_to(ctr_match.ROOT))
+                error_file.relative_to(ctr_match.ROOT).as_posix()
                 if error_file.is_file()
                 else None,
             )
@@ -1249,7 +1249,7 @@ def build_resident(
                 )
             object_files = []
             for source in namespace_sources(config):
-                source_name = str(source.relative_to(ctr_match.ROOT))
+                source_name = source.relative_to(ctr_match.ROOT).as_posix()
                 source_result = source_results[source_name]
                 if not source_result["compiled"]:
                     raise ctr_match.MatchError(

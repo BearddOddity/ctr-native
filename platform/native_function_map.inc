@@ -1,6 +1,6 @@
 // Written by tools/gen_function_map.py from the game's sources: run it again after adding or removing a
 // function (tools/check.py says when). One line per game function: FNV-1a hash of its name, its name.
-// 2195 functions, sorted by hash.
+// 2196 functions, sorted by hash.
 NATIVE_FUNCTION_ID(0x00304e3au, BOTS_Adv_CopySpawnOrder)
 NATIVE_FUNCTION_ID(0x003c58b6u, RenderBucket_LoadSpecialMirroredRTPS)
 NATIVE_FUNCTION_ID(0x003d3cf9u, MEMCARD_CloseFile)
@@ -2002,6 +2002,7 @@ NATIVE_FUNCTION_ID(0xe8b522cfu, PushBuffer_SetFrustumPlane_Abs)
 NATIVE_FUNCTION_ID(0xe8d9e515u, DrawLevelOvr1P_PackProjectedSxy)
 NATIVE_FUNCTION_ID(0xe9150caeu, Ovr226_800a1128_DispatchFullDynamicTransitionGrid)
 NATIVE_FUNCTION_ID(0xe93658b0u, RB_Crystal_ThTick)
+NATIVE_FUNCTION_ID(0xe96102b6u, RenderBucket_NoteUnhandledSelector)
 NATIVE_FUNCTION_ID(0xe9724b90u, DotLights_AudioAndVideo)
 NATIVE_FUNCTION_ID(0xe994ae03u, Ovr226_800a8714_PrepareDynamicRenderedDeepestUv)
 NATIVE_FUNCTION_ID(0xe9c98319u, howl_InstrumentPitch)
