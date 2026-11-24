@@ -1451,6 +1451,7 @@ void BOTS_Killplane(struct Thread *botThread)
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
 	int elapsedMilliseconds;
+	int negElapsed;
 	int speedApprox;
 	u32 local_38;
 	s16 tireColorStep;
@@ -1521,31 +1522,33 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	}
 
 
-	botDriver->reserves = (s16)CTR_MipsSubLo((u16)botDriver->reserves, elapsedMilliseconds);
+	// retail negates the frame time once and adds it to each timer
+	negElapsed = CTR_MipsNegLo(elapsedMilliseconds);
+	botDriver->reserves = (s16)CTR_MipsAddLo((u16)botDriver->reserves, negElapsed);
 	if (botDriver->reserves < 0)
 	{
 		botDriver->reserves = 0;
 	}
 
-	botDriver->turbo_outsideTimer = (s16)CTR_MipsSubLo((u16)botDriver->turbo_outsideTimer, elapsedMilliseconds);
+	botDriver->turbo_outsideTimer = (s16)CTR_MipsAddLo((u16)botDriver->turbo_outsideTimer, negElapsed);
 	if (botDriver->turbo_outsideTimer < 0)
 	{
 		botDriver->turbo_outsideTimer = 0;
 	}
 
-	botDriver->squishTimer = (s16)CTR_MipsSubLo((u16)botDriver->squishTimer, elapsedMilliseconds);
+	botDriver->squishTimer = (s16)CTR_MipsAddLo((u16)botDriver->squishTimer, negElapsed);
 	if (botDriver->squishTimer < 0)
 	{
 		botDriver->squishTimer = 0;
 	}
 
-	botDriver->burnTimer = (s16)CTR_MipsSubLo((u16)botDriver->burnTimer, elapsedMilliseconds);
+	botDriver->burnTimer = (s16)CTR_MipsAddLo((u16)botDriver->burnTimer, negElapsed);
 	if (botDriver->burnTimer < 0)
 	{
 		botDriver->burnTimer = 0;
 	}
 
-	botDriver->clockReceive = (s16)CTR_MipsSubLo((u16)botDriver->clockReceive, elapsedMilliseconds);
+	botDriver->clockReceive = (s16)CTR_MipsAddLo((u16)botDriver->clockReceive, negElapsed);
 	if (botDriver->clockReceive < 0)
 	{
 		botDriver->clockReceive = 0;
