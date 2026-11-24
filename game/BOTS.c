@@ -1567,18 +1567,18 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 		speedApprox = CTR_MipsNegLo(speedApprox);
 	}
 
-	if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) == 0)
-	{
-		speedApprox = CTR_MipsAddLo(speedApprox, DRIVER_TIRE_COLOR_SPEED_AIRBORNE_BONUS);
-	}
-	else
+	if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
 	{
 		speedApprox = CTR_MipsSra(CTR_MipsSll(speedApprox, 1), 1);
 	}
+	else
+	{
+		speedApprox = CTR_MipsAddLo(speedApprox, DRIVER_TIRE_COLOR_SPEED_AIRBORNE_BONUS);
+	}
 
 
-	tireColorStep = (s16)CTR_MipsSra(CTR_MipsSll(CTR_MipsAddLo(CTR_MipsMulLo(speedApprox, DRIVER_TIRE_COLOR_SPEED_WEIGHT),
-	                                                           CTR_MipsMulLo(botDriver->tireColorCycleStep, DRIVER_TIRE_COLOR_STEP_WEIGHT)),
+	tireColorStep = (s16)CTR_MipsSra(CTR_MipsSll(CTR_MipsAddLo(CTR_MipsMulLo(botDriver->tireColorCycleStep, DRIVER_TIRE_COLOR_STEP_WEIGHT),
+	                                                           CTR_MipsMulLo(speedApprox, DRIVER_TIRE_COLOR_SPEED_WEIGHT)),
 	                                             3),
 	                                 0xC);
 	botDriver->tireColorCycleStep = tireColorStep;
@@ -1609,20 +1609,24 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	}
 UpdateTireColorTimer:
 
-	if ((botDriver->tireColorCycleTimer < 1) && ((botDriver->tireColor & 1) == 0))
+	if ((botDriver->tireColorCycleTimer > 0) || ((botDriver->tireColor & 1) != 0))
 	{
-		botDriver->tireColorCycleTimer = DRIVER_TIRE_COLOR_TIMER_RESET;
-		botDriver->tireColor = DRIVER_TIRE_COLOR_DARK;
+		botDriver->tireColor = DRIVER_TIRE_COLOR_DEFAULT;
 	}
 	else
 	{
-		botDriver->tireColor = DRIVER_TIRE_COLOR_DEFAULT;
+		botDriver->tireColorCycleTimer = DRIVER_TIRE_COLOR_TIMER_RESET;
+		botDriver->tireColor = DRIVER_TIRE_COLOR_DARK;
 	}
 
 	navFrameCurr = &botDriver->botData.estimateNavFrame; // psVar19
 
 
-	if ((botDriver->botData.botFlags & BOT_FLAG_ESTIMATE_NAV) == 0)
+	if ((botDriver->botData.botFlags & BOT_FLAG_ESTIMATE_NAV) != 0)
+	{
+		navFrameNext = botDriver->botData.botNavFrame;
+	}
+	else
 	{
 		int pathID;
 		navFrameCurr = botDriver->botData.botNavFrame;
@@ -1634,10 +1638,6 @@ UpdateTireColorTimer:
 		{
 			navFrameNext = sdata->NavPath_ptrNavFrameArray[pathID];
 		}
-	}
-	else
-	{
-		navFrameNext = botDriver->botData.botNavFrame;
 	}
 
 
