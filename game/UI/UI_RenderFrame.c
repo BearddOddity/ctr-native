@@ -538,7 +538,7 @@ void UI_RenderFrame_Racing()
 			// thread = thread->sibling
 			playerThread = playerThread->siblingThread;
 
-			hudStructPtr += UI_HUD_SLOT_COUNT;
+			hudLoop += UI_HUD_SLOT_COUNT;
 
 		} while (playerThread != 0);
 	}
