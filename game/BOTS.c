@@ -1455,6 +1455,12 @@ void BOTS_Killplane(struct Thread *botThread)
 #else
 #define SDATA_ABS sdata
 #endif
+#ifndef CTR_NATIVE
+// the path-change opcode decoded in place, as retail does (the static helpers are not inlined by GCC 2.8.1)
+#define BOTS_PathChangePathID(c)     ((s16)((s32)(c) >> BOTS_PATH_CHANGE_PATH_SHIFT))
+#define BOTS_PathChangeFrameIndex(c) ((c) & BOTS_PATH_CHANGE_FRAME_MASK)
+#define BOTS_PathChangeCap()         ((s16)(BOTS_NAV_PATH_COUNT << BOTS_PATH_CHANGE_PATH_SHIFT))
+#endif
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
 	int elapsedMilliseconds;
@@ -3498,6 +3504,11 @@ FinishHazardTimerUpdate:
 #undef gGT
 #endif
 }
+#ifndef CTR_NATIVE
+#undef BOTS_PathChangePathID
+#undef BOTS_PathChangeFrameIndex
+#undef BOTS_PathChangeCap
+#endif
 #undef SDATA_ABS
 #ifndef CTR_NATIVE
 #undef CTR_MipsMulLo
