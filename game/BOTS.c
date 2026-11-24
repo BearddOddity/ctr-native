@@ -1499,7 +1499,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 
 	if (botDriver->botData.weaponCooldown != 0)
 	{
-		botDriver->botData.weaponCooldown = (s16)CTR_MipsSubLo((u16)botDriver->botData.weaponCooldown, 1);
+		botDriver->botData.weaponCooldown--;
 	}
 
 	if (botDriver->pendingDamageType != 0)
@@ -1508,7 +1508,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	}
 	else if (((botDriver->actionsFlagSet & ACTION_RACE_FINISHED) == 0) && (botDriver->botData.weaponCooldown != 0))
 	{
-		botDriver->botData.weaponCooldown = (s16)CTR_MipsSubLo((u16)botDriver->botData.weaponCooldown, 1);
+		botDriver->botData.weaponCooldown--;
 	}
 
 
