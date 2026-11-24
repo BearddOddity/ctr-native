@@ -1446,7 +1446,6 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	s16 tireColorStep;
 	struct NavFrame *navFrameCurr;
 	struct NavFrame *navFrameNext; // psVar21
-	struct DriverCollisionSearch driverSearch;
 	struct Thread *hitThread;
 	int deltaPosThisFrame; // iVar4
 	int navFrameFlags;
@@ -1629,36 +1628,44 @@ UpdateTireColorTimer:
 	}
 
 
-	CTR_SET_VEC3(CTR_VECTOR_DATA(&(driverSearch.bucket.pos)), (s16)CTR_MipsSra(botDriver->posCurr.x, FRACTIONAL_BITS_8),
-	             (s16)CTR_MipsSra(botDriver->posCurr.y, FRACTIONAL_BITS_8), (s16)CTR_MipsSra(botDriver->posCurr.z, FRACTIONAL_BITS_8));
-	driverSearch.bucket.th = NULL;
-	driverSearch.bucket.bestDistSq = 0x7fffffff;
-
-	if ((botThread->flags & (THREAD_FLAG_DEAD | THREAD_FLAG_DISABLE_COLLISION)) == 0)
+	// GCC 2.8.1 gives a block's stack slot back only from the second nesting level on: retail reuses the
+	// collision search's slot for later blocks' locals.
 	{
-		if (botThread->modelIndex == DYNAMIC_PLAYER)
+	{
+		struct DriverCollisionSearch driverSearch;
+
+		CTR_SET_VEC3(CTR_VECTOR_DATA(&(driverSearch.bucket.pos)), (s16)CTR_MipsSra(botDriver->posCurr.x, FRACTIONAL_BITS_8),
+		             (s16)CTR_MipsSra(botDriver->posCurr.y, FRACTIONAL_BITS_8), (s16)CTR_MipsSra(botDriver->posCurr.z, FRACTIONAL_BITS_8));
+		driverSearch.bucket.th = NULL;
+		driverSearch.bucket.bestDistSq = 0x7fffffff;
+
+		if ((botThread->flags & (THREAD_FLAG_DEAD | THREAD_FLAG_DISABLE_COLLISION)) == 0)
 		{
-			PROC_CollidePointWithBucket(botThread->siblingThread, &driverSearch.bucket);
-			PROC_CollidePointWithBucket(gGT->threadBuckets[ROBOT].thread, &driverSearch.bucket);
+			if (botThread->modelIndex == DYNAMIC_PLAYER)
+			{
+				PROC_CollidePointWithBucket(botThread->siblingThread, &driverSearch.bucket);
+				PROC_CollidePointWithBucket(gGT->threadBuckets[ROBOT].thread, &driverSearch.bucket);
+			}
+			else if (botThread->modelIndex == DYNAMIC_ROBOT_CAR)
+			{
+				PROC_CollidePointWithBucket(botThread->siblingThread, &driverSearch.bucket);
+			}
 		}
-		else if (botThread->modelIndex == DYNAMIC_ROBOT_CAR)
+
+		hitThread = driverSearch.bucket.th;
+		if (hitThread != NULL)
 		{
-			PROC_CollidePointWithBucket(botThread->siblingThread, &driverSearch.bucket);
+			int combinedRadius = CTR_MipsAddLo(botThread->driverHitRadius, hitThread->driverHitRadius);
+			if (driverSearch.bucket.bestDistSq < CTR_MipsMulLo(combinedRadius, combinedRadius))
+			{
+				Vec3 selfVelocity;
+				selfVelocity.x = CTR_MipsAddLo(botDriver->xSpeed, botDriver->botData.aiPhysics.accel.x);
+				selfVelocity.y = CTR_MipsAddLo(botDriver->ySpeed, botDriver->botData.aiPhysics.accel.y);
+				selfVelocity.z = CTR_MipsAddLo(botDriver->zSpeed, botDriver->botData.aiPhysics.accel.z);
+				VehPhysCrash_AnyTwoCars(botThread, &driverSearch, &selfVelocity);
+			}
 		}
 	}
-
-	hitThread = driverSearch.bucket.th;
-	if (hitThread != NULL)
-	{
-		int combinedRadius = CTR_MipsAddLo(botThread->driverHitRadius, hitThread->driverHitRadius);
-		if (driverSearch.bucket.bestDistSq < CTR_MipsMulLo(combinedRadius, combinedRadius))
-		{
-			Vec3 selfVelocity;
-			selfVelocity.x = CTR_MipsAddLo(botDriver->xSpeed, botDriver->botData.aiPhysics.accel.x);
-			selfVelocity.y = CTR_MipsAddLo(botDriver->ySpeed, botDriver->botData.aiPhysics.accel.y);
-			selfVelocity.z = CTR_MipsAddLo(botDriver->zSpeed, botDriver->botData.aiPhysics.accel.z);
-			VehPhysCrash_AnyTwoCars(botThread, &driverSearch, &selfVelocity);
-		}
 	}
 
 
