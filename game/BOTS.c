@@ -1468,10 +1468,16 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	int iVar4_lifetime_2;
 	int uVar11;
 	s16 camRot;
-	struct ScratchpadStruct *sps = CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108);
 	struct Driver *botDriver = (struct Driver *)botThread->object;     // iVar17
 	struct Instance *botInstance = (struct Instance *)botThread->inst; // iVar22
+#ifdef CTR_NATIVE
+	struct ScratchpadStruct *sps = CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108);
 	struct GameTracker *gGT = GAME_TRACKER;
+#else
+	// Retail reads these again at each use.
+#define sps CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108)
+#define gGT GAME_TRACKER
+#endif
 
 	// Retail sets these at entry: the nav flags gathered with |= below, the ramp bits, the frame time and the
 	// boost scale.
@@ -3464,6 +3470,10 @@ FinishHazardTimerUpdate:
 			botDriver->underDriver = sps->hit.ptrQuadblock;
 		}
 	}
+#ifndef CTR_NATIVE
+#undef sps
+#undef gGT
+#endif
 }
 
 u32 BOTS_ChangeState(struct Driver *driverVictim, int damageType, struct Driver *driverAttacker, int reason)
