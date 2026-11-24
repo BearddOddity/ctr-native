@@ -563,11 +563,8 @@ void UI_RenderFrame_Racing()
 
 		if ((gGT->gameMode2 & CHEAT_TURBOCOUNT) != 0)
 		{
-			// Get number of boosts
-			sVar1 = playerStruct->numTurbos;
-
-			// If number of boosts is not zero
-			if (sVar1 != 0)
+			// If number of boosts is not zero (retail reads the count again at each test, signed)
+			if (playerStruct->numTurbos != 0)
 			{
 				// Read pointer from address
 				turboThread = gGT->threadBuckets[TURBO].thread;
@@ -582,9 +579,6 @@ void UI_RenderFrame_Racing()
 				{
 					turboThread = turboThread->siblingThread;
 				}
-
-				// Get number of boosts
-				sVar1 = playerStruct->numTurbos;
 			}
 
 			// GAME_SDATA_NAME(TurboDisplayPos_Only1P)
@@ -596,7 +590,7 @@ void UI_RenderFrame_Racing()
 
 			// Retail stores the position only when it moves: +1 sliding on (3+ boosts, not fully on screen, a turbo
 			// thread found), -1 sliding off (no turbo thread, or fewer than 3 boosts), each tested in this order.
-			if ((sVar1 >= 3) && (GAME_SDATA_NAME(TurboDisplayPos_Only1P) < 10))
+			if ((playerStruct->numTurbos >= 3) && (GAME_SDATA_NAME(TurboDisplayPos_Only1P) < 10))
 			{
 				// If pointer == nullptr
 				if (turboThread == 0)
