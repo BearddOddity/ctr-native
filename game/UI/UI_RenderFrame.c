@@ -381,25 +381,23 @@ void UI_RenderFrame_Racing()
 
 					partTimeVariable1 = playerStruct->BattleHUD.scoreDelta;
 
+					// retail sets up each case's sprintf and shares only the call
 					if ((raceMode1 & LIFE_LIMIT) != 0)
 					{
-						fmt = &GAME_SDATA_NAME(s_subtractLongInt)[0];
+						sprintf(scoreText, &GAME_SDATA_NAME(s_subtractLongInt)[0], partTimeVariable1);
 					}
 					else if (partTimeVariable1 > 0)
 					{
-						fmt = &GAME_SDATA_NAME(s_additionLongInt)[0];
+						sprintf(scoreText, &GAME_SDATA_NAME(s_additionLongInt)[0], partTimeVariable1);
 					}
 					else
 					{
-						fmt = &GAME_SDATA_NAME(s_subtractInt)[0];
-
 						if (partTimeVariable1 < 0)
 						{
 							partTimeVariable1 = -partTimeVariable1;
 						}
+						sprintf(scoreText, &GAME_SDATA_NAME(s_subtractInt)[0], partTimeVariable1);
 					}
-
-					sprintf(scoreText, fmt, partTimeVariable1);
 
 					UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->BattleHUD.startX, (int)playerStruct->BattleHUD.startY,
 					              (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20), (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y + 8),
