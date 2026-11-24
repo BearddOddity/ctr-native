@@ -1870,43 +1870,7 @@ UpdateTireColorTimer:
 
 		// puVar5 = gGT but different?
 
-		if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) == 0)
-		{
-			int ZYsqr = CTR_MipsAddLo(CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, botDriver->botData.aiPhysics.speedLinear),
-			                          CTR_MipsMulLo(botDriver->botData.aiPhysics.speedY, botDriver->botData.aiPhysics.speedY));
-
-			if (0x2b110000 < ZYsqr) // sqrZY
-			{
-				int ZY = SquareRoot0_stub(ZYsqr);
-
-				int zVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, 0x6900); // iVar3
-
-#if 0 // in the OG game
-				if (ZY == 0)
-				{
-					//trap(0x1c00);
-				}
-				if ((ZY == -1) && (zVel == -0x80000000))
-				{
-					//trap(0x1800);
-				}
-#endif
-				int yVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedY, 0x6900); // iVar15
-#if 0                                                                                  // in the OG game
-				if (ZY == 0)
-				{
-					//trap(0x1c00);
-				}
-				if ((ZY == -1) && (yVel == -0x80000000))
-				{
-					//trap(0x1800);
-				}
-#endif
-				botDriver->botData.aiPhysics.speedLinear = CTR_MipsDiv(zVel, ZY);
-				botDriver->botData.aiPhysics.speedY = CTR_MipsDiv(yVel, ZY);
-			}
-		}
-		else
+		if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
 		{
 			struct Driver *bestDriverRank;
 			int botVelocity; // iVar3
@@ -2275,6 +2239,42 @@ UpdateTireColorTimer:
 				}
 
 				botDriver->fireSpeed = velocityAccountingForTerrain;
+			}
+		}
+		else
+		{
+			int ZYsqr = CTR_MipsAddLo(CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, botDriver->botData.aiPhysics.speedLinear),
+			                          CTR_MipsMulLo(botDriver->botData.aiPhysics.speedY, botDriver->botData.aiPhysics.speedY));
+
+			if (0x2b110000 < ZYsqr) // sqrZY
+			{
+				int ZY = SquareRoot0_stub(ZYsqr);
+
+				int zVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, 0x6900); // iVar3
+
+#if 0 // in the OG game
+				if (ZY == 0)
+				{
+					//trap(0x1c00);
+				}
+				if ((ZY == -1) && (zVel == -0x80000000))
+				{
+					//trap(0x1800);
+				}
+#endif
+				int yVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedY, 0x6900); // iVar15
+#if 0                                                                                  // in the OG game
+				if (ZY == 0)
+				{
+					//trap(0x1c00);
+				}
+				if ((ZY == -1) && (yVel == -0x80000000))
+				{
+					//trap(0x1800);
+				}
+#endif
+				botDriver->botData.aiPhysics.speedLinear = CTR_MipsDiv(zVel, ZY);
+				botDriver->botData.aiPhysics.speedY = CTR_MipsDiv(yVel, ZY);
 			}
 		}
 
