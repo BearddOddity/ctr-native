@@ -587,7 +587,7 @@ void UI_RenderFrame_Racing()
 				sVar1 = playerStruct->numTurbos;
 			}
 
-			// sdata->TurboDisplayPos_Only1P
+			// GAME_SDATA_NAME(TurboDisplayPos_Only1P)
 			// Position of counter
 			// 0 = offscreen
 			// 1 = just barely on screen
@@ -599,7 +599,7 @@ void UI_RenderFrame_Racing()
 			    (sVar1 < 3) ||
 
 			    // If display counter is fully on screen
-			    (9 < sdata->TurboDisplayPos_Only1P))
+			    (9 < GAME_SDATA_NAME(TurboDisplayPos_Only1P)))
 			{
 				// If pointer == nullptr
 				if (turboThread == 0)
@@ -609,18 +609,18 @@ void UI_RenderFrame_Racing()
 			LAB_80053cac:
 
 				// Set sVar1 to current display counter position
-				sVar1 = sdata->TurboDisplayPos_Only1P;
+				sVar1 = GAME_SDATA_NAME(TurboDisplayPos_Only1P);
 				if (
 				    // If number boosts is less than 3
 				    (playerStruct->numTurbos < 3) &&
 
 				    // If turbo counter is on screen
-				    (0 < sdata->TurboDisplayPos_Only1P))
+				    (0 < GAME_SDATA_NAME(TurboDisplayPos_Only1P)))
 				{
 				LAB_80053cd4:
 
 					// Animate counter to move off screen
-					sVar1 = sdata->TurboDisplayPos_Only1P - 1;
+					sVar1 = GAME_SDATA_NAME(TurboDisplayPos_Only1P) - 1;
 				}
 			}
 
@@ -629,14 +629,14 @@ void UI_RenderFrame_Racing()
 			else
 			{
 				// Animate counter to move onto screen
-				sVar1 = sdata->TurboDisplayPos_Only1P + 1;
+				sVar1 = GAME_SDATA_NAME(TurboDisplayPos_Only1P) + 1;
 
 				// If pointer == nullptr
 				if (turboThread == 0)
 				{
 				LAB_80053c98:
 					// If counter is off screen
-					if (sdata->TurboDisplayPos_Only1P < 1)
+					if (GAME_SDATA_NAME(TurboDisplayPos_Only1P) < 1)
 					{
 						// set svar1 to display position
 						goto LAB_80053cac;
@@ -649,13 +649,13 @@ void UI_RenderFrame_Racing()
 			}
 
 			// Set display position value
-			sdata->TurboDisplayPos_Only1P = sVar1;
+			GAME_SDATA_NAME(TurboDisplayPos_Only1P) = sVar1;
 
 			// If display counter is on screen (fully or not fully)
-			if (sdata->TurboDisplayPos_Only1P != 0)
+			if (GAME_SDATA_NAME(TurboDisplayPos_Only1P) != 0)
 			{
 				// Interpolate the turbo counter slide in from the right
-				UI_Lerp2D_Linear(CTR_VECTOR_DATA(&(turboCountPos)), 0x2c8, 0x20, 500, 0x20, sdata->TurboDisplayPos_Only1P, 10);
+				UI_Lerp2D_Linear(CTR_VECTOR_DATA(&(turboCountPos)), 0x2c8, 0x20, 500, 0x20, GAME_SDATA_NAME(TurboDisplayPos_Only1P), 10);
 
 				// The actual counter number will continue to
 				// increase past 1000, but the on-screen text
