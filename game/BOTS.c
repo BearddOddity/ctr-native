@@ -1451,6 +1451,7 @@ void BOTS_Killplane(struct Thread *botThread)
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
 	int elapsedMilliseconds;
+	int trafficLightsTimer;
 	int negElapsed;
 	int speedApprox;
 	u32 local_38;
@@ -1682,21 +1683,29 @@ UpdateTireColorTimer:
 	}
 
 
-	if (botDriver->botData.ai_progress_cooldown == 0)
+	// Retail lays the hold (cooldown, or the race not started yet) out first and the driving code after it.
+	if ((botDriver->botData.ai_progress_cooldown != 0) ||
+	    ((trafficLightsTimer = gGT->trafficLightsTimer,
+	      // oxide pretends there is less time (he is a cheater)
+	      (data.characterIDs[botDriver->driverID] == NITROS_OXIDE) ? CTR_MipsSubLo(trafficLightsTimer, 0x1e0)
+	                                                              : trafficLightsTimer) > 0))
+	{
+		botInstance->scale.z = 0xccc;
+		botInstance->scale.y = 0xccc;
+		botInstance->scale.x = 0xccc;
+
+		botDriver->botData.aiPhysics.speedLinear = 0;
+
+		if (botDriver->botData.ai_progress_cooldown != 0)
+		{
+			botDriver->botData.ai_progress_cooldown--;
+		}
+
+		deltaPosThisFrame = botDriver->botData.navProgressRemainder;
+	}
+	else
 	{
 		u32 botFlags;
-		int trafficLightsTimer = gGT->trafficLightsTimer;
-
-		if (data.characterIDs[botDriver->driverID] == NITROS_OXIDE) // check is oxide
-		{
-			// Pretend there is less time (oxide is a cheater)
-			trafficLightsTimer = CTR_MipsSubLo(trafficLightsTimer, 0x1e0);
-		}
-
-		if (0 < trafficLightsTimer)
-		{
-			goto HoldBotBeforeRaceOrCooldown; // if race not started, then skip
-		}
 
 		if ((gGT->boolDemoMode != 0) && ((botDriver->botData.botFlags & BOT_FLAG_DEMO_CAMERA_STARTED) == 0) && (botThread->modelIndex == DYNAMIC_PLAYER))
 		{
@@ -2267,22 +2276,6 @@ UpdateTireColorTimer:
 			deltaPosThisFrame = 0;
 		}
 		deltaPosThisFrame = CTR_MipsAddLo(deltaPosThisFrame, botDriver->botData.navProgressRemainder);
-	}
-	else
-	{
-	HoldBotBeforeRaceOrCooldown:
-		botInstance->scale.x = 0xccc;
-		botInstance->scale.y = 0xccc;
-		botInstance->scale.z = 0xccc;
-
-		botDriver->botData.aiPhysics.speedLinear = 0;
-
-		if (botDriver->botData.ai_progress_cooldown != 0)
-		{
-			botDriver->botData.ai_progress_cooldown--;
-		}
-
-		deltaPosThisFrame = botDriver->botData.navProgressRemainder;
 	}
 
 	navFrameFlags |= navFrameCurr->flags;
