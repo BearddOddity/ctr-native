@@ -322,19 +322,8 @@ void UI_RenderFrame_Racing()
 				}
 			}
 
-			// If you're not in a Relic Race
-			if ((raceMode1 & RELIC_RACE) == 0)
-			{
-				if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
-				{
-					// Draw weapon and number of wumpa fruit in HUD
-					UI_Weapon_DrawSelf(hudLoop[UI_HUD_SLOT_WEAPON].x, hudLoop[UI_HUD_SLOT_WEAPON].y, hudLoop[UI_HUD_SLOT_WEAPON].scale,
-					                   playerStruct);
-				}
-			}
-
-			// if you are in relic mode
-			else
+			// if you are in relic mode (retail tests this case first)
+			if ((raceMode1 & RELIC_RACE) != 0)
 			{
 				// If you smashed a time crate, this variable is set to 10
 				if (playerStruct->PickupTimeboxHUD.cooldown != 0)
@@ -344,7 +333,7 @@ void UI_RenderFrame_Racing()
 
 					// Make string with number of time crate
 					// print "-x" where x is the amount of seconds
-					sprintf(&string[0], &sdata->s_subtractLongInt[0], gGT->timeCrateTypeSmashed);
+					sprintf(&string[0], &GAME_SDATA_NAME(s_subtractLongInt)[0], gGT->timeCrateTypeSmashed);
 
 					// 4b4 and 4b6 are WindowStartPos(x,y) from PushBuffer, inside Driver
 					UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), playerStruct->PickupTimeboxHUD.startX, playerStruct->PickupTimeboxHUD.startY, 0x14, 8,
@@ -359,6 +348,17 @@ void UI_RenderFrame_Racing()
 				}
 			}
 
+			// If you're not in a Relic Race
+			else
+			{
+				if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
+				{
+					// Draw weapon and number of wumpa fruit in HUD
+					UI_Weapon_DrawSelf(hudLoop[UI_HUD_SLOT_WEAPON].x, hudLoop[UI_HUD_SLOT_WEAPON].y, hudLoop[UI_HUD_SLOT_WEAPON].scale,
+					                   playerStruct);
+				}
+			}
+
 			// === Naughty Dog Bug ===
 			// This block will never execute in Life Limit,
 			// even though original code has a block inside this IF
@@ -368,40 +368,30 @@ void UI_RenderFrame_Racing()
 			// and you do not have a life limit
 			if ((raceMode1 & (LIFE_LIMIT | BATTLE_MODE | PAUSE_ALL)) == BATTLE_MODE)
 			{
-				// If the animation for adding points is over
-				if (playerStruct->BattleHUD.cooldown == 0)
-				{
-					// Delete the change that in score that was queued
-					playerStruct->BattleHUD.scoreDelta = 0;
-				}
-
-				// if the animation is not done
-				else
+				// if the animation is not done (retail tests this case first)
+				if (playerStruct->BattleHUD.cooldown != 0)
 				{
 					wumpaModelPos.x = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20;
 					wumpaModelPos.y = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y;
 
 					partTimeVariable1 = playerStruct->BattleHUD.scoreDelta;
 
-					if ((raceMode1 & LIFE_LIMIT) == 0)
+					if ((raceMode1 & LIFE_LIMIT) != 0)
 					{
-						if (partTimeVariable1 < 1)
-						{
-							fmt = &sdata->s_subtractInt[0];
-
-							if (partTimeVariable1 < 0)
-							{
-								partTimeVariable1 = -partTimeVariable1;
-							}
-						}
-						else
-						{
-							fmt = &sdata->s_additionLongInt[0];
-						}
+						fmt = &GAME_SDATA_NAME(s_subtractLongInt)[0];
+					}
+					else if (partTimeVariable1 > 0)
+					{
+						fmt = &GAME_SDATA_NAME(s_additionLongInt)[0];
 					}
 					else
 					{
-						fmt = &sdata->s_subtractLongInt[0];
+						fmt = &GAME_SDATA_NAME(s_subtractInt)[0];
+
+						if (partTimeVariable1 < 0)
+						{
+							partTimeVariable1 = -partTimeVariable1;
+						}
 					}
 
 					sprintf((char *)&string[0], fmt, partTimeVariable1);
@@ -415,6 +405,13 @@ void UI_RenderFrame_Racing()
 
 					// print the string that shows the change in your score
 					DecalFont_DrawLine((char *)&string[0], (int)wumpaModelPos.x, (int)wumpaModelPos.y, FONT_SMALL, RED);
+				}
+
+				// the animation for adding points is over
+				else
+				{
+					// Delete the change that in score that was queued
+					playerStruct->BattleHUD.scoreDelta = 0;
 				}
 			}
 
