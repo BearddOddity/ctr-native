@@ -3344,77 +3344,75 @@ UpdateTireColorTimer:
 
 	badnessRecieveTimer = botDriver->clockReceive;
 
-	if (badnessRecieveTimer == 0)
+	// retail lays the hazard timer's countdown (no clock and no squish) out last
+	if ((badnessRecieveTimer != 0) || ((badnessRecieveTimer = botDriver->squishTimer) != 0))
 	{
-		badnessRecieveTimer = botDriver->squishTimer;
-		if (badnessRecieveTimer == 0)
+		if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
 		{
-			u16 uVar11;
-			if (0x100 < botDriver->speedApprox)
+			int iVar4 = botDriver->speedApprox;
+
+			if (iVar4 < 0)
 			{
-				botDriver->hazardTimer = (s16)CTR_MipsSubLo((u16)botDriver->hazardTimer, elapsedMilliseconds);
+				iVar4 = CTR_MipsNegLo(iVar4);
 			}
 
-			uVar11 = (u16)botDriver->hazardTimer & 0xfffe;
-			botDriver->hazardTimer = (s16)uVar11;
-
-			if ((s16)uVar11 >= 0)
+			if (iVar4 >= 0x101)
 			{
-				botDriver->hazardTimer = -2;
+				if (badnessRecieveTimer < 0)
+				{
+					badnessRecieveTimer = CTR_MipsNegLo(badnessRecieveTimer);
+				}
+				botDriver->hazardTimer = (s16)badnessRecieveTimer;
 			}
-			goto FinishHazardTimerUpdate;
+			else
+			{
+			CheckExistingHazardTimer:
+				badnessRecieveTimer = botDriver->hazardTimer;
+				if (0 < badnessRecieveTimer)
+				{
+					goto StoreNegativeHazardTimer;
+				}
+			}
 		}
-	}
-
-	if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
-	{
-		int iVar4 = botDriver->speedApprox;
-
-		if (iVar4 < 0)
+		else
 		{
-			iVar4 = CTR_MipsNegLo(iVar4);
-		}
+			int iVar4 = botDriver->speedApprox;
+			if (iVar4 < 0)
+			{
+				iVar4 = CTR_MipsNegLo(iVar4);
+			}
 
-		if (iVar4 >= 0x101)
-		{
+			if (iVar4 < 0x101)
+			{
+				goto CheckExistingHazardTimer;
+			}
+
 			if (badnessRecieveTimer < 0)
 			{
 				badnessRecieveTimer = CTR_MipsNegLo(badnessRecieveTimer);
 			}
-			botDriver->hazardTimer = (s16)badnessRecieveTimer;
+		StoreNegativeHazardTimer:
+			botDriver->hazardTimer = (s16)CTR_MipsNegLo(badnessRecieveTimer);
 		}
-		else
-		{
-		CheckExistingHazardTimer:
-			badnessRecieveTimer = botDriver->hazardTimer;
-			if (0 < badnessRecieveTimer)
-			{
-				goto StoreNegativeHazardTimer;
-			}
-		}
+
+		botDriver->hazardTimer = (s16)((u16)botDriver->hazardTimer | 1); // increment it by 1 if even.
 	}
 	else
 	{
-		int iVar4 = botDriver->speedApprox;
-		if (iVar4 < 0)
+		u16 uVar11;
+		if (0x100 < botDriver->speedApprox)
 		{
-			iVar4 = CTR_MipsNegLo(iVar4);
+			botDriver->hazardTimer = (s16)CTR_MipsSubLo((u16)botDriver->hazardTimer, elapsedMilliseconds);
 		}
 
-		if (iVar4 < 0x101)
-		{
-			goto CheckExistingHazardTimer;
-		}
+		uVar11 = (u16)botDriver->hazardTimer & 0xfffe;
+		botDriver->hazardTimer = (s16)uVar11;
 
-		if (badnessRecieveTimer < 0)
+		if ((s16)uVar11 >= 0)
 		{
-			badnessRecieveTimer = CTR_MipsNegLo(badnessRecieveTimer);
+			botDriver->hazardTimer = -2;
 		}
-	StoreNegativeHazardTimer:
-		botDriver->hazardTimer = (s16)CTR_MipsNegLo(badnessRecieveTimer);
 	}
-
-	botDriver->hazardTimer = (s16)((u16)botDriver->hazardTimer | 1); // increment it by 1 if even.
 
 FinishHazardTimerUpdate:
 
