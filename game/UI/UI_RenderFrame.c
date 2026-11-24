@@ -445,8 +445,9 @@ void UI_RenderFrame_Racing()
 				                                                                        // Not Arcade Mode (must be VS or Battle)
 				                                                                        ((partTimeVariable5 & 0x400000) == 0))))
 				{
+					// retail sets the suffix call up in each case and shares only the call itself
 					sVar17 = 0;
-					partTimeVariable5 = 0;
+					UI_DrawPosSuffix(hudStructPtr[UI_HUD_SLOT_RANK].x, hudStructPtr[UI_HUD_SLOT_RANK].y, playerStruct, 0);
 				}
 				else
 				{
@@ -456,14 +457,10 @@ void UI_RenderFrame_Racing()
 						goto LAB_80053af4;
 					}
 
-					bVar3 = (gGT->timer & 1) == 0;
-					sVar17 = (u16)bVar3 << 2;
-					partTimeVariable5 = ((u32)bVar3 << 0x12) >> 0x10;
+					sVar17 = ((gGT->timer & 1) == 0) << 2;
+					UI_DrawPosSuffix(hudStructPtr[UI_HUD_SLOT_RANK].x, hudStructPtr[UI_HUD_SLOT_RANK].y, playerStruct,
+					                 (u16)sVar17);
 				}
-
-				sVar1 = hudStructPtr[UI_HUD_SLOT_RANK].x;
-				sVar2 = hudStructPtr[UI_HUD_SLOT_RANK].y;
-				UI_DrawPosSuffix(sVar1, sVar2, playerStruct, (s16)partTimeVariable5);
 
 				if (numPlyr > 2)
 				{
