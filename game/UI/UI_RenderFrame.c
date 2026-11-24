@@ -714,14 +714,14 @@ void UI_RenderFrame_Racing()
 		}
 	}
 
-	if (levPtrMap != 0)
 	{
-		if (((numPlyr == 1)
+		// retail tests the player count first and the map after it, on each side of the ||
+		if (((numPlyr == 1) && (levPtrMap != 0)
 
 		     // if want to draw map, not speedometer
 		     && (GAME_SDATA_NAME(HudAndDebugFlags) & 8) == 0) ||
 
-		    (numPlyr == 3))
+		    ((numPlyr == 3) && (levPtrMap != 0)))
 		{
 			local_30[0] = 0;
 
