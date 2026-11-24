@@ -1473,7 +1473,13 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	struct Instance *botInstance = (struct Instance *)botThread->inst; // iVar22
 	struct GameTracker *gGT = GAME_TRACKER;
 
-	// local_34 = gGT->elapsedTimeMS;
+	// Retail sets these at entry: the nav flags gathered with |= below, the ramp bits, the frame time and the
+	// boost scale.
+	navFrameFlags = 0;
+	navFrameSpecialBits = 0;
+	local_3c = 0;
+	elapsedMilliseconds = gGT->elapsedTimeMS; // local_34
+	local_38 = 1;
 
 #if 0
 	if(botDriver->driverID != 0)
@@ -1490,19 +1496,15 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 		botDriver->botData.weaponCooldown = (s16)CTR_MipsSubLo((u16)botDriver->botData.weaponCooldown, 1);
 	}
 
-	if (botDriver->pendingDamageType == 0)
-	{
-		if (((botDriver->actionsFlagSet & ACTION_RACE_FINISHED) == 0) && (botDriver->botData.weaponCooldown != 0))
-		{
-			botDriver->botData.weaponCooldown = (s16)CTR_MipsSubLo((u16)botDriver->botData.weaponCooldown, 1);
-		}
-	}
-	else
+	if (botDriver->pendingDamageType != 0)
 	{
 		BOTS_ChangeState(botDriver, botDriver->pendingDamageType, botDriver->pendingDamageAttacker, botDriver->pendingDamageReasonByte);
 	}
+	else if (((botDriver->actionsFlagSet & ACTION_RACE_FINISHED) == 0) && (botDriver->botData.weaponCooldown != 0))
+	{
+		botDriver->botData.weaponCooldown = (s16)CTR_MipsSubLo((u16)botDriver->botData.weaponCooldown, 1);
+	}
 
-	elapsedMilliseconds = gGT->elapsedTimeMS; // local_34
 
 	botDriver->reserves = (s16)CTR_MipsSubLo((u16)botDriver->reserves, elapsedMilliseconds);
 	if (botDriver->reserves < 0)
@@ -1556,8 +1558,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 		speedApprox = CTR_MipsSra(CTR_MipsSll(speedApprox, 1), 1);
 	}
 
-	// NOTE(aalhendi): Retail initializes this boost scale before catch-up can overwrite it.
-	local_38 = 1;
+
 	tireColorStep = (s16)CTR_MipsSra(CTR_MipsSll(CTR_MipsAddLo(CTR_MipsMulLo(speedApprox, DRIVER_TIRE_COLOR_SPEED_WEIGHT),
 	                                                           CTR_MipsMulLo(botDriver->tireColorCycleStep, DRIVER_TIRE_COLOR_STEP_WEIGHT)),
 	                                             3),
@@ -2258,8 +2259,8 @@ UpdateTireColorTimer:
 		deltaPosThisFrame = botDriver->botData.navProgressRemainder;
 	}
 
-	navFrameFlags = navFrameCurr->flags;
-	navFrameSpecialBits = navFrameCurr->specialBits;
+	navFrameFlags |= navFrameCurr->flags;
+	navFrameSpecialBits |= navFrameCurr->specialBits;
 	// local_3c == 0
 	if ((navFrameSpecialBits & BOTS_NAV_SPECIAL_MOON_GRAVITY) != 0)
 	{
@@ -2297,7 +2298,6 @@ UpdateTireColorTimer:
 		navDist = navFrameCurr->distToNextNavXYZ;
 	}
 
-	local_3c = 0;
 	useGroundedNavDistance = false;
 	if ((navFrameCurr->specialBits & BOTS_NAV_SPECIAL_RAMP_PHYS) != 0)
 	{
