@@ -470,6 +470,8 @@ void UI_RenderFrame_Racing()
 
 				if (numPlyr > 2)
 				{
+					u32 **colorBase = GAME_DATA_NAME(ptrColor);
+					u32 **colorSlot = colorBase + sVar17;
 					// retail reads the icon and each color word straight from their tables, in the call itself
 					DecalHUD_DrawPolyGT4(
 					    // icon pointer, specifically for the big rank icons that start at 0x19
@@ -481,8 +483,8 @@ void UI_RenderFrame_Racing()
 					    &gGT->backBuffer->primMem, gGT->pushBuffer_UI.ptrOT,
 
 					    // color data
-					    ColorCode_Load(&GAME_DATA_NAME(ptrColor)[sVar17][0]), ColorCode_Load(&GAME_DATA_NAME(ptrColor)[sVar17][1]),
-					    ColorCode_Load(&GAME_DATA_NAME(ptrColor)[sVar17][2]), ColorCode_Load(&GAME_DATA_NAME(ptrColor)[sVar17][3]),
+					    ColorCode_Load(&(*colorSlot)[0]), ColorCode_Load(&(*colorSlot)[1]),
+					    ColorCode_Load(&(*colorSlot)[2]), ColorCode_Load(&(*colorSlot)[3]),
 
 					    0, FP(1.0));
 				}
@@ -491,20 +493,23 @@ void UI_RenderFrame_Racing()
 			// If you're in end-of-race and Battle
 			else if ((partTimeVariable5 & 0x200020) == 0x200020)
 			{
+				u32 **colorSlot;
+
 				partTimeVariable5 = (u32)((gGT->timer & 1) == 0) << 2;
 
 				// Draw the "st", "nd", "rd" suffix after "1st, 2nd, 3rd, etc"
 				UI_DrawPosSuffix(hudLoop[UI_HUD_SLOT_RANK].x, hudLoop[UI_HUD_SLOT_RANK].y, playerStruct, (s16)partTimeVariable5);
 
+				colorSlot = &GAME_DATA_NAME(ptrColor)[partTimeVariable5];
 				// retail sets this call's arguments up again here and shares only the call itself;
 				// the icon is the rank icon of each battle team after battle is over
 				DecalHUD_DrawPolyGT4(
 				    gGT->ptrIcons[gGT->battleSetup.finishedRankOfEachTeam[playerStruct->BattleHUD.teamID] + 0x19],
 				    (int)hudLoop[UI_HUD_SLOT_BIG1].x, (int)hudLoop[UI_HUD_SLOT_BIG1].y, &gGT->backBuffer->primMem,
-				    gGT->pushBuffer_UI.ptrOT, ColorCode_Load(&GAME_DATA_NAME(ptrColor)[partTimeVariable5][0]),
-				    ColorCode_Load(&GAME_DATA_NAME(ptrColor)[partTimeVariable5][1]),
-				    ColorCode_Load(&GAME_DATA_NAME(ptrColor)[partTimeVariable5][2]),
-				    ColorCode_Load(&GAME_DATA_NAME(ptrColor)[partTimeVariable5][3]), 0, FP(1.0));
+				    gGT->pushBuffer_UI.ptrOT, ColorCode_Load(&(*colorSlot)[0]),
+				    ColorCode_Load(&(*colorSlot)[1]),
+				    ColorCode_Load(&(*colorSlot)[2]),
+				    ColorCode_Load(&(*colorSlot)[3]), 0, FP(1.0));
 			}
 		LAB_80053af4:
 
