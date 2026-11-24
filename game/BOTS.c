@@ -3004,6 +3004,7 @@ UpdateTireColorTimer:
 
 						if (botDriver->botData.aiPhysics.rotXZ < 0xb40)
 						{
+							SVECTOR v;
 							VECTOR v2;
 							s32 l3;
 							int camDriverXDelta;
@@ -3012,7 +3013,6 @@ UpdateTireColorTimer:
 							int camDriverZDelta;
 							int rotY;
 							int rotX;
-							SVECTOR v;
 							v.vx = 0xfa;
 							if ((plant->object != NULL) && (((struct Plant *)plant->object)->side != 0))
 							{
