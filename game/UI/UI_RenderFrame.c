@@ -594,62 +594,45 @@ void UI_RenderFrame_Racing()
 			// ...
 			// 10 = clearly on screen
 
-			if (
-			    // If number boosts is less than 3
-			    (sVar1 < 3) ||
-
-			    // If display counter is fully on screen
-			    (9 < GAME_SDATA_NAME(TurboDisplayPos_Only1P)))
+			// Retail stores the position only when it moves: +1 sliding on (3+ boosts, not fully on screen, a turbo
+			// thread found), -1 sliding off (no turbo thread, or fewer than 3 boosts), each tested in this order.
+			if ((sVar1 >= 3) && (GAME_SDATA_NAME(TurboDisplayPos_Only1P) < 10))
 			{
 				// If pointer == nullptr
 				if (turboThread == 0)
 				{
 					goto LAB_80053c98;
 				}
-			LAB_80053cac:
 
-				// Set sVar1 to current display counter position
-				sVar1 = GAME_SDATA_NAME(TurboDisplayPos_Only1P);
+				// Animate counter to move onto screen
+				GAME_SDATA_NAME(TurboDisplayPos_Only1P) = GAME_SDATA_NAME(TurboDisplayPos_Only1P) + 1;
+			}
+			else
+			{
+				// If pointer == nullptr
+				if (turboThread == 0)
+				{
+				LAB_80053c98:
+					// If counter is on screen
+					if (GAME_SDATA_NAME(TurboDisplayPos_Only1P) > 0)
+					{
+						goto LAB_80053cd4;
+					}
+				}
+
 				if (
 				    // If number boosts is less than 3
 				    (playerStruct->numTurbos < 3) &&
 
 				    // If turbo counter is on screen
-				    (0 < GAME_SDATA_NAME(TurboDisplayPos_Only1P)))
+				    (GAME_SDATA_NAME(TurboDisplayPos_Only1P) > 0))
 				{
 				LAB_80053cd4:
 
 					// Animate counter to move off screen
-					sVar1 = GAME_SDATA_NAME(TurboDisplayPos_Only1P) - 1;
+					GAME_SDATA_NAME(TurboDisplayPos_Only1P) = GAME_SDATA_NAME(TurboDisplayPos_Only1P) - 1;
 				}
 			}
-
-			// If you have more than 3 boosts, and
-			// display counter is not fully on screen
-			else
-			{
-				// Animate counter to move onto screen
-				sVar1 = GAME_SDATA_NAME(TurboDisplayPos_Only1P) + 1;
-
-				// If pointer == nullptr
-				if (turboThread == 0)
-				{
-				LAB_80053c98:
-					// If counter is off screen
-					if (GAME_SDATA_NAME(TurboDisplayPos_Only1P) < 1)
-					{
-						// set svar1 to display position
-						goto LAB_80053cac;
-					}
-
-					// If counter is on screen
-					// decrease boost counter,
-					goto LAB_80053cd4;
-				}
-			}
-
-			// Set display position value
-			GAME_SDATA_NAME(TurboDisplayPos_Only1P) = sVar1;
 
 			// If display counter is on screen (fully or not fully)
 			if (GAME_SDATA_NAME(TurboDisplayPos_Only1P) != 0)
