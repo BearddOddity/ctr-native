@@ -7,6 +7,7 @@ enum
 };
 
 
+#ifdef CTR_NATIVE
 static u32 CAM_SkyboxGlow_PrimAddr(const void *prim)
 {
 	return CtrGpu_PrimToOTLink24(prim);
@@ -147,8 +148,35 @@ static u32 CAM_SkyboxGlow_ClearGradientColor(void)
 	return *(u32 *)&sdata->gGT->level1->clearColor[2].rgb[0] & 0xffffff;
 }
 
+#endif
+
+#ifndef CTR_NATIVE
+// The retail shape of CAM_SkyboxGlow (PS1 build only): the gradient colors and the two centre lines live in the
+// scratchpad, and each clipped color is worked out one channel at a time, as retail does. The native build keeps the
+// helper version above.
+struct SkyboxGlowScratch
+{
+	union
+	{
+		u8 c[4];
+		u32 w;
+	} color[5];
+	s32 centerY1;
+	s32 centerY2;
+};
+
+#define SKYGLOW ((struct SkyboxGlowScratch *)0x1f800000)
+#define SKYGLOW_LERP(dst, a, b, ratio)                                                                         \
+	{                                                                                                          \
+		SKYGLOW->color[dst].c[0] = SKYGLOW->color[a].c[0] + (((SKYGLOW->color[b].c[0] - SKYGLOW->color[a].c[0]) * (ratio)) >> 12); \
+		SKYGLOW->color[dst].c[1] = SKYGLOW->color[a].c[1] + (((SKYGLOW->color[b].c[1] - SKYGLOW->color[a].c[1]) * (ratio)) >> 12); \
+		SKYGLOW->color[dst].c[2] = SKYGLOW->color[a].c[2] + (((SKYGLOW->color[b].c[2] - SKYGLOW->color[a].c[2]) * (ratio)) >> 12); \
+	}
+#endif
+
 void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, struct PrimMem *primMem, u32 *ptrOT)
 {
+#ifdef CTR_NATIVE
 	s32 tilt = CAM_SkyboxGlow_CalcTilt(pb);
 	s32 centerY1 = CAM_SkyboxGlow_CalcCenterY(pb);
 	s32 centerY2 = CAM_SkyboxGlow_CalcCenterY(pb);
@@ -302,7 +330,313 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			}
 		}
 	}
+#else
+	s32 cosine;
+	s32 tilt;
+	s32 i;
+	s32 width;
+	u32 widthXY;
+	s32 toLeft;
+	s32 toRight;
+	s32 fromLeft;
+	s32 fromRight;
+	u32 mask;
+	s32 ratio1;
+	s32 ratio2;
+	u32 x1;
+	u32 xy;
+	u32 *p;
+	struct Level *level;
+
+	tilt = MATH_Sin(pb->rot.z) << 12;
+	cosine = MATH_Cos(pb->rot.z);
+	if (cosine == 0)
+	{
+		cosine = 1;
+	}
+	tilt = -(((tilt / cosine) << 8) >> 12) / 2;
+
+	SKYGLOW->centerY1 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
+	SKYGLOW->centerY2 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
+
+	width = pb->rect.w;
+	widthXY = width & 0xffff;
+
+	for (i = 0; i < 3; i++, grad++)
+	{
+		toLeft = SKYGLOW->centerY2 - grad->pointTo - tilt;
+		mask = (u32)~toLeft >> 31;
+		toRight = SKYGLOW->centerY2 - grad->pointTo + tilt;
+		SKYGLOW->color[0].w = SKYGLOW->color[1].w = grad->colorFrom & 0xffffff;
+		fromLeft = SKYGLOW->centerY1 - grad->pointFrom - tilt;
+		fromRight = SKYGLOW->centerY1 - grad->pointFrom + tilt;
+		SKYGLOW->color[2].w = SKYGLOW->color[3].w = grad->colorTo & 0xffffff;
+
+		if (toRight >= 0)
+		{
+			mask |= 2;
+		}
+		if (fromLeft >= 0)
+		{
+			mask |= 4;
+		}
+		if (fromRight >= 0)
+		{
+			mask |= 8;
+		}
+
+		switch (mask)
+		{
+		case 1:
+			ratio1 = (fromLeft << 12) / (fromLeft - toLeft);
+			SKYGLOW_LERP(0, 0, 2, ratio1);
+			ratio2 = (toLeft << 12) / (toLeft - toRight);
+			SKYGLOW_LERP(3, 2, 3, ratio2);
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[0].w & 0xffffff) | 0x30000000;
+			p[3] = SKYGLOW->color[2].w;
+			p[2] = 0;
+			p[4] = toLeft << 16;
+			p[5] = SKYGLOW->color[3].w;
+			p[6] = (width * ratio2 >> 12) & 0xffff;
+			p[0] = *ptrOT | 0x6000000;
+			xy = (u32)p & 0xffffff;
+			p = p + 7;
+			goto LinkPrim;
+
+		case 2:
+			ratio1 = (fromRight << 12) / (fromRight - toRight);
+			SKYGLOW_LERP(1, 1, 3, ratio1);
+			ratio2 = (toLeft << 12) / (toLeft - toRight);
+			SKYGLOW_LERP(2, 2, 3, ratio2);
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[2].w & 0xffffff) | 0x30000000;
+			p[3] = SKYGLOW->color[1].w;
+			p[4] = widthXY;
+			p[5] = SKYGLOW->color[3].w;
+			p[2] = (width * ratio2 >> 12) & 0xffff;
+			p[6] = widthXY | (toRight << 16);
+			p[0] = *ptrOT | 0x6000000;
+			xy = (u32)p & 0xffffff;
+			p = p + 7;
+			goto LinkPrim;
+
+		case 3:
+			ratio1 = (fromLeft << 12) / (fromLeft - toLeft);
+			SKYGLOW_LERP(0, 0, 2, ratio1);
+			ratio2 = (fromRight << 12) / (fromRight - toRight);
+			SKYGLOW_LERP(1, 1, 3, ratio2);
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[0].w & 0xffffff) | 0x38000000;
+			p[3] = SKYGLOW->color[1].w;
+			p[5] = SKYGLOW->color[2].w;
+			p[7] = SKYGLOW->color[3].w;
+			p[6] = toLeft << 16;
+			p[2] = 0;
+			p[4] = widthXY;
+			p[8] = widthXY | (toRight << 16);
+			p[0] = *ptrOT | 0x8000000;
+			xy = (u32)p & 0xffffff;
+			p = p + 9;
+		LinkPrim:
+			*ptrOT = xy;
+			primMem->cursor = p;
+			break;
+
+		case 5:
+			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
+			x1 = (width * ratio1 >> 12) & 0xffff;
+			ratio2 = (toLeft << 12) / (toLeft - toRight);
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[0].w & 0xffffff) | 0x38000000;
+			p[3] = SKYGLOW->color[1].w;
+			p[5] = SKYGLOW->color[2].w;
+			p[2] = fromLeft << 16;
+			p[6] = toLeft << 16;
+			p[4] = x1;
+			p[7] = SKYGLOW->color[3].w;
+			p[8] = (width * ratio2 >> 12) & 0xffff;
+			p[0] = *ptrOT | 0x8000000;
+			*ptrOT = (u32)p & 0xffffff;
+			primMem->cursor = p + 9;
+
+			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
+			{
+				p[11] = x1;
+				p[12] = 0;
+				p[13] = fromLeft << 16;
+				p[10] = (*(u32 *)&level->clearColor[2] & 0xffffff) | 0x20000000;
+				p[9] = *ptrOT | 0x4000000;
+				*ptrOT = (u32)(p + 9) & 0xffffff;
+				p = p + 14;
+			LinkClear:
+				primMem->cursor = p;
+			}
+			break;
+
+		case 7:
+			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
+			x1 = width * ratio1;
+			SKYGLOW_LERP(4, 0, 1, ratio1);
+			ratio2 = (fromRight << 12) / (fromRight - toRight);
+			SKYGLOW_LERP(1, 1, 3, ratio2);
+			x1 = (x1 >> 12) & 0xffff;
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[0].w & 0xffffff) | 0x30000000;
+			p[3] = SKYGLOW->color[4].w;
+			p[2] = fromLeft << 16;
+			p[4] = x1;
+			p[6] = widthXY;
+			p[5] = SKYGLOW->color[1].w;
+			p[0] = *ptrOT | 0x6000000;
+			*ptrOT = (u32)p & 0xffffff;
+			primMem->cursor = p + 7;
+
+			p[8] = (SKYGLOW->color[0].w & 0xffffff) | 0x38000000;
+			p[10] = SKYGLOW->color[1].w;
+			p[12] = SKYGLOW->color[2].w;
+			p[14] = SKYGLOW->color[3].w;
+			p[13] = toLeft << 16;
+			p[9] = fromLeft << 16;
+			p[11] = widthXY;
+			p[15] = widthXY | (toRight << 16);
+			p[7] = *ptrOT | 0x8000000;
+			*ptrOT = (u32)(p + 7) & 0xffffff;
+			primMem->cursor = p + 16;
+
+			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
+			{
+				p[18] = x1;
+				p[19] = 0;
+				p[20] = fromLeft << 16;
+				p[17] = (*(u32 *)&level->clearColor[2] & 0xffffff) | 0x20000000;
+				p[16] = *ptrOT | 0x4000000;
+				*ptrOT = (u32)(p + 16) & 0xffffff;
+				p = p + 21;
+				goto LinkClear;
+			}
+			break;
+
+		case 10:
+			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
+			x1 = (width * ratio1 >> 12) & 0xffff;
+			ratio2 = (toLeft << 12) / (toLeft - toRight);
+			xy = widthXY | (fromRight << 16);
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[0].w & 0xffffff) | 0x38000000;
+			p[3] = SKYGLOW->color[1].w;
+			p[5] = SKYGLOW->color[2].w;
+			p[4] = xy;
+			p[8] = widthXY | (toRight << 16);
+			p[2] = x1;
+			p[7] = SKYGLOW->color[3].w;
+			p[6] = (width * ratio2 >> 12) & 0xffff;
+			p[0] = *ptrOT | 0x8000000;
+			*ptrOT = (u32)p & 0xffffff;
+			primMem->cursor = p + 9;
+
+			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
+			{
+				p[11] = x1;
+				p[12] = widthXY;
+				p[13] = xy;
+				p[10] = (*(u32 *)&level->clearColor[2] & 0xffffff) | 0x20000000;
+				p[9] = *ptrOT | 0x4000000;
+				*ptrOT = (u32)(p + 9) & 0xffffff;
+				p = p + 14;
+				goto LinkClear;
+			}
+			break;
+
+		case 11:
+			ratio1 = (fromLeft << 12) / (fromLeft - fromRight);
+			x1 = width * ratio1;
+			SKYGLOW_LERP(4, 0, 1, ratio1);
+			ratio2 = (fromLeft << 12) / (fromLeft - toLeft);
+			SKYGLOW_LERP(0, 0, 2, ratio2);
+			xy = widthXY | (fromRight << 16);
+			x1 = (x1 >> 12) & 0xffff;
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[0].w & 0xffffff) | 0x30000000;
+			p[3] = SKYGLOW->color[4].w;
+			p[2] = 0;
+			p[4] = x1;
+			p[6] = xy;
+			p[5] = SKYGLOW->color[1].w;
+			p[0] = *ptrOT | 0x6000000;
+			*ptrOT = (u32)p & 0xffffff;
+			primMem->cursor = p + 7;
+
+			p[8] = (SKYGLOW->color[0].w & 0xffffff) | 0x38000000;
+			p[10] = SKYGLOW->color[1].w;
+			p[12] = SKYGLOW->color[2].w;
+			p[14] = SKYGLOW->color[3].w;
+			p[13] = toLeft << 16;
+			p[9] = 0;
+			p[11] = xy;
+			p[15] = widthXY | (toRight << 16);
+			p[7] = *ptrOT | 0x8000000;
+			*ptrOT = (u32)(p + 7) & 0xffffff;
+			primMem->cursor = p + 16;
+
+			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
+			{
+				p[18] = x1;
+				p[19] = widthXY;
+				p[20] = xy;
+				p[17] = (*(u32 *)&level->clearColor[2] & 0xffffff) | 0x20000000;
+				p[16] = *ptrOT | 0x4000000;
+				*ptrOT = (u32)(p + 16) & 0xffffff;
+				p = p + 21;
+				goto LinkClear;
+			}
+			break;
+
+		case 15:
+			x1 = fromLeft << 16;
+			xy = widthXY | (fromRight << 16);
+
+			p = (u32 *)primMem->cursor;
+			p[1] = (SKYGLOW->color[0].w & 0xffffff) | 0x38000000;
+			p[3] = SKYGLOW->color[1].w;
+			p[5] = SKYGLOW->color[2].w;
+			p[6] = toLeft << 16;
+			p[2] = x1;
+			p[4] = xy;
+			p[8] = widthXY | (toRight << 16);
+			p[7] = SKYGLOW->color[3].w;
+			p[0] = *ptrOT | 0x8000000;
+			*ptrOT = (u32)p & 0xffffff;
+			primMem->cursor = p + 9;
+
+			if ((i == 0) && ((level = GAME_TRACKER->level1)->clearColor[2].enable != 0))
+			{
+				p[11] = 0;
+				p[12] = widthXY;
+				p[13] = x1;
+				p[14] = xy;
+				p[10] = (*(u32 *)&level->clearColor[2] & 0xffffff) | 0x28000000;
+				p[9] = *ptrOT | 0x5000000;
+				*ptrOT = (u32)(p + 9) & 0xffffff;
+				p = p + 15;
+				goto LinkClear;
+			}
+			break;
+		}
+	}
+#endif
 }
+#ifndef CTR_NATIVE
+#undef SKYGLOW_LERP
+#undef SKYGLOW
+#endif
 
 void CAM_ClearScreen(struct GameTracker *gGT)
 {
