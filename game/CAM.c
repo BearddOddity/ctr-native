@@ -347,6 +347,7 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	u32 xy;
 	u32 *p;
 	struct Level *level;
+	struct SkyboxGlowGradient *g;
 
 	tilt = MATH_Sin(pb->rot.z) << 12;
 	cosine = MATH_Cos(pb->rot.z);
@@ -362,15 +363,16 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	width = pb->rect.w;
 	widthXY = width & 0xffff;
 
-	for (i = 0; i < 3; i++, grad++)
+	for (i = 0; i < 3; i++)
 	{
-		toLeft = SKYGLOW->centerY2 - grad->pointTo - tilt;
+		g = &grad[i];
+		toLeft = SKYGLOW->centerY2 - g->pointTo - tilt;
 		mask = (u32)~toLeft >> 31;
-		toRight = SKYGLOW->centerY2 - grad->pointTo + tilt;
-		SKYGLOW->color[0].w = SKYGLOW->color[1].w = grad->colorFrom & 0xffffff;
-		fromLeft = SKYGLOW->centerY1 - grad->pointFrom - tilt;
-		fromRight = SKYGLOW->centerY1 - grad->pointFrom + tilt;
-		SKYGLOW->color[2].w = SKYGLOW->color[3].w = grad->colorTo & 0xffffff;
+		toRight = SKYGLOW->centerY2 - g->pointTo + tilt;
+		SKYGLOW->color[0].w = SKYGLOW->color[1].w = g->colorFrom & 0xffffff;
+		fromLeft = SKYGLOW->centerY1 - g->pointFrom - tilt;
+		fromRight = SKYGLOW->centerY1 - g->pointFrom + tilt;
+		SKYGLOW->color[2].w = SKYGLOW->color[3].w = g->colorTo & 0xffffff;
 
 		if (toRight >= 0)
 		{
