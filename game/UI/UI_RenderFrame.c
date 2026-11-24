@@ -486,7 +486,6 @@ void UI_RenderFrame_Racing()
 					// icon pointer, specifically for the big rank icons that start at 0x19
 					iconPtr = gGT->ptrIcons[(int)playerStruct->driverRank + 0x19];
 
-				LAB_80053aec:
 					DecalHUD_DrawPolyGT4(
 					    // icon pointer
 					    iconPtr,
@@ -519,7 +518,11 @@ void UI_RenderFrame_Racing()
 				// OH GOD THIS IS CONVOLUTED and probably wrong --Super
 				iconPtr = gGT->ptrIcons[gGT->battleSetup.finishedRankOfEachTeam[playerStruct->BattleHUD.teamID] + 0x19];
 
-				goto LAB_80053aec;
+				// retail sets this call's arguments up again here and shares only the call itself
+				DecalHUD_DrawPolyGT4(iconPtr, (int)hudLoop[UI_HUD_SLOT_BIG1].x, (int)hudLoop[UI_HUD_SLOT_BIG1].y,
+				                     &gGT->backBuffer->primMem, gGT->pushBuffer_UI.ptrOT, ColorCode_Load(&ptrColor[0]),
+				                     ColorCode_Load(&ptrColor[1]), ColorCode_Load(&ptrColor[2]),
+				                     ColorCode_Load(&ptrColor[3]), 0, FP(1.0));
 			}
 		LAB_80053af4:
 
