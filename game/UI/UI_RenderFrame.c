@@ -226,8 +226,19 @@ void UI_RenderFrame_Racing()
 					wumpaModelPos.x = hudLoop[UI_HUD_SLOT_FRUIT_MODEL].x;
 					wumpaModelPos.y = hudLoop[UI_HUD_SLOT_FRUIT_MODEL].y;
 
-					// if cooldown between items is over
-					if (playerStruct->PickupWumpaHUD.cooldown == 0)
+					// retail tests a running cooldown first
+					if (playerStruct->PickupWumpaHUD.cooldown != 0)
+					{
+						UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->PickupWumpaHUD.startX, (int)playerStruct->PickupWumpaHUD.startY,
+						              hudLoop[UI_HUD_SLOT_FRUIT_MODEL].x, hudLoop[UI_HUD_SLOT_FRUIT_MODEL].y, playerStruct->PickupWumpaHUD.cooldown,
+						              5);
+
+						// subtract one from timer
+						playerStruct->PickupWumpaHUD.cooldown--;
+					}
+
+					// cooldown between items is over
+					else
 					{
 						// deduct from number of queued items to pick up
 						playerStruct->PickupWumpaHUD.numCollected--;
@@ -240,32 +251,14 @@ void UI_RenderFrame_Racing()
 							RB_Player_ModifyWumpa(playerStruct, 1);
 						}
 
-
 						// OtherFX_Play to get wumpa fruit
 						OtherFX_Play(0x42, 1);
 
-						// initial timer value
-						partTimeVariable1 = 5;
-
-						// if timer is already running, set new timer value
+						// more queued: start the timer again
 						if (playerStruct->PickupWumpaHUD.numCollected != 0)
 						{
-							goto LAB_80053498;
+							playerStruct->PickupWumpaHUD.cooldown = 5;
 						}
-					}
-					else
-					{
-						UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->PickupWumpaHUD.startX, (int)playerStruct->PickupWumpaHUD.startY,
-						              hudLoop[UI_HUD_SLOT_FRUIT_MODEL].x, hudLoop[UI_HUD_SLOT_FRUIT_MODEL].y, playerStruct->PickupWumpaHUD.cooldown,
-						              5);
-
-						// subtract one from timer
-						partTimeVariable1 = playerStruct->PickupWumpaHUD.cooldown - 1;
-
-					LAB_80053498:
-
-						// set timer value
-						playerStruct->PickupWumpaHUD.cooldown = partTimeVariable1;
 					}
 
 					iconPtrArray = ICONGROUP_GETICONS(gGT->iconGroup[0xB]);
