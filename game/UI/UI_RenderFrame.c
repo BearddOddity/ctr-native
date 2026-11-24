@@ -32,7 +32,6 @@ void UI_RenderFrame_Racing()
 	struct DB *backBuffer;
 	struct Thread *turboThread;
 	struct Turbo *turboThreadObject;
-	int offset;
 	u32 mapPosX;
 	u32 mapPosY;
 	int rank;
@@ -48,7 +47,6 @@ void UI_RenderFrame_Racing()
 #define numPlyr   (GAME_TRACKER->numPlyrCurrGame)
 #endif
 
-	offset = 0;
 
 #ifdef CTR_NATIVE
 	gGT = GAME_TRACKER;
@@ -187,9 +185,9 @@ void UI_RenderFrame_Racing()
 			    // if want to draw speedometer
 			    ((GAME_SDATA_NAME(HudAndDebugFlags) & 8) != 0))
 			{
-				UI_DrawSpeedNeedle(hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].x + offset, hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
+				UI_DrawSpeedNeedle(hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].x, hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
 				UI_JumpMeter_Draw(hudStructPtr[UI_HUD_SLOT_JUMP_METER].x, hudStructPtr[UI_HUD_SLOT_JUMP_METER].y, playerStruct);
-				UI_DrawSlideMeter(hudStructPtr[UI_HUD_SLOT_SLIDE_METER].x + offset, hudStructPtr[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
+				UI_DrawSlideMeter(hudStructPtr[UI_HUD_SLOT_SLIDE_METER].x, hudStructPtr[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
 				UI_DrawSpeedBG(hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].x, hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
 			}
 
@@ -199,7 +197,7 @@ void UI_RenderFrame_Racing()
 				if ((raceMode1 & BATTLE_MODE) == 0)
 				{
 					// Draw powerslide meter
-					UI_DrawSlideMeter(hudStructPtr[UI_HUD_SLOT_SLIDE_METER].x + offset, hudStructPtr[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
+					UI_DrawSlideMeter(hudStructPtr[UI_HUD_SLOT_SLIDE_METER].x, hudStructPtr[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
 				}
 
 				// If you are not in Time Trial or Relic Race
