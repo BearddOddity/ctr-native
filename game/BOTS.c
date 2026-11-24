@@ -1460,6 +1460,7 @@ void BOTS_Killplane(struct Thread *botThread)
 #define BOTS_PathChangePathID(c)     ((s16)((s32)(c) >> BOTS_PATH_CHANGE_PATH_SHIFT))
 #define BOTS_PathChangeFrameIndex(c) ((c) & BOTS_PATH_CHANGE_FRAME_MASK)
 #define BOTS_PathChangeCap()         ((s16)(BOTS_NAV_PATH_COUNT << BOTS_PATH_CHANGE_PATH_SHIFT))
+#define BOTS_GetTrackDistanceToFinish(g) ((s32)(g)->level1->ptr_restart_points->distToFinish << 3)
 #endif
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
@@ -1891,8 +1892,6 @@ UpdateTireColorTimer:
 			{
 				s16 difficultyStat; // sVar7
 				int distToFinish;
-				int lapIndex;
-				int botLapIndex;
 				int complexDifficultyStat;
 				int otherDifficultyStat; // iVar13
 				int iVar9;
@@ -1949,30 +1948,29 @@ UpdateTireColorTimer:
 					}
 				}
 
+				// retail adds the rank's difficulty first, then works out how far ahead the best driver is, each lap index
+				// taken one lower while that driver is behind the start line
+				otherDifficultyStat = CTR_MipsAddLo(sdata->arcade_difficultyParams[driverRank], difficultyStat);
+
 				distToFinish = BOTS_GetTrackDistanceToFinish(gGT); // iVar3
-
-				lapIndex = bestDriverRank->lapIndex; // uVar20
-
-				if ((bestDriverRank->actionsFlagSet & ACTION_BEHIND_START_LINE) != 0)
-				{
-					lapIndex--;
-				}
-
-				botLapIndex = botDriver->lapIndex; // uVar18
-
-				if ((botDriver->actionsFlagSet & ACTION_BEHIND_START_LINE) != 0)
-				{
-					botLapIndex--;
-				}
 
 				// not super meaningful, probably just a difficulty statistic
 				complexDifficultyStat = CTR_MipsSubLo(
-				    CTR_MipsSubLo(CTR_MipsAddLo(CTR_MipsSubLo(distToFinish, bestDriverRank->distanceToFinish_curr), CTR_MipsMulLo(lapIndex, distToFinish)),
-				                  CTR_MipsAddLo(CTR_MipsSubLo(distToFinish, botDriver->distanceToFinish_curr), CTR_MipsMulLo(botLapIndex, distToFinish))),
-				    CTR_MipsAddLo(sdata->arcade_difficultyParams[driverRank], difficultyStat));
+				    CTR_MipsSubLo(
+				        CTR_MipsAddLo(CTR_MipsSubLo(distToFinish, bestDriverRank->distanceToFinish_curr),
+				                      CTR_MipsMulLo(((bestDriverRank->actionsFlagSet & ACTION_BEHIND_START_LINE) != 0)
+				                                        ? bestDriverRank->lapIndex - 1
+				                                        : bestDriverRank->lapIndex,
+				                                    distToFinish)),
+				        CTR_MipsAddLo(CTR_MipsSubLo(distToFinish, botDriver->distanceToFinish_curr),
+				                      CTR_MipsMulLo(((botDriver->actionsFlagSet & ACTION_BEHIND_START_LINE) != 0)
+				                                        ? botDriver->lapIndex - 1
+				                                        : botDriver->lapIndex,
+				                                    distToFinish))),
+				    otherDifficultyStat);
 
 
-				if (isInAdvArcadeOrVSCup && ((driverRank & 0xffff) == 0))
+				if (isInAdvArcadeOrVSCup && (driverRank == 0))
 				{
 					if (complexDifficultyStat < 1)
 					{
@@ -3509,6 +3507,7 @@ FinishHazardTimerUpdate:
 #undef BOTS_PathChangePathID
 #undef BOTS_PathChangeFrameIndex
 #undef BOTS_PathChangeCap
+#undef BOTS_GetTrackDistanceToFinish
 #endif
 #undef SDATA_ABS
 #ifndef CTR_NATIVE
