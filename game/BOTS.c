@@ -1979,23 +1979,19 @@ UpdateTireColorTimer:
 					}
 					else
 					{
-						if (botDriver->lapIndex < gGT->numLaps - 1)
+						if (botDriver->lapIndex >= gGT->numLaps - 1)
 						{
-							otherDifficultyStat = sdata->cup_difficultyParams[0x8];
+							otherDifficultyStat = sdata->cup_difficultyParams[0x8] + sdata->cup_difficultyParams[0xA];
 						}
 						else
 						{
-							otherDifficultyStat = sdata->cup_difficultyParams[0x8] + sdata->cup_difficultyParams[0xA];
+							otherDifficultyStat = sdata->cup_difficultyParams[0x8];
 						}
 					}
 				}
 				else
 				{
-					if (complexDifficultyStat < 1)
-					{
-						otherDifficultyStat = sdata->arcade_difficultyParams[0x9];
-					}
-					else
+					if (complexDifficultyStat >= 1)
 					{
 						if (gGT->numLaps - 1 <= botDriver->lapIndex)
 						{
@@ -2005,6 +2001,10 @@ UpdateTireColorTimer:
 						{
 							otherDifficultyStat = sdata->arcade_difficultyParams[0x8];
 						}
+					}
+					else
+					{
+						otherDifficultyStat = sdata->arcade_difficultyParams[0x9];
 					}
 				}
 				botVelocity = complexDifficultyStat; // iVar3
@@ -3217,16 +3217,16 @@ UpdateTireColorTimer:
 			other_bVar1 = other_uVar8 < 0x21;
 		}
 		sVar7 = other_uVar8;
-		if (other_bVar1)
+		if (!other_bVar1)
+		{
+			sVar7 = 0x20;
+		}
+		else
 		{
 			if (other_uVar8 < -0x20)
 			{
 				sVar7 = -0x20;
 			}
-		}
-		else
-		{
-			sVar7 = 0x20;
 		}
 
 		botDriver->wheelRotation = (s16)CTR_MipsAddLo((u16)botDriver->wheelRotation, sVar7);
