@@ -1900,7 +1900,7 @@ UpdateTireColorTimer:
 				int turboMult;
 				int netSpeedStat;
 				int additionalVelocity;
-				int driverRank = botDriver->driverRank; // uVar8
+				s16 driverRank = botDriver->driverRank; // uVar8
 				b32 isInAdvArcadeOrVSCup = false;       // bVar1
 
 				if (((gGT->gameMode1 & ADVENTURE_CUP) != 0) || ((gGT->gameMode2 & CUP_ANY_KIND) != 0))
@@ -1918,7 +1918,8 @@ UpdateTireColorTimer:
 					driverRank--;
 				}
 
-				if (isInAdvArcadeOrVSCup)
+				// retail tests the cup flags again here, not the flag it set above
+				if (((gGT->gameMode1 & ADVENTURE_CUP) != 0) || ((gGT->gameMode2 & CUP_ANY_KIND) != 0))
 				{
 					driverRank = sdata->accelerateOrder[botDriver->driverID];
 					if (sdata->accelerateOrder[0] < 2)
