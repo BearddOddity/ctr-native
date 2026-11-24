@@ -1438,6 +1438,16 @@ void BOTS_Killplane(struct Thread *botThread)
 }
 
 
+#ifndef CTR_NATIVE
+// Retail's arithmetic is plain C: GCC 2.8.1 sees each constant where it is used (shift-and-add multiplies, a shared
+// negation). The inline helpers hide them, so the PS1 build reads them as the operators they stand for.
+#define CTR_MipsMulLo(a, b) ((s32)(a) * (s32)(b))
+#define CTR_MipsAddLo(a, b) ((s32)(a) + (s32)(b))
+#define CTR_MipsSubLo(a, b) ((s32)(a) - (s32)(b))
+#define CTR_MipsNegLo(a)    (-(s32)(a))
+#define CTR_MipsSll(a, b)   ((s32)(a) << (b))
+#define CTR_MipsSra(a, b)   ((s32)(a) >> (b))
+#endif
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
 	int elapsedMilliseconds;
@@ -3485,6 +3495,14 @@ FinishHazardTimerUpdate:
 #undef gGT
 #endif
 }
+#ifndef CTR_NATIVE
+#undef CTR_MipsMulLo
+#undef CTR_MipsAddLo
+#undef CTR_MipsSubLo
+#undef CTR_MipsNegLo
+#undef CTR_MipsSll
+#undef CTR_MipsSra
+#endif
 
 u32 BOTS_ChangeState(struct Driver *driverVictim, int damageType, struct Driver *driverAttacker, int reason)
 {
