@@ -332,16 +332,16 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	}
 #else
 	s32 cosine;
-	s32 width;
+	register s32 width CTR_PSX_REGISTER("$22");
 	s32 toLeft;
-	s32 i;
+	register s32 i CTR_PSX_REGISTER("$23");
 	s32 toRight;
-	s32 tilt;
+	register s32 tilt CTR_PSX_REGISTER("$21");
 	u32 widthXY;
 	u32 xy;
 	s32 fromRight;
 	u32 mask;
-	struct SkyboxGlowGradient *g;
+	register struct SkyboxGlowGradient *g CTR_PSX_REGISTER("$30");
 	u32 x1;
 	s32 fromLeft;
 	s32 ratio1;
@@ -361,12 +361,12 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	SKYGLOW->centerY1 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
 	SKYGLOW->centerY2 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
 
+	g = grad;
 	width = pb->rect.w;
 	widthXY = width & 0xffff;
 
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 3; i++, g++)
 	{
-		g = &grad[i];
 		toLeft = SKYGLOW->centerY2 - g->pointTo - tilt;
 		toRight = SKYGLOW->centerY2 - g->pointTo + tilt;
 		mask = (u32)~toLeft >> 31;
