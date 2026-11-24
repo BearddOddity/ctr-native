@@ -733,16 +733,19 @@ void UI_RenderFrame_Racing()
 			UI_Map_DrawTracking(levPtrMap, gGT->threadBuckets[TRACKING].thread);
 
 			// Draw the map (top half and bottom half, X and Y, primMem, OT, white): retail sets the call up once
-			// per player count and shares only the call itself
-			if (numPlyr == 1)
+			// per player count and shares only the call itself; it tests the map pointer once more first
+			if (levPtrMap != 0)
 			{
-				UI_Map_DrawMap(gGT->ptrIcons[3], gGT->ptrIcons[4], 500, 195, &gGT->backBuffer->primMem,
-				               gGT->pushBuffer_UI.ptrOT, 1);
-			}
-			else if (numPlyr == 3)
-			{
-				UI_Map_DrawMap(gGT->ptrIcons[3], gGT->ptrIcons[4], 440, 205, &gGT->backBuffer->primMem,
-				               gGT->pushBuffer_UI.ptrOT, 1);
+				if (numPlyr == 1)
+				{
+					UI_Map_DrawMap(gGT->ptrIcons[3], gGT->ptrIcons[4], 500, 195, &gGT->backBuffer->primMem,
+					               gGT->pushBuffer_UI.ptrOT, 1);
+				}
+				else if (numPlyr == 3)
+				{
+					UI_Map_DrawMap(gGT->ptrIcons[3], gGT->ptrIcons[4], 440, 205, &gGT->backBuffer->primMem,
+					               gGT->pushBuffer_UI.ptrOT, 1);
+				}
 			}
 		}
 	}
