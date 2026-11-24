@@ -1448,6 +1448,13 @@ void BOTS_Killplane(struct Thread *botThread)
 #define CTR_MipsSll(a, b)   ((s32)(a) << (b))
 #define CTR_MipsSra(a, b)   ((s32)(a) >> (b))
 #endif
+#ifndef CTR_NATIVE
+// Retail reaches sdata's arrays and structs by their absolute address (only scalars of 8 bytes or less are $gp-relative
+// under -G8), so the PS1 build reads those fields through the symbol rather than through $gp.
+#define SDATA_ABS ((struct sData *)&sdata_static)
+#else
+#define SDATA_ABS sdata
+#endif
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
 	int elapsedMilliseconds;
@@ -1724,7 +1731,7 @@ UpdateTireColorTimer:
 			}
 
 			if (( // if in front row & 25% chance
-			        (sdata->kartSpawnOrderArray[botDriver->driverID] < 3) && ((RngDeadCoed(&sdata->advRng) & 0xFF) < 0x40)) ||
+			        (SDATA_ABS->kartSpawnOrderArray[botDriver->driverID] < 3) && ((RngDeadCoed(&SDATA_ABS->advRng) & 0xFF) < 0x40)) ||
 			    (data.characterIDs[botDriver->driverID] == NITROS_OXIDE))
 			{ // start the race with a boost
 				VehFire_Increment(botDriver, 0x2d0, 1, 0x180);
@@ -3429,11 +3436,11 @@ FinishHazardTimerUpdate:
 		rot.z = 0;
 		rot.y = (s16)CTR_MipsMulLo(botDriver->botData.aiPhysics.rotXZ, 0xe0);
 
-		ConvertRotToMatrix(&sdata->rotXZ, &rot);
+		ConvertRotToMatrix(&SDATA_ABS->rotXZ, &rot);
 
-		MATH_MatrixMul(&sdata->rotXYZ, &botInstance->matrix, &sdata->rotXZ);
+		MATH_MatrixMul(&SDATA_ABS->rotXYZ, &botInstance->matrix, &SDATA_ABS->rotXZ);
 
-		MATH_MatrixMul(&botInstance->matrix, &sdata->rotXYZ, &data.identity);
+		MATH_MatrixMul(&botInstance->matrix, &SDATA_ABS->rotXYZ, &data.identity);
 
 		botInstance->matrix.t[1] = CTR_MipsAddLo(botInstance->matrix.t[1], 0x20);
 	}
@@ -3491,6 +3498,7 @@ FinishHazardTimerUpdate:
 #undef gGT
 #endif
 }
+#undef SDATA_ABS
 #ifndef CTR_NATIVE
 #undef CTR_MipsMulLo
 #undef CTR_MipsAddLo
