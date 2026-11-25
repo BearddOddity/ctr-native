@@ -3303,23 +3303,28 @@ UpdateTireColorTimer:
 		int wiggleZ;
 	badEffectKartWiggle:;
 		{
-			SVECTOR wiggle;
+			int rotX;
+			int rotY;
+			int rotZ;
+			int angle;
 
-			wiggleZ = CTR_MipsSra(CTR_MipsMulLo(MATH_Cos(CTR_MipsMulLo(badnessRecieveTimer, 0xc)), 50), 10);
-			wiggleX = CTR_MipsSra(CTR_MipsMulLo(MATH_Sin(CTR_MipsMulLo(badnessRecieveTimer, 0xc)), 50), 10);
-			wiggle.vx = (s16)wiggleX;
-			wiggle.vy = 0;
-			wiggle.vz = (s16)wiggleZ;
-			wiggle.pad = 0;
-
-			CTR_GteLoadSV0(&wiggle);
+			// the wiggle vector goes straight into the GTE's V0 (x, 0, z), as retail does
+			angle = CTR_MipsMulLo(badnessRecieveTimer, 0xc);
+			wiggleX = CTR_MipsSra(CTR_MipsMulLo(MATH_Sin(angle), 50), 10);
+			wiggleZ = CTR_MipsSra(CTR_MipsMulLo(MATH_Cos(angle), 50), 10);
+			MTC2(CTR_PackS16Pair(wiggleX, 0), 0);
+			MTC2(wiggleZ, 1);
 			gte_mvmva(1, 0, 0, 3, 0);
+
+			rotX = MFC2(25);
+			rotY = MFC2(26);
+			rotZ = MFC2(27);
 
 			botDriver->botData.aiPhysics.turboMeter = 0;
 
-			botDriver->rotCurr.x = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.x, (s16)MFC2(25));
-			botDriver->rotCurr.y = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.y, (s16)MFC2(26));
-			botDriver->rotCurr.z = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.z, (s16)MFC2(27));
+			botDriver->rotCurr.x = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.x, rotX);
+			botDriver->rotCurr.z = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.z, rotZ);
+			botDriver->rotCurr.y = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.y, rotY);
 		}
 	}
 
