@@ -1478,7 +1478,14 @@ extern s16 ctr_bots_characterIDs[] asm("data+25828");
 // and the bots' per-path lists by their absolute address where a path id indexes them
 extern struct LinkedList ctr_bots_navBotList[3] asm("sdata_static+2956");
 #define BOTS_NAV_LIST_BY_PATH ctr_bots_navBotList
+// and the spawn order and the adventure rng by their own addresses
+extern char ctr_bots_kartSpawnOrderArray[8] asm("sdata_static+1840");
+extern struct RngDeadCoedState ctr_bots_advRng asm("sdata_static+1788");
+#define BOTS_KART_SPAWN_ORDER ctr_bots_kartSpawnOrderArray
+#define BOTS_ADV_RNG_STATE ctr_bots_advRng
 #else
+#define BOTS_KART_SPAWN_ORDER sdata->kartSpawnOrderArray
+#define BOTS_ADV_RNG_STATE sdata->advRng
 #define BOTS_NAV_LIST_BY_PATH sdata->navBotList
 #define BOTS_CHARACTER_IDS data.characterIDs
 #define BOTS_ACCEL_ORDER_BY_ID sdata->accelerateOrder
@@ -1763,7 +1770,7 @@ UpdateTireColorTimer:
 			}
 
 			if (( // if in front row & 25% chance
-			        (SDATA_ABS->kartSpawnOrderArray[botDriver->driverID] < 3) && ((RngDeadCoed(&SDATA_ABS->advRng) & 0xFF) < 0x40)) ||
+			        (BOTS_KART_SPAWN_ORDER[botDriver->driverID] < 3) && ((RngDeadCoed(&BOTS_ADV_RNG_STATE) & 0xFF) < 0x40)) ||
 			    (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE))
 			{ // start the race with a boost
 				VehFire_Increment(botDriver, 0x2d0, 1, 0x180);
