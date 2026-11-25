@@ -2267,14 +2267,17 @@ UpdateTireColorTimer:
 		}
 		else
 		{
-			int ZYsqr = CTR_MipsAddLo(CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, botDriver->botData.aiPhysics.speedLinear),
+			int ZY = CTR_MipsAddLo(CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, botDriver->botData.aiPhysics.speedLinear),
 			                          CTR_MipsMulLo(botDriver->botData.aiPhysics.speedY, botDriver->botData.aiPhysics.speedY));
 
-			if (0x2b110000 < ZYsqr) // sqrZY
+			if (0x2b110000 < ZY) // sqrZY
 			{
-				int ZY = SquareRoot0_stub(ZYsqr);
+				int zVel;
+				int yVel;
 
-				int zVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, 0x6900); // iVar3
+				ZY = SquareRoot0_stub(ZY);
+
+				zVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, 0x6900); // iVar3
 
 #if 0 // in the OG game
 				if (ZY == 0)
@@ -2286,7 +2289,7 @@ UpdateTireColorTimer:
 					//trap(0x1800);
 				}
 #endif
-				int yVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedY, 0x6900); // iVar15
+				yVel = CTR_MipsMulLo(botDriver->botData.aiPhysics.speedY, 0x6900); // iVar15
 #if 0                                                                                  // in the OG game
 				if (ZY == 0)
 				{
