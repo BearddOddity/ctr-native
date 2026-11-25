@@ -5,6 +5,7 @@
 // CTR_NATIVE only adds an ST1 map-metadata null guard below.
 void UI_RenderFrame_Racing()
 {
+	register struct GameTracker *clockGT CTR_PSX_REGISTER("$7");
 	struct Thread *mapThread;
 	u32 scoreOffsetX;
 	struct Driver *endDriver;
@@ -570,9 +571,10 @@ void UI_RenderFrame_Racing()
 
 	sdata->framesDrivingSameDirection++;
 
-	if (numPlyr == 1)
+	clockGT = GAME_TRACKER;
+	if (clockGT->numPlyrCurrGame == 1)
 	{
-		playerStruct = gGT->drivers[0];
+		playerStruct = clockGT->drivers[0];
 
 		UI_DrawRaceClock(0x14, 8, UI_RACE_CLOCK_SHOW_CURRENT_TIME, playerStruct);
 
@@ -725,7 +727,7 @@ void UI_RenderFrame_Racing()
 	else
 	{
 		// if you have a time limit (battle)
-		if ((raceMode1 & TIME_LIMIT) != 0)
+		if ((clockGT->gameMode1 & TIME_LIMIT) != 0)
 		{
 			// draw countdown clock
 			UI_DrawLimitClock(0xd7, 0x68, 2);
