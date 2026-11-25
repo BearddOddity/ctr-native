@@ -3058,8 +3058,7 @@ UpdateTireColorTimer:
 				VECTOR v2;
 				s32 l3;
 				int camDriverXDelta;
-				int camY;
-				int driverY;
+				int camDriverYDelta;
 				int camDriverZDelta;
 				int rotY;
 				int rotX;
@@ -3084,17 +3083,16 @@ UpdateTireColorTimer:
 				gGT->pushBuffer[botDriver->driverID].pos.y = CTR_MipsAddLo(plantInst->matrix.t[1], 0xc0);
 				gGT->pushBuffer[botDriver->driverID].pos.z = v2.vz;
 
-				camY = gGT->pushBuffer[botDriver->driverID].pos.y;
-				driverY = plantInst->matrix.t[1];
 				camDriverXDelta = CTR_MipsSubLo(v2.vx, plantInst->matrix.t[0]);
 				camDriverZDelta = CTR_MipsSubLo(v2.vz, plantInst->matrix.t[2]);
+				camDriverYDelta = CTR_MipsSubLo(gGT->pushBuffer[botDriver->driverID].pos.y, plantInst->matrix.t[1]);
 
 				rotY = ratan2(camDriverXDelta, camDriverZDelta);
 				gGT->pushBuffer[botDriver->driverID].rot.y = rotY;
 
 				rotX = SquareRoot0_stub(
 				    CTR_MipsAddLo(CTR_MipsMulLo(camDriverXDelta, camDriverXDelta), CTR_MipsMulLo(camDriverZDelta, camDriverZDelta)));
-				rotX = ratan2(CTR_MipsSubLo(camY, driverY), rotX);
+				rotX = ratan2(camDriverYDelta, rotX);
 
 				gGT->pushBuffer[botDriver->driverID].rot.x = CTR_MipsSubLo(0x800, rotX);
 				gGT->pushBuffer[botDriver->driverID].rot.z = 0;
