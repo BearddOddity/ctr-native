@@ -2616,6 +2616,11 @@
     ".UI_RenderFrame_CrystChall": "300:c8bedf4988c23b249e00"
    }
   },
+  "ui-render-frame-racing": {
+   "game/UI/UI_RenderFrame.c": {
+    ".UI_RenderFrame_Racing": "1300:df4d9a28c547ea686414"
+   }
+  },
   "ui-reward": {
    "game/UI/UI_Reward.c": {
     ".UI_SaveLapTime": "1bc:ed4b026ee670e2841611",
