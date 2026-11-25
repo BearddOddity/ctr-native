@@ -379,24 +379,27 @@ void UI_RenderFrame_Racing()
 					wumpaModelPos.x = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20;
 					wumpaModelPos.y = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y;
 
-					partTimeVariable1 = playerStruct->BattleHUD.scoreDelta;
-
-					// retail sets up each case's sprintf and shares only the call
+					// retail sets up each case's sprintf and shares only the call;
+					// the score change is read again in each case
 					if ((raceMode1 & LIFE_LIMIT) != 0)
 					{
-						sprintf(scoreText, &GAME_SDATA_NAME(s_subtractLongInt)[0], partTimeVariable1);
-					}
-					else if (partTimeVariable1 > 0)
-					{
-						sprintf(scoreText, &GAME_SDATA_NAME(s_additionLongInt)[0], partTimeVariable1);
+						sprintf(scoreText, &GAME_SDATA_NAME(s_subtractLongInt)[0], playerStruct->BattleHUD.scoreDelta);
 					}
 					else
 					{
-						if (partTimeVariable1 < 0)
+						partTimeVariable1 = playerStruct->BattleHUD.scoreDelta;
+						if (partTimeVariable1 > 0)
 						{
-							partTimeVariable1 = -partTimeVariable1;
+							sprintf(scoreText, &GAME_SDATA_NAME(s_additionLongInt)[0], partTimeVariable1);
 						}
-						sprintf(scoreText, &GAME_SDATA_NAME(s_subtractInt)[0], partTimeVariable1);
+						else
+						{
+							if (partTimeVariable1 < 0)
+							{
+								partTimeVariable1 = -partTimeVariable1;
+							}
+							sprintf(scoreText, &GAME_SDATA_NAME(s_subtractInt)[0], partTimeVariable1);
+						}
 					}
 
 					UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->BattleHUD.startX, (int)playerStruct->BattleHUD.startY,
