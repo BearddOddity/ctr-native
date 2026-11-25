@@ -3274,31 +3274,27 @@ UpdateTireColorTimer:
 	if (badnessRecieveTimer == 0)
 	{
 		badnessRecieveTimer = botDriver->squishTimer;
-		if (badnessRecieveTimer == 0)
-		{
-			if (botDriver->thCloud != NULL)
-			{
-				badnessRecieveTimer = CTR_MipsSll(gGT->timer, 2);
-
-				goto badEffectKartWiggle;
-			}
-		}
 	}
-	else
+
+	// the kart wiggles while it has the clock, is squished, or sits in a cloud
+	if ((badnessRecieveTimer != 0) || (botDriver->thCloud != NULL))
 	{
 		int wiggleX;
 		int wiggleZ;
-	badEffectKartWiggle:;
+
+		if (badnessRecieveTimer == 0)
+		{
+			badnessRecieveTimer = CTR_MipsSll(gGT->timer, 2);
+		}
 		{
 			int rotX;
 			int rotY;
 			int rotZ;
-			int angle;
 
 			// the wiggle vector goes straight into the GTE's V0 (x, 0, z), as retail does
-			angle = CTR_MipsMulLo(badnessRecieveTimer, 0xc);
-			wiggleX = CTR_MipsSra(CTR_MipsMulLo(MATH_Sin(angle), 50), 10);
-			wiggleZ = CTR_MipsSra(CTR_MipsMulLo(MATH_Cos(angle), 50), 10);
+			badnessRecieveTimer = CTR_MipsMulLo(badnessRecieveTimer, 0xc);
+			wiggleX = CTR_MipsSra(CTR_MipsMulLo(MATH_Sin(badnessRecieveTimer), 50), 10);
+			wiggleZ = CTR_MipsSra(CTR_MipsMulLo(MATH_Cos(badnessRecieveTimer), 50), 10);
 			MTC2(CTR_PackS16Pair(wiggleX, 0), 0);
 			MTC2(wiggleZ, 1);
 			gte_mvmva(1, 0, 0, 3, 0);
