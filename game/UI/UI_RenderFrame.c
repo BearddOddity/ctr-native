@@ -505,13 +505,14 @@ void UI_RenderFrame_Racing()
 			else if ((partTimeVariable5 & 0x200020) == 0x200020)
 			{
 				u32 **colorSlot;
+				u32 suffix;
 
-				partTimeVariable5 = (u32)((gGT->timer & 1) == 0) << 2;
+				suffix = (u32)((gGT->timer & 1) == 0) << 2;
 
 				// Draw the "st", "nd", "rd" suffix after "1st, 2nd, 3rd, etc"
-				UI_DrawPosSuffix(hudLoop[UI_HUD_SLOT_RANK].x, hudLoop[UI_HUD_SLOT_RANK].y, playerStruct, (s16)partTimeVariable5);
+				UI_DrawPosSuffix(hudLoop[UI_HUD_SLOT_RANK].x, hudLoop[UI_HUD_SLOT_RANK].y, playerStruct, (s16)suffix);
 
-				colorSlot = &GAME_DATA_NAME(ptrColor)[partTimeVariable5];
+				colorSlot = &GAME_DATA_NAME(ptrColor)[suffix];
 				// retail sets this call's arguments up again here and shares only the call itself;
 				// the icon is the rank icon of each battle team after battle is over
 				DecalHUD_DrawPolyGT4(
