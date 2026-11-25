@@ -378,6 +378,8 @@ void UI_RenderFrame_Racing()
 				{
 					wumpaModelPos.x = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20;
 					wumpaModelPos.y = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y;
+					// retail keeps the 0x20 of the battle-mode test for the score's lerp target too
+					partTimeVariable5 = 0x20;
 
 					// retail sets up each case's sprintf and shares only the call;
 					// the score change is read again in each case
@@ -394,16 +396,13 @@ void UI_RenderFrame_Racing()
 						}
 						else
 						{
-							if (partTimeVariable1 < 0)
-							{
-								partTimeVariable1 = -partTimeVariable1;
-							}
-							sprintf(scoreText, &GAME_SDATA_NAME(s_subtractInt)[0], partTimeVariable1);
+							sprintf(scoreText, &GAME_SDATA_NAME(s_subtractInt)[0],
+							        (partTimeVariable1 < 0) ? -partTimeVariable1 : partTimeVariable1);
 						}
 					}
 
 					UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->BattleHUD.startX, (int)playerStruct->BattleHUD.startY,
-					              (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20), (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y + 8),
+					              (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + partTimeVariable5), (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y + 8),
 					              playerStruct->BattleHUD.cooldown, 5);
 
 					// subtract one from the number of frames that the animation lasts
