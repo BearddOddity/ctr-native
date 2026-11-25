@@ -1931,7 +1931,7 @@ UpdateTireColorTimer:
 				int turboMult;
 				int netSpeedStat;
 				int additionalVelocity;
-				register s16 driverRank CTR_PSX_REGISTER("$8") = botDriver->driverRank; // uVar8
+				s16 driverRank = botDriver->driverRank; // uVar8
 				b32 isInAdvArcadeOrVSCup = false;       // bVar1
 
 				if (((gGT->gameMode1 & ADVENTURE_CUP) != 0) || ((gGT->gameMode2 & CUP_ANY_KIND) != 0))
