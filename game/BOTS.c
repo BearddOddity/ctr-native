@@ -1781,24 +1781,19 @@ UpdateTireColorTimer:
 		{
 			s16 changeOpcode = navFrameNext->pathChangeOpcode;
 			s16 newPathID = BOTS_PathChangePathID(changeOpcode);
-			s16 newFrameIndex = BOTS_PathChangeFrameIndex(changeOpcode);
-			s16 cap = BOTS_PathChangeCap(); // 0xC00, cant have path[3]
 
-			if ((changeOpcode < cap) && (newPathID == botDriver->botData.desiredPath_BossOnly))
+			if ((changeOpcode < BOTS_PathChangeCap()) && (newPathID == botDriver->botData.desiredPath_BossOnly)) // 0xC00, cant have path[3]
 			{
-				s16 oldPathID;
 				struct NavFrame *firstNavFrameOnPath;
 				// record that change is requested (boss only)
 				botDriver->botData.botFlags = botFlags | BOT_FLAG_BOSS_PATH_ACTIVE;
 
-				oldPathID = botDriver->botData.botPath;
+				LIST_RemoveMember(&BOTS_NAV_LIST_BY_PATH[botDriver->botData.botPath], &botDriver->botData.item);
 				botDriver->botData.botPath = newPathID;
-
-				LIST_RemoveMember(&BOTS_NAV_LIST_BY_PATH[oldPathID], &botDriver->botData.item);
 				LIST_AddFront(&BOTS_NAV_LIST_BY_PATH[newPathID], &botDriver->botData.item);
 
 				firstNavFrameOnPath = BOTS_NAV_FRAMES[newPathID];
-				botDriver->botData.botNavFrame = &firstNavFrameOnPath[newFrameIndex];
+				botDriver->botData.botNavFrame = &firstNavFrameOnPath[BOTS_PathChangeFrameIndex(changeOpcode)];
 
 				BOTS_SetRotation(botDriver, 0);
 
@@ -1867,21 +1862,20 @@ UpdateTireColorTimer:
 						if (diff < 0x200)
 						{
 							s16 changeOpcode = navFrameNext->pathChangeOpcode;
-							s16 newPathID = BOTS_PathChangePathID(changeOpcode);
-							s16 newFrameIndex = BOTS_PathChangeFrameIndex(changeOpcode);
-							s16 cap = BOTS_PathChangeCap(); // 0xC00, cant have path[3]
 
-							if (changeOpcode < cap)
+							if (changeOpcode < BOTS_PathChangeCap()) // 0xC00, cant have path[3]
 							{
 								struct NavFrame *firstNavFrameOnPath;
-								s16 oldPathID = botDriver->botData.botPath;
-								botDriver->botData.botPath = newPathID;
+								s16 newPathID;
 
-								LIST_RemoveMember(&BOTS_NAV_LIST_BY_PATH[oldPathID], &botDriver->botData.item);
+								// retail takes the bot off its old path's list first, then works out the new path
+								LIST_RemoveMember(&BOTS_NAV_LIST_BY_PATH[botDriver->botData.botPath], &botDriver->botData.item);
+								newPathID = BOTS_PathChangePathID(changeOpcode);
+								botDriver->botData.botPath = newPathID;
 								LIST_AddFront(&BOTS_NAV_LIST_BY_PATH[newPathID], &botDriver->botData.item);
 
 								firstNavFrameOnPath = BOTS_NAV_FRAMES[newPathID];
-								botDriver->botData.botNavFrame = &firstNavFrameOnPath[newFrameIndex & BOTS_PATH_CHANGE_FRAME_MASK];
+								botDriver->botData.botNavFrame = &firstNavFrameOnPath[BOTS_PathChangeFrameIndex(changeOpcode)];
 
 								BOTS_SetRotation(botDriver, 0);
 
