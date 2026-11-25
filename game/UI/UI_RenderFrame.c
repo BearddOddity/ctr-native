@@ -5,6 +5,7 @@
 // CTR_NATIVE only adds an ST1 map-metadata null guard below.
 void UI_RenderFrame_Racing()
 {
+	struct Thread *mapThread;
 	u32 scoreOffsetX;
 	struct Driver *endDriver;
 	s16 sVar1;
@@ -740,9 +741,10 @@ void UI_RenderFrame_Racing()
 
 		    ((numPlyr == 3) && (levPtrMap != 0)))
 		{
+			mapThread = gGT->threadBuckets[PLAYER].thread;
 			local_30[0] = 0;
 
-			UI_Map_DrawDrivers(levPtrMap, gGT->threadBuckets[PLAYER].thread, local_30);
+			UI_Map_DrawDrivers(levPtrMap, mapThread, local_30);
 			UI_Map_DrawDrivers(levPtrMap, gGT->threadBuckets[ROBOT].thread, local_30);
 
 			UI_Map_DrawGhosts(levPtrMap, gGT->threadBuckets[GHOST].thread);
