@@ -1483,7 +1483,10 @@ extern char ctr_bots_kartSpawnOrderArray[8] asm("sdata_static+1840");
 extern struct RngDeadCoedState ctr_bots_advRng asm("sdata_static+1788");
 #define BOTS_KART_SPAWN_ORDER ctr_bots_kartSpawnOrderArray
 #define BOTS_ADV_RNG_STATE ctr_bots_advRng
+extern s16 ctr_bots_botsThrottle[] asm("data+1424");
+#define BOTS_THROTTLE ctr_bots_botsThrottle
 #else
+#define BOTS_THROTTLE data.botsThrottle
 #define BOTS_KART_SPAWN_ORDER sdata->kartSpawnOrderArray
 #define BOTS_ADV_RNG_STATE sdata->advRng
 #define BOTS_NAV_LIST_BY_PATH sdata->navBotList
@@ -2223,27 +2226,24 @@ UpdateTireColorTimer:
 			if ((levelID == HOT_AIR_SKYWAY || levelID == PAPU_PYRAMID) || levelID == POLAR_PASS)
 			{
 				int navFrameIndexOnPath;
-				int botPathIndex = botDriver->botData.botPath; // iVar3
+				s16 *throttle = &BOTS_THROTTLE[botDriver->botData.botPath]; // iVar3
 
-				if (levelID != POLAR_PASS)
+				if (gGT->levelID == POLAR_PASS)
 				{
-					if (levelID == PAPU_PYRAMID)
-					{
-						botPathIndex = CTR_MipsAddLo(botPathIndex, 6);
-					}
-					else if (levelID == SLIDE_COLISEUM)
-					{
-						botPathIndex = CTR_MipsAddLo(botPathIndex, 9);
-					}
+					throttle += 3;
 				}
-				else
+				else if (gGT->levelID == PAPU_PYRAMID)
 				{
-					botPathIndex = CTR_MipsAddLo(botPathIndex, 3);
+					throttle += 6;
+				}
+				else if (gGT->levelID == SLIDE_COLISEUM)
+				{
+					throttle += 9;
 				}
 
 				navFrameIndexOnPath = (int)(navFrameCurr - BOTS_NAV_FRAMES[botDriver->botData.botPath]);
 
-				if ((data.botsThrottle[botPathIndex] <= navFrameIndexOnPath) && (navFrameIndexOnPath < CTR_MipsAddLo(data.botsThrottle[botPathIndex], 0xb)) &&
+				if ((*throttle <= navFrameIndexOnPath) && (navFrameIndexOnPath < CTR_MipsAddLo(*throttle, 0xb)) &&
 				    (9000 < botDriver->botData.aiPhysics.speedLinear))
 				{
 					botDriver->botData.aiPhysics.turboMeter = 0;
