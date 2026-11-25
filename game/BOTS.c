@@ -1500,7 +1500,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	int iVar15;
 	struct Terrain *terrain;
 	int local_3c;
-	b32 useGroundedNavDistance;
+	u8 useGroundedNavDistance;
 	int navActionFlags;
 	int iVar3;
 	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
@@ -2735,7 +2735,10 @@ UpdateTireColorTimer:
 
 			VehPhysForce_RotAxisAngle(&botInstance->matrix, CTR_VECTOR_DATA(&(sps->hit.plane.normal)), botDriver->botData.aiRot.y);
 
-			botDriver->AxisAngle3_normalVec = sps->hit.plane.normal;
+			// copied field by field, as retail does
+			botDriver->AxisAngle3_normalVec.x = sps->hit.plane.normal.x;
+			botDriver->AxisAngle3_normalVec.y = sps->hit.plane.normal.y;
+			botDriver->AxisAngle3_normalVec.z = sps->hit.plane.normal.z;
 
 			botInstance->compressedNormalAndDriverIndex =
 			    INST_CompressNormalVectorAndDriverIndex(sps->hit.plane.normal.x, sps->hit.plane.normal.y, sps->hit.plane.normal.z, botDriver->driverID);
