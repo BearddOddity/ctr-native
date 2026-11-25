@@ -1469,7 +1469,15 @@ extern struct NavFrame *ctr_bots_NavPath_ptrNavFrameArray[3] asm("sdata_static+2
 extern struct NavHeader *ctr_bots_NavPath_ptrHeader[3] asm("sdata_static+2944");
 #define BOTS_NAV_FRAMES ctr_bots_NavPath_ptrNavFrameArray
 #define BOTS_NAV_HEADERS ctr_bots_NavPath_ptrHeader
+// and the accelerate order by its absolute address where a driver's id indexes it
+extern u8 ctr_bots_accelerateOrder[] asm("sdata_static+1812");
+#define BOTS_ACCEL_ORDER_BY_ID ctr_bots_accelerateOrder
+// and the character ids by their own address where a driver's id indexes them
+extern s16 ctr_bots_characterIDs[] asm("data+25828");
+#define BOTS_CHARACTER_IDS ctr_bots_characterIDs
 #else
+#define BOTS_CHARACTER_IDS data.characterIDs
+#define BOTS_ACCEL_ORDER_BY_ID sdata->accelerateOrder
 #define BOTS_NAV_FRAMES sdata->NavPath_ptrNavFrameArray
 #define BOTS_NAV_HEADERS sdata->NavPath_ptrHeader
 #endif
@@ -1714,7 +1722,7 @@ UpdateTireColorTimer:
 	if ((botDriver->botData.ai_progress_cooldown != 0) ||
 	    ((trafficLightsTimer = gGT->trafficLightsTimer,
 	      // oxide pretends there is less time (he is a cheater)
-	      (data.characterIDs[botDriver->driverID] == NITROS_OXIDE) ? CTR_MipsSubLo(trafficLightsTimer, 0x1e0)
+	      (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE) ? CTR_MipsSubLo(trafficLightsTimer, 0x1e0)
 	                                                              : trafficLightsTimer) > 0))
 	{
 		botInstance->scale.z = 0xccc;
@@ -1745,14 +1753,14 @@ UpdateTireColorTimer:
 			// first frame of race
 			botDriver->botData.botFlags |= BOT_FLAG_STARTLINE_INIT_DONE;
 
-			if (data.characterIDs[botDriver->driverID] == NITROS_OXIDE)
+			if (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE)
 			{ // if oxide, then talk
 				Voiceline_RequestPlay(0, 0xf, 0x10);
 			}
 
 			if (( // if in front row & 25% chance
 			        (SDATA_ABS->kartSpawnOrderArray[botDriver->driverID] < 3) && ((RngDeadCoed(&SDATA_ABS->advRng) & 0xFF) < 0x40)) ||
-			    (data.characterIDs[botDriver->driverID] == NITROS_OXIDE))
+			    (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE))
 			{ // start the race with a boost
 				VehFire_Increment(botDriver, 0x2d0, 1, 0x180);
 
@@ -1893,11 +1901,13 @@ UpdateTireColorTimer:
 			int levelID;
 			botDriver->actionsFlagSet &= ~ACTION_AIRBORNE;
 
-			bestDriverRank = sdata->bestHumanRank; // iVar4
-
 			if ((gGT->gameMode1 & RELIC_RACE) != 0)
 			{
 				bestDriverRank = sdata->bestRobotRank;
+			}
+			else
+			{
+				bestDriverRank = sdata->bestHumanRank; // iVar4
 			}
 
 
@@ -1907,12 +1917,13 @@ UpdateTireColorTimer:
 				int distToFinish;
 				int complexDifficultyStat;
 				int otherDifficultyStat; // iVar13
+				int rankDifficultyStat;
 				int iVar9;
 				int bestDriverWumpaCount;
 				int turboMult;
 				int netSpeedStat;
 				int additionalVelocity;
-				s16 driverRank = botDriver->driverRank; // uVar8
+				register s16 driverRank CTR_PSX_REGISTER("$8") = botDriver->driverRank; // uVar8
 				b32 isInAdvArcadeOrVSCup = false;       // bVar1
 
 				if (((gGT->gameMode1 & ADVENTURE_CUP) != 0) || ((gGT->gameMode2 & CUP_ANY_KIND) != 0))
@@ -1920,7 +1931,7 @@ UpdateTireColorTimer:
 					isInAdvArcadeOrVSCup = true;
 				}
 
-				if (gGT->drivers[0]->driverRank < botDriver->driverRank)
+				if (gGT->drivers[0]->driverRank < driverRank)
 				{
 					driverRank--;
 				}
@@ -1963,7 +1974,7 @@ UpdateTireColorTimer:
 
 				// retail adds the rank's difficulty first, then works out how far ahead the best driver is, each lap index
 				// taken one lower while that driver is behind the start line
-				otherDifficultyStat = CTR_MipsAddLo(sdata->arcade_difficultyParams[driverRank], difficultyStat);
+				rankDifficultyStat = CTR_MipsAddLo(sdata->arcade_difficultyParams[driverRank], difficultyStat);
 
 				distToFinish = BOTS_GetTrackDistanceToFinish(gGT); // iVar3
 
@@ -1980,7 +1991,7 @@ UpdateTireColorTimer:
 				                                        ? botDriver->lapIndex - 1
 				                                        : botDriver->lapIndex,
 				                                    distToFinish))),
-				    otherDifficultyStat);
+				    rankDifficultyStat);
 
 
 				if (isInAdvArcadeOrVSCup && (driverRank == 0))
@@ -2112,7 +2123,7 @@ UpdateTireColorTimer:
 			{
 				botDriver->botData.aiPhysics.turboMeter = 0;
 
-				if (data.characterIDs[botDriver->driverID] == NITROS_OXIDE)
+				if (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE)
 				{
 					int damagedVelocityPenalty = CTR_MipsSra(botDriver->const_DamagedSpeed, 2); // iVar4
 
@@ -2193,7 +2204,7 @@ UpdateTireColorTimer:
 					{
 						botDriver->botData.botAccel--;
 						botVelocity = CTR_MipsSra(CTR_MipsMulLo(botVelocity, CTR_MipsSubLo(0x100, CTR_MipsMulLo(sdata->AI_AccelFrameSteps,
-						                                                                                        sdata->accelerateOrder[botDriver->driverID]))),
+						                                                                                        BOTS_ACCEL_ORDER_BY_ID[botDriver->driverID]))),
 						                          8);
 					}
 
@@ -3115,13 +3126,13 @@ UpdateTireColorTimer:
 	}
 
 	if (((navFrameSpecialBits & BOTS_NAV_SPECIAL_RAMP_PHYS) != 0) &&
-	    ((0x1c1f < botDriver->botData.aiPhysics.speedLinear) || (data.characterIDs[botDriver->driverID] == NITROS_OXIDE)))
+	    ((0x1c1f < botDriver->botData.aiPhysics.speedLinear) || (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE)))
 	{
 		int iVar4 = (local_3c & BOTS_NAV_SPECIAL_INDEX_MASK);
 		botDriver->botData.aiPhysics.speedY = BOTS_NAV_HEADERS[botDriver->botData.botPath]->rampPhys2[iVar4];
 		botDriver->botData.aiPhysics.speedLinear = BOTS_NAV_HEADERS[botDriver->botData.botPath]->rampPhys1[iVar4];
 
-		if (data.characterIDs[botDriver->driverID] == NITROS_OXIDE)
+		if (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE)
 		{
 			botDriver->botData.aiPhysics.squishCooldown = 0;
 			botDriver->botData.aiPhysics.mulDrift = 0;
