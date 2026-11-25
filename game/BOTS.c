@@ -1510,12 +1510,12 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
 	int badnessRecieveTimer;
 	s16 camRot;
-	int iVar4_lifetime_3;
+	int driftStep;
 	int uVar11;
 	u8 cmp1;
 	u8 cmp2;
 	int iVar4_lifetime_2;
-	s16 iVar3_lifetime_2;
+	s16 newMulDrift;
 	register struct Driver *botDriver CTR_PSX_REGISTER("$19"); // iVar17
 	struct Instance *botInstance; // iVar22
 #ifdef CTR_NATIVE
@@ -2971,30 +2971,30 @@ UpdateTireColorTimer:
 		botDriver->jump_LandingBoost = (s16)CTR_MipsAddLo((u16)botDriver->jump_LandingBoost, elapsedMilliseconds);
 	}
 
-	iVar4_lifetime_3 = 0x18;
+	driftStep = 0x18;
 
 	if (botDriver->botData.aiPhysics.driftTarget != 0)
 	{
-		iVar4_lifetime_3 = 0x60;
+		driftStep = 0x60;
 	}
 
-	iVar3_lifetime_2 = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.mulDrift, iVar4_lifetime_3);
 	if (botDriver->botData.aiPhysics.driftTarget < botDriver->botData.aiPhysics.mulDrift)
 	{
-		botDriver->botData.aiPhysics.mulDrift = iVar3_lifetime_2;
+		newMulDrift = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.mulDrift, driftStep);
+		botDriver->botData.aiPhysics.mulDrift = newMulDrift;
 
-		if (iVar3_lifetime_2 < botDriver->botData.aiPhysics.driftTarget)
+		if (newMulDrift < botDriver->botData.aiPhysics.driftTarget)
 		{
 			botDriver->botData.aiPhysics.mulDrift = botDriver->botData.aiPhysics.driftTarget;
 		}
 	}
 	else
 	{
-		iVar4_lifetime_3 = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, iVar4_lifetime_3);
+		newMulDrift = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, driftStep);
 
-		botDriver->botData.aiPhysics.mulDrift = iVar4_lifetime_3;
+		botDriver->botData.aiPhysics.mulDrift = newMulDrift;
 
-		if (botDriver->botData.aiPhysics.driftTarget < iVar4_lifetime_3)
+		if (botDriver->botData.aiPhysics.driftTarget < newMulDrift)
 		{
 			botDriver->botData.aiPhysics.mulDrift = botDriver->botData.aiPhysics.driftTarget;
 		}
@@ -3004,124 +3004,116 @@ UpdateTireColorTimer:
 	if ((botDriver->botData.botFlags & BOT_FLAG_DAMAGE_ACTIVE) != 0)
 	{
 		u8 newKartState; // uVar2
-		s16 sVar7 = botDriver->botData.aiDamageState;
-		if (sVar7 != BOTS_DAMAGE_STATE_BLAST)
+		switch (botDriver->botData.aiDamageState)
 		{
-			if (sVar7 < BOTS_DAMAGE_STATE_SQUISH)
+		case BOTS_DAMAGE_STATE_SPIN:
+		{
+			u16 squishCooldownMaybe = (u16)botDriver->botData.aiPhysics.squishCooldown;
+			int alsoSquishCooldownMaybe = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
+			botDriver->botData.aiPhysics.squishCooldown = alsoSquishCooldownMaybe;
+			botDriver->botData.aiPhysics.mulDrift = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, squishCooldownMaybe);
+			if (alsoSquishCooldownMaybe < 0x100)
 			{
-				if (sVar7 == BOTS_DAMAGE_STATE_SPIN)
-				{
-					u16 squishCooldownMaybe = (u16)botDriver->botData.aiPhysics.squishCooldown;
-					int alsoSquishCooldownMaybe = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
-					botDriver->botData.aiPhysics.squishCooldown = alsoSquishCooldownMaybe;
-					botDriver->botData.aiPhysics.mulDrift = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, squishCooldownMaybe);
-					if (alsoSquishCooldownMaybe < 0x100)
-					{
-						botDriver->botData.aiPhysics.squishCooldown = 0;
-						botDriver->botData.aiPhysics.mulDrift = 0;
-						botDriver->botData.aiPhysics.speedLinear = 0;
-						botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
-					}
-					newKartState = 3;
-					botDriver->kartState = newKartState;
-				}
+				botDriver->botData.aiPhysics.squishCooldown = 0;
+				botDriver->botData.aiPhysics.mulDrift = 0;
+				botDriver->botData.aiPhysics.speedLinear = 0;
+				botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
 			}
-			else
-			{
-				if (sVar7 == BOTS_DAMAGE_STATE_SQUISH)
-				{
-					u16 sVar7 = (u16)botDriver->botData.aiPhysics.squishCooldown;
-					int iVar4 = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
-					botDriver->botData.aiPhysics.squishCooldown = iVar4;
-					botDriver->botData.aiPhysics.mulDrift = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, sVar7);
-					if (iVar4 < 0x200)
-					{
-						botDriver->botData.aiPhysics.squishCooldown = 0;
-						botDriver->botData.aiPhysics.mulDrift = 0;
-					}
-					iVar4 = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
-					botDriver->botData.aiPhysics.rotXZ = iVar4;
-					if (iVar4 <= 0)
-					{
-						botDriver->botData.aiPhysics.speedY = 0x1400;
-						botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
-						botDriver->actionsFlagSet |= ACTION_JUMP_STARTED;
-					}
-				}
-				else
-				{
-					if (sVar7 == BOTS_DAMAGE_STATE_MASK_GRAB)
-					{
-						int iVar4;
-						struct Thread *plant = botDriver->plantEatingMe;
-
-						struct Instance *plantInst = plant->inst;
-
-						if (botDriver->botData.aiPhysics.rotXZ < 0xb40)
-						{
-							SVECTOR v;
-							VECTOR v2;
-							s32 l3;
-							int camDriverXDelta;
-							int camY;
-							int driverY;
-							int camDriverZDelta;
-							int rotY;
-							int rotX;
-							v.vx = 0xfa;
-							if ((plant->object != NULL) && (((struct Plant *)plant->object)->side != 0))
-							{
-								v.vx = -0xfa;
-							}
-							v.vy = 0;
-							v.vz = 0x2ee;
-
-							SetRotMatrix(&plantInst->matrix);
-							SetTransMatrix(&plantInst->matrix);
-
-
-							RotTrans(&v, &v2, &l3);
-
-							gGT->pushBuffer[botDriver->driverID].pos.x = v2.vx;
-							gGT->pushBuffer[botDriver->driverID].pos.y = CTR_MipsAddLo(plantInst->matrix.t[1], 0xc0);
-							gGT->pushBuffer[botDriver->driverID].pos.z = v2.vz;
-
-							camY = gGT->pushBuffer[botDriver->driverID].pos.y;
-							driverY = plantInst->matrix.t[1];
-							camDriverXDelta = CTR_MipsSubLo(v2.vx, plantInst->matrix.t[0]);
-							camDriverZDelta = CTR_MipsSubLo(v2.vz, plantInst->matrix.t[2]);
-
-							rotY = ratan2(camDriverXDelta, camDriverZDelta);
-							gGT->pushBuffer[botDriver->driverID].rot.y = rotY;
-
-							rotX = SquareRoot0_stub(
-							    CTR_MipsAddLo(CTR_MipsMulLo(camDriverXDelta, camDriverXDelta), CTR_MipsMulLo(camDriverZDelta, camDriverZDelta)));
-							rotX = ratan2(CTR_MipsSubLo(camY, driverY), rotX);
-
-							gGT->pushBuffer[botDriver->driverID].rot.x = CTR_MipsSubLo(0x800, rotX);
-							gGT->pushBuffer[botDriver->driverID].rot.z = 0;
-						}
-
-						botDriver->botData.aiPhysics.speedLinear = 0;
-						iVar4 = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
-						newKartState = 5;
-						botDriver->botData.aiPhysics.rotXZ = iVar4;
-						if (iVar4 < 1)
-						{
-							botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
-							botInstance->flags &= ~HIDE_MODEL;
-							botDriver->botData.ai_progress_cooldown = 1;
-							BOTS_MaskGrab(botThread);
-							newKartState = 5;
-						}
-						botDriver->kartState = newKartState;
-					}
-				}
-			}
+			newKartState = 3;
+			botDriver->kartState = newKartState;
+			break;
 		}
-		else
-		{
+		case BOTS_DAMAGE_STATE_BLAST:
 			botDriver->botData.aiPhysics.rotXZ = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, 1);
+			break;
+		case BOTS_DAMAGE_STATE_SQUISH:
+		{
+			u16 sVar7 = (u16)botDriver->botData.aiPhysics.squishCooldown;
+			int iVar4 = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
+			botDriver->botData.aiPhysics.squishCooldown = iVar4;
+			botDriver->botData.aiPhysics.mulDrift = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, sVar7);
+			if (iVar4 < 0x200)
+			{
+				botDriver->botData.aiPhysics.squishCooldown = 0;
+				botDriver->botData.aiPhysics.mulDrift = 0;
+			}
+			iVar4 = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
+			botDriver->botData.aiPhysics.rotXZ = iVar4;
+			if (iVar4 <= 0)
+			{
+				botDriver->botData.aiPhysics.speedY = 0x1400;
+				botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
+				botDriver->actionsFlagSet |= ACTION_JUMP_STARTED;
+			}
+			break;
+		}
+		case BOTS_DAMAGE_STATE_MASK_GRAB:
+		{
+			int iVar4;
+			struct Thread *plant = botDriver->plantEatingMe;
+
+			struct Instance *plantInst = plant->inst;
+
+			if (botDriver->botData.aiPhysics.rotXZ < 0xb40)
+			{
+				SVECTOR v;
+				VECTOR v2;
+				s32 l3;
+				int camDriverXDelta;
+				int camY;
+				int driverY;
+				int camDriverZDelta;
+				int rotY;
+				int rotX;
+				v.vx = 0xfa;
+				if ((plant->object != NULL) && (((struct Plant *)plant->object)->side != 0))
+				{
+					v.vx = -0xfa;
+				}
+				v.vy = 0;
+				v.vz = 0x2ee;
+
+				SetRotMatrix(&plantInst->matrix);
+				SetTransMatrix(&plantInst->matrix);
+
+
+				RotTrans(&v, &v2, &l3);
+
+				gGT->pushBuffer[botDriver->driverID].pos.x = v2.vx;
+				gGT->pushBuffer[botDriver->driverID].pos.y = CTR_MipsAddLo(plantInst->matrix.t[1], 0xc0);
+				gGT->pushBuffer[botDriver->driverID].pos.z = v2.vz;
+
+				camY = gGT->pushBuffer[botDriver->driverID].pos.y;
+				driverY = plantInst->matrix.t[1];
+				camDriverXDelta = CTR_MipsSubLo(v2.vx, plantInst->matrix.t[0]);
+				camDriverZDelta = CTR_MipsSubLo(v2.vz, plantInst->matrix.t[2]);
+
+				rotY = ratan2(camDriverXDelta, camDriverZDelta);
+				gGT->pushBuffer[botDriver->driverID].rot.y = rotY;
+
+				rotX = SquareRoot0_stub(
+				    CTR_MipsAddLo(CTR_MipsMulLo(camDriverXDelta, camDriverXDelta), CTR_MipsMulLo(camDriverZDelta, camDriverZDelta)));
+				rotX = ratan2(CTR_MipsSubLo(camY, driverY), rotX);
+
+				gGT->pushBuffer[botDriver->driverID].rot.x = CTR_MipsSubLo(0x800, rotX);
+				gGT->pushBuffer[botDriver->driverID].rot.z = 0;
+			}
+
+			botDriver->botData.aiPhysics.speedLinear = 0;
+			iVar4 = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
+			newKartState = 5;
+			botDriver->botData.aiPhysics.rotXZ = iVar4;
+			if (iVar4 < 1)
+			{
+				botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
+				botInstance->flags &= ~HIDE_MODEL;
+				botDriver->botData.ai_progress_cooldown = 1;
+				BOTS_MaskGrab(botThread);
+				newKartState = 5;
+			}
+			botDriver->kartState = newKartState;
+			break;
+		}
 		}
 	}
 
