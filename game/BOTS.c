@@ -1495,7 +1495,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	b32 useGroundedNavDistance;
 	int navActionFlags;
 	int iVar3;
-	int percentage; // iVar13
+	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
 	int badnessRecieveTimer;
 	s16 camRot;
 	int iVar4_lifetime_3;
