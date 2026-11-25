@@ -1897,7 +1897,7 @@ UpdateTireColorTimer:
 			struct Driver *bestDriverRank;
 			int botVelocity; // iVar3
 			struct Terrain *botTerrain;
-			int velocityAccountingForTerrain;
+			int speedStep;
 			int levelID;
 			botDriver->actionsFlagSet &= ~ACTION_AIRBORNE;
 
@@ -2164,30 +2164,31 @@ UpdateTireColorTimer:
 				botVelocity = 0x6900;
 			}
 
-			velocityAccountingForTerrain = CTR_MipsSra(CTR_MipsMulLo(botVelocity, botTerrain->bot.fields.targetSpeedScale), 8); // iVar4
+			// from here on the bot's velocity is the target speed on this terrain (retail keeps both in one register)
+			botVelocity = CTR_MipsSra(CTR_MipsMulLo(botVelocity, botTerrain->bot.fields.targetSpeedScale), 8); // iVar4
 
 			if ((botTerrain->bot.fields.speedFlags & TERRAIN_BOT_FLAG_DECEL_TO_TARGET_SPEED) != 0)
 			{
-				botVelocity = CTR_MipsSra(botDriver->botData.aiPhysics.speedLinear, 1);
-
-				if (botDriver->botData.aiPhysics.speedLinear < velocityAccountingForTerrain)
+				if (botDriver->botData.aiPhysics.speedLinear < botVelocity)
 				{
 					goto ApplyTerrainAcceleration;
 				}
 
-				botDriver->botData.aiPhysics.speedLinear = botVelocity;
-				if (botVelocity < velocityAccountingForTerrain)
+				speedStep = CTR_MipsSra(botDriver->botData.aiPhysics.speedLinear, 1);
+
+				botDriver->botData.aiPhysics.speedLinear = speedStep;
+				if (speedStep < botVelocity)
 				{
-					botDriver->botData.aiPhysics.speedLinear = velocityAccountingForTerrain;
+					botDriver->botData.aiPhysics.speedLinear = botVelocity;
 					goto CheckAccelerationTowardTerrainTarget;
 				}
 			}
 			else
 			{
 			CheckAccelerationTowardTerrainTarget:
-				if (botDriver->botData.aiPhysics.speedLinear < velocityAccountingForTerrain)
+				if (botDriver->botData.aiPhysics.speedLinear < botVelocity)
 				{
-					s16 accel; // sVar7
+					int accel; // sVar7
 				ApplyTerrainAcceleration:;
 
 					if (botDriver->reserves >= 1)
@@ -2198,17 +2199,17 @@ UpdateTireColorTimer:
 					{
 						accel = botDriver->const_Accel_ClassStat;
 					}
-					botVelocity = CTR_MipsSra(CTR_MipsMulLo(accel, botTerrain->bot.fields.accelerationScale), 8);
+					speedStep = CTR_MipsSra(CTR_MipsMulLo(accel, botTerrain->bot.fields.accelerationScale), 8);
 
 					if (botDriver->botData.botAccel != 0)
 					{
 						botDriver->botData.botAccel--;
-						botVelocity = CTR_MipsSra(CTR_MipsMulLo(botVelocity, CTR_MipsSubLo(0x100, CTR_MipsMulLo(sdata->AI_AccelFrameSteps,
+						speedStep = CTR_MipsSra(CTR_MipsMulLo(speedStep, CTR_MipsSubLo(0x100, CTR_MipsMulLo(sdata->AI_AccelFrameSteps,
 						                                                                                        BOTS_ACCEL_ORDER_BY_ID[botDriver->driverID]))),
 						                          8);
 					}
 
-					botDriver->botData.aiPhysics.speedLinear = CTR_MipsAddLo(botDriver->botData.aiPhysics.speedLinear, botVelocity);
+					botDriver->botData.aiPhysics.speedLinear = CTR_MipsAddLo(botDriver->botData.aiPhysics.speedLinear, speedStep);
 				}
 			}
 
@@ -2249,9 +2250,9 @@ UpdateTireColorTimer:
 
 			if ((u8)0x80u < navFrameCurr->rot[3])
 			{
-				velocityAccountingForTerrain = CTR_MipsAddLo(velocityAccountingForTerrain, botDriver->const_SlopeForwardSpeedBonus);
+				botVelocity = CTR_MipsAddLo(botVelocity, botDriver->const_SlopeForwardSpeedBonus);
 
-				if (botDriver->botData.aiPhysics.speedLinear < velocityAccountingForTerrain)
+				if (botDriver->botData.aiPhysics.speedLinear < botVelocity)
 				{
 					u32 var = (u32)navFrameCurr->rot[3];
 					int sinOfAngle = MATH_Sin(CTR_MipsSll(var, 4));
@@ -2261,7 +2262,7 @@ UpdateTireColorTimer:
 					                  CTR_MipsSra(CTR_MipsMulLo(botDriver->const_Gravity, sinOfAngle), 0xc)); // force on a slope due to gravity
 				}
 
-				botDriver->fireSpeed = velocityAccountingForTerrain;
+				botDriver->fireSpeed = botVelocity;
 			}
 		}
 		else
