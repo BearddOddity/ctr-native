@@ -1472,7 +1472,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	u32 local_38;
 	s16 tireColorStep;
 	int negElapsed;
-	struct NavFrame *navFrameNext; // psVar21
+	register struct NavFrame *navFrameNext CTR_PSX_REGISTER("$23"); // psVar21
 	struct Thread *hitThread;
 	int deltaPosThisFrame; // iVar4
 	int gravity;
