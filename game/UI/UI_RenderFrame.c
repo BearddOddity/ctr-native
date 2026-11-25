@@ -764,75 +764,70 @@ void UI_RenderFrame_Racing()
 	// loop counter
 	i = 0;
 
-	// if numPlyrCurrGame is not 0
-	if (numPlyr != '\0')
+	// for(int i = 0; i < numPlyrCurrGame; i++)
+	while (i < (int)numPlyr)
 	{
-		// for(int i = 0; i < numPlyrCurrGame; i++)
-		do
+		playerStruct = gGT->drivers[i];
+		pb = &gGT->pushBuffer[playerStruct->driverID];
+
+		if ((((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((raceMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
+		    ((
+		        // cooldown is finished
+		        gGT->timerEndOfRaceVS == 0 ||
+
+		        // cooldown has not progressed far,
+		        // so you still need to draw "Finished" and "Loser"
+		        (0x96 < gGT->timerEndOfRaceVS))))
 		{
-			playerStruct = gGT->drivers[i];
-			pb = &gGT->pushBuffer[playerStruct->driverID];
+			if (
+			    // player structure + 0x482 is your rank in the race
+			    // 0 = 1st place, 1 = 2nd place, 2 = 3rd place, etc
 
-			if ((((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((raceMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
-			    ((
-			        // cooldown is finished
-			        gGT->timerEndOfRaceVS == 0 ||
+			    // Basically, out of all human players, if you did not come in last
+			    ((int)playerStruct->driverRank < (int)numPlyr - 1) &&
 
-			        // cooldown has not progressed far,
-			        // so you still need to draw "Finished" and "Loser"
-			        (0x96 < gGT->timerEndOfRaceVS))))
+			    // If you're not in Battle Mode
+			    // (winner of battle wont use this function)
+			    ((raceMode1 & BATTLE_MODE) == 0))
 			{
-				if (
-				    // player structure + 0x482 is your rank in the race
-				    // 0 = 1st place, 1 = 2nd place, 2 = 3rd place, etc
-
-				    // Basically, out of all human players, if you did not come in last
-				    ((int)playerStruct->driverRank < (int)numPlyr - 1) &&
-
-				    // If you're not in Battle Mode
-				    // (winner of battle wont use this function)
-				    ((raceMode1 & BATTLE_MODE) == 0))
-				{
-					// retail sets each case's call up whole and shares only the call itself
-					DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_FINISHED],
-					                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
-					                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
-					                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
-				}
-
-				// If you came in last place, or you're in battle
-				else
-				{
-					DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_LOSER],
-					                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
-					                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
-					                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
-				}
-
-				if (
-				    // If you press Cross or Start
-				    ((GAMEPADS->gamepad[i].buttonsTapped & 0x1010) != 0) &&
-
-				    // If you're in End-Of-Race menu
-				    ((raceMode1 & END_OF_RACE) != 0))
-				{
-					// make "Finished" and "Loser" disappear, start
-					// drawing the on-screen comments
-					gGT->timerEndOfRaceVS = 0x96;
-				}
+				// retail sets each case's call up whole and shares only the call itself
+				DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_FINISHED],
+				                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
+				                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
+				                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
 			}
 
-			// if item roll is not done
-			if (playerStruct->itemRollTimer != 0)
+			// If you came in last place, or you're in battle
+			else
 			{
-				bVar3 = true;
+				DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_LOSER],
+				                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
+				                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
+				                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
 			}
 
-			// increment the iteration counter
-			i++;
+			if (
+			    // If you press Cross or Start
+			    ((GAMEPADS->gamepad[i].buttonsTapped & 0x1010) != 0) &&
 
-			// for(int i = 0; i < numPlyrCurrGame; i++)
-		} while (i < (int)numPlyr);
+			    // If you're in End-Of-Race menu
+			    ((raceMode1 & END_OF_RACE) != 0))
+			{
+				// make "Finished" and "Loser" disappear, start
+				// drawing the on-screen comments
+				gGT->timerEndOfRaceVS = 0x96;
+			}
+		}
+
+		// if item roll is not done
+		if (playerStruct->itemRollTimer != 0)
+		{
+			bVar3 = true;
+		}
+
+		// increment the iteration counter
+		i++;
+
 	}
 	if ((
 	        // If game is not paused
