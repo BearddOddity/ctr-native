@@ -34,7 +34,7 @@ void UI_RenderFrame_Racing()
 	s16 local_30[2];
 	struct Thread *playerThread;
 	struct DB *backBuffer;
-	struct Thread *turboThread;
+	register struct Thread *turboThread CTR_PSX_REGISTER("$16");
 	struct Turbo *turboThreadObject;
 	u32 mapPosX;
 	u32 mapPosY;
