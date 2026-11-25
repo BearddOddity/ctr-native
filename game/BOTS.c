@@ -3003,15 +3003,15 @@ UpdateTireColorTimer:
 
 	if ((botDriver->botData.botFlags & BOT_FLAG_DAMAGE_ACTIVE) != 0)
 	{
-		u8 newKartState; // uVar2
 		switch (botDriver->botData.aiDamageState)
 		{
 		case BOTS_DAMAGE_STATE_SPIN:
 		{
-			u16 squishCooldownMaybe = (u16)botDriver->botData.aiPhysics.squishCooldown;
-			int alsoSquishCooldownMaybe = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
+			int alsoSquishCooldownMaybe;
+			botDriver->botData.aiPhysics.mulDrift =
+			    (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, (u16)botDriver->botData.aiPhysics.squishCooldown);
+			alsoSquishCooldownMaybe = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
 			botDriver->botData.aiPhysics.squishCooldown = alsoSquishCooldownMaybe;
-			botDriver->botData.aiPhysics.mulDrift = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, squishCooldownMaybe);
 			if (alsoSquishCooldownMaybe < 0x100)
 			{
 				botDriver->botData.aiPhysics.squishCooldown = 0;
@@ -3019,8 +3019,7 @@ UpdateTireColorTimer:
 				botDriver->botData.aiPhysics.speedLinear = 0;
 				botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
 			}
-			newKartState = 3;
-			botDriver->kartState = newKartState;
+			botDriver->kartState = 3;
 			break;
 		}
 		case BOTS_DAMAGE_STATE_BLAST:
@@ -3028,18 +3027,18 @@ UpdateTireColorTimer:
 			break;
 		case BOTS_DAMAGE_STATE_SQUISH:
 		{
-			u16 sVar7 = (u16)botDriver->botData.aiPhysics.squishCooldown;
-			int iVar4 = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
-			botDriver->botData.aiPhysics.squishCooldown = iVar4;
-			botDriver->botData.aiPhysics.mulDrift = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, sVar7);
-			if (iVar4 < 0x200)
+			int squishLeft;
+			botDriver->botData.aiPhysics.mulDrift =
+			    (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.mulDrift, (u16)botDriver->botData.aiPhysics.squishCooldown);
+			squishLeft = CTR_MipsSubLo(botDriver->botData.aiPhysics.squishCooldown, 0xc);
+			botDriver->botData.aiPhysics.squishCooldown = squishLeft;
+			if (squishLeft < 0x200)
 			{
 				botDriver->botData.aiPhysics.squishCooldown = 0;
 				botDriver->botData.aiPhysics.mulDrift = 0;
 			}
-			iVar4 = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
-			botDriver->botData.aiPhysics.rotXZ = iVar4;
-			if (iVar4 <= 0)
+			botDriver->botData.aiPhysics.rotXZ = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
+			if (botDriver->botData.aiPhysics.rotXZ <= 0)
 			{
 				botDriver->botData.aiPhysics.speedY = 0x1400;
 				botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
@@ -3049,7 +3048,6 @@ UpdateTireColorTimer:
 		}
 		case BOTS_DAMAGE_STATE_MASK_GRAB:
 		{
-			int iVar4;
 			struct Thread *plant = botDriver->plantEatingMe;
 
 			struct Instance *plantInst = plant->inst;
@@ -3065,10 +3063,13 @@ UpdateTireColorTimer:
 				int camDriverZDelta;
 				int rotY;
 				int rotX;
-				v.vx = 0xfa;
-				if ((plant->object != NULL) && (((struct Plant *)plant->object)->side != 0))
+				if ((plant != NULL) && (plant->object != NULL) && (((struct Plant *)plant->object)->side != 0))
 				{
 					v.vx = -0xfa;
+				}
+				else
+				{
+					v.vx = 0xfa;
 				}
 				v.vy = 0;
 				v.vz = 0x2ee;
@@ -3100,18 +3101,15 @@ UpdateTireColorTimer:
 			}
 
 			botDriver->botData.aiPhysics.speedLinear = 0;
-			iVar4 = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
-			newKartState = 5;
-			botDriver->botData.aiPhysics.rotXZ = iVar4;
-			if (iVar4 < 1)
+			botDriver->botData.aiPhysics.rotXZ = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
+			if (botDriver->botData.aiPhysics.rotXZ < 1)
 			{
 				botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
 				botInstance->flags &= ~HIDE_MODEL;
 				botDriver->botData.ai_progress_cooldown = 1;
 				BOTS_MaskGrab(botThread);
-				newKartState = 5;
 			}
-			botDriver->kartState = newKartState;
+			botDriver->kartState = 5;
 			break;
 		}
 		}
