@@ -51,9 +51,12 @@ void UI_RenderFrame_Racing()
 #endif
 #ifdef CTR_NATIVE
 #define scoreText (&string[0])
+#define turboText (&string[0])
 #else
 	// Retail prints the battle score change into the letter position's stack slot, not into string.
 #define scoreText ((char *)&letterCtrPos)
+	// and the turbo counter into the lerp position's slot
+#define turboText ((char *)&wumpaModelPos)
 #endif
 
 
@@ -652,25 +655,25 @@ void UI_RenderFrame_Racing()
 				// If you have 1000 boosts or more, cap the on-screen counter at 999
 				if (playerStruct->numTurbos >= 1000)
 				{
-					sprintf((char *)&string[0], &GAME_SDATA_NAME(s_999)[0]);
+					sprintf(turboText, &GAME_SDATA_NAME(s_999)[0]);
 				}
 				else
 				{
 					// build string for on-screen boost counter
-					sprintf((char *)&string[0], &GAME_SDATA_NAME(s_intSpace)[0], playerStruct->numTurbos);
+					sprintf(turboText, &GAME_SDATA_NAME(s_intSpace)[0], playerStruct->numTurbos);
 				}
 
 				i = DecalFont_GetLineWidth(GAME_LANGUAGE_STRINGS[LNG_TURBOS], 1);
 
 				// Draw the string
-				DecalFont_DrawLine((char *)&string[0], (int)(((u32)(u16)turboCountPos.x - i) * 0x10000) >> 0x10, (int)turboCountPos.y, FONT_BIG,
+				DecalFont_DrawLine(turboText, (int)(((u32)(u16)turboCountPos.x - i) * 0x10000) >> 0x10, (int)turboCountPos.y, FONT_BIG,
 				                   (JUSTIFY_RIGHT | ORANGE_RED));
 
 
-				sprintf((char *)&string[0], &GAME_SDATA_NAME(s_str)[0], GAME_LANGUAGE_STRINGS[LNG_TURBOS]);
+				sprintf(turboText, &GAME_SDATA_NAME(s_str)[0], GAME_LANGUAGE_STRINGS[LNG_TURBOS]);
 
 				// Draw the string
-				DecalFont_DrawLine((char *)&string[0], (int)(s16)turboCountPos.x, (int)turboCountPos.y, FONT_BIG, (JUSTIFY_RIGHT | ORANGE));
+				DecalFont_DrawLine(turboText, (int)(s16)turboCountPos.x, (int)turboCountPos.y, FONT_BIG, (JUSTIFY_RIGHT | ORANGE));
 
 				backBuffer = gGT->backBuffer;
 				primMemCurr = backBuffer->primMem.cursor;
@@ -853,6 +856,7 @@ void UI_RenderFrame_Racing()
 #undef numPlyr
 #endif
 #undef scoreText
+#undef turboText
 }
 
 void UI_RenderFrame_AdvHub(void)
