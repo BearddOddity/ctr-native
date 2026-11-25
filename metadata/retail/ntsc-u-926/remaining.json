@@ -27,12 +27,6 @@
       "forced_includes": ["tools/matching/retail_bindings.h"]
     },
     {
-      "name": "UI_RenderFrame_Racing",
-      "end_symbol": "UI_RenderFrame_AdvHub",
-      "source": "game/UI/UI_RenderFrame.c",
-      "like": "ui-render-frame-adv-crystal"
-    },
-    {
       "name": "CAM_SkyboxGlow",
       "end_symbol": "CAM_ClearScreen",
       "source": "game/CAM.c",

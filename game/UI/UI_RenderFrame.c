@@ -5,9 +5,13 @@
 // CTR_NATIVE only adds an ST1 map-metadata null guard below.
 void UI_RenderFrame_Racing()
 {
+	register struct GameTracker *clockGT CTR_PSX_REGISTER("$7");
+	struct Thread *mapThread;
+	u32 scoreOffsetX;
+	struct Driver *endDriver;
 	s16 sVar1;
 	s16 sVar2;
-	u8 bVar3;
+	s16 bVar3;
 	int partTimeVariable1;
 	u32 *ptrColor;
 	char *pbVar6;
@@ -16,11 +20,14 @@ void UI_RenderFrame_Racing()
 	u32 partTimeVariable5;
 	struct Icon *iconPtr;
 	u32 *primMemCurr;
+	u32 *turboOT;
 	char *fmt;
 	POLY_G4 *TurboCounterBar;
 	s16 sVar17;
 	struct Driver *playerStruct;
 	struct UiElement2D *hudStructPtr;
+	struct UiElement2D *hudLoop;
+	int idx;
 	struct UIMap *levPtrMap;
 	char cVar22;
 	SVec2 wumpaModelPos;
@@ -30,66 +37,88 @@ void UI_RenderFrame_Racing()
 	s16 local_30[2];
 	struct Thread *playerThread;
 	struct DB *backBuffer;
-	struct Thread *turboThread;
+	register struct Thread *turboThread CTR_PSX_REGISTER("$16");
 	struct Turbo *turboThreadObject;
-	int offset;
 	u32 mapPosX;
 	u32 mapPosY;
+	int rank;
+#ifdef CTR_NATIVE
 	struct GameTracker *gGT;
+	int raceMode1;
 	int numPlyr;
-	int gameMode1;
+#else
+	// Retail keeps none of the game tracker, its gameMode1 or its player count in a register: it reads each again
+	// at each use.
+#define gGT       GAME_TRACKER
+#define raceMode1 (GAME_TRACKER->gameMode1)
+#define numPlyr   (GAME_TRACKER->numPlyrCurrGame)
+#endif
+#ifdef CTR_NATIVE
+#define scoreText (&string[0])
+#define turboText (&string[0])
+#else
+	// Retail prints the battle score change into the letter position's stack slot, not into string.
+#define scoreText ((char *)&letterCtrPos)
+	// and the turbo counter into the lerp position's slot
+#define turboText ((char *)&wumpaModelPos)
+#endif
 
-	offset = 0;
 
-	gGT = sdata->gGT;
-
+#ifdef CTR_NATIVE
+	gGT = GAME_TRACKER;
+	raceMode1 = gGT->gameMode1;
 	numPlyr = gGT->numPlyrCurrGame;
-	gameMode1 = gGT->gameMode1;
+#endif
 
 	// Get pointer to array of HUD structs
-	hudStructPtr = (struct UiElement2D *)data.hudStructPtr[numPlyr - 1];
+	hudStructPtr = (struct UiElement2D *)GAME_HUD_LAYOUTS[numPlyr - 1];
 
 	levPtrMap = 0;
 
-	// adding this here so the compiler doesn't complain
+#ifdef CTR_NATIVE
+	// adding this here so the compiler doesn't complain (retail sets neither here)
 	wumpaModelPos.x = 0;
 	wumpaModelPos.y = 0;
 	turboCountPos.x = 0;
 	turboCountPos.y = 0;
+#endif
 
 	UI_WeaponBG_AnimateShine();
+
+	idx = 0;
 
 	// if time on clock is zero
 	if (gGT->elapsedEventTime == 0)
 	{
-		for (i = 0; i < 8; i++)
+		// a counter of its own: retail keeps it in a register no call outlives
+		for (rank = 0; rank < 8; rank++)
 		{
-			data.rankIconsTransitionTimer[i] = 0;
+			GAME_DATA_NAME(rankIconsTransitionTimer)[rank] = 0;
 
-			pbVar6 = &sdata->kartSpawnOrderArray[i];
+			pbVar6 = &GAME_SDATA_NAME(kartSpawnOrderArray)[rank];
 
-			data.rankIconsCurr[i] = (u16)*pbVar6;
-			data.rankIconsDesired[i] = (u16)*pbVar6;
+			GAME_DATA_NAME(rankIconsDesired)[rank] = (u16)*pbVar6;
+			GAME_DATA_NAME(rankIconsCurr)[rank] = (u16)*pbVar6;
 		}
 	}
 
 	// If not drawing intro-race cutscene
-	if ((gameMode1 & START_OF_RACE) == 0)
+	if ((raceMode1 & START_OF_RACE) == 0)
 	{
-		if ((gGT->hudFlags & HUD_FLAG_RENDER_LESS) == 0)
+		if ((gGT->hudFlags & HUD_FLAG_RENDER_LESS) != 0)
+		{
+			gGT->hudFlags &= HUD_FLAG_CLEAR_RENDER_LESS_MASK;
+		}
+		else
 		{
 			// If you press Triangle
-			if ((sdata->gGamepads->gamepad[0].buttonsTapped & 0x40000) != 0)
+			if ((GAMEPADS->gamepad[0].buttonsTapped & 0x40000) != 0)
 			{
 				// if & 8, remove bit 8,
 				// if !& 8, add bit 8,
 				// toggle map and speedometer
-				sdata->HudAndDebugFlags ^= 8;
+				GAME_SDATA_NAME(HudAndDebugFlags) ^= 8;
 			}
-		}
-		else
-		{
-			gGT->hudFlags &= HUD_FLAG_CLEAR_RENDER_LESS_MASK;
 		}
 	}
 
@@ -99,7 +128,7 @@ void UI_RenderFrame_Racing()
 	    ((gGT->drivers[0]->actionsFlagSet & ACTION_BOT) != 0))
 	{
 		// force draw speedometer, and not map, why?
-		sdata->HudAndDebugFlags = 8;
+		GAME_SDATA_NAME(HudAndDebugFlags) = 8;
 	}
 
 #ifdef CTR_NATIVE
@@ -115,7 +144,7 @@ void UI_RenderFrame_Racing()
 
 	// If you are not in Relic Race, and not in battle mode,
 	// and not in time trial
-	if ((gameMode1 & (RELIC_RACE | TIME_TRIAL | BATTLE_MODE)) == 0)
+	if ((raceMode1 & (RELIC_RACE | TIME_TRIAL | BATTLE_MODE)) == 0)
 	{
 		UI_DrawRankedDrivers();
 	}
@@ -126,38 +155,24 @@ void UI_RenderFrame_Racing()
 	cVar22 = '\0';
 	if (playerThread != 0)
 	{
-		// Loop through all player threads
 		do
 		{
+			hudLoop = &hudStructPtr[idx * UI_HUD_SLOT_COUNT];
 			// pointer to player structure
 			playerStruct = (struct Driver *)playerThread->object;
-			// if player has not driven backwards very far,
-			if ((playerStruct->distanceDrivenBackwards < 0x1f5)
-
-			    ||
-
-			    ((playerStruct->actionsFlagSet & ACTION_DRIVING_WRONG_WAY) == 0))
+			// if racer has travelled wrong way for too long (retail compares the distance signed, and
+			// tests this first, with the jump meter after it)
+			if (((s32)playerStruct->distanceDrivenBackwards >= 0x1f5) &&
+			    ((playerStruct->actionsFlagSet & ACTION_DRIVING_WRONG_WAY) != 0))
 			{
-			LAB_80053260:
-				if ((gameMode1 & PAUSE_ALL) == 0)
-				{
-					// execute Jump meter and landing boost processes
-					UI_JumpMeter_Update(playerStruct);
-				}
-			}
-
-			// if racer has travelled
-			// wrong way for too long
-			else
-			{
-				if ((gameMode1 & PAUSE_ALL) == 0)
+				if ((raceMode1 & PAUSE_ALL) == 0)
 				{
 					pb = &gGT->pushBuffer[playerStruct->driverID];
 
 					// if "Time on clock" last 0xXX u8 is greater than 0x80 and less than 0xFF
 					if ((gGT->elapsedEventTime & 0x80) != 0)
 					{
-						DecalFont_DrawLine(sdata->lngStrings[LNG_WRONG_WAY],
+						DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_WRONG_WAY],
 
 						                   // midpointX
 						                   pb->rect.x + (pb->rect.w >> 1),
@@ -172,56 +187,72 @@ void UI_RenderFrame_Racing()
 					// This is what makes the text flicker, rather than drawing solid
 
 					cVar22 = '\x01';
-					goto LAB_80053260;
 				}
+			}
+
+			if ((raceMode1 & PAUSE_ALL) == 0)
+			{
+				// execute Jump meter and landing boost processes
+				UI_JumpMeter_Update(playerStruct);
 			}
 
 			if (
 			    // numPlyrCurrGame is less than 2 (1P mode)
 			    (numPlyr < 2) &&
 			    // if want to draw speedometer
-			    ((sdata->HudAndDebugFlags & 8) != 0))
+			    ((GAME_SDATA_NAME(HudAndDebugFlags) & 8) != 0))
 			{
-				UI_DrawSpeedNeedle(hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].x + offset, hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
-				UI_JumpMeter_Draw(hudStructPtr[UI_HUD_SLOT_JUMP_METER].x, hudStructPtr[UI_HUD_SLOT_JUMP_METER].y, playerStruct);
-				UI_DrawSlideMeter(hudStructPtr[UI_HUD_SLOT_SLIDE_METER].x + offset, hudStructPtr[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
-				UI_DrawSpeedBG(hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].x, hudStructPtr[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
+				UI_DrawSpeedNeedle(hudLoop[UI_HUD_SLOT_SPEEDOMETER].x, hudLoop[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
+				UI_JumpMeter_Draw(hudLoop[UI_HUD_SLOT_JUMP_METER].x, hudLoop[UI_HUD_SLOT_JUMP_METER].y, playerStruct);
+				UI_DrawSlideMeter(hudLoop[UI_HUD_SLOT_SLIDE_METER].x, hudLoop[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
+				UI_DrawSpeedBG(hudLoop[UI_HUD_SLOT_SPEEDOMETER].x, hudLoop[UI_HUD_SLOT_SPEEDOMETER].y, playerStruct);
 			}
 
 			if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
 			{
 				// If you're not in Battle Mode
-				if ((gameMode1 & BATTLE_MODE) == 0)
+				if ((raceMode1 & BATTLE_MODE) == 0)
 				{
 					// Draw powerslide meter
-					UI_DrawSlideMeter(hudStructPtr[UI_HUD_SLOT_SLIDE_METER].x + offset, hudStructPtr[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
+					UI_DrawSlideMeter(hudLoop[UI_HUD_SLOT_SLIDE_METER].x, hudLoop[UI_HUD_SLOT_SLIDE_METER].y, playerStruct);
 				}
 
 				// If you are not in Time Trial or Relic Race
-				if ((gameMode1 & (TIME_TRIAL | RELIC_RACE)) == 0)
+				if ((raceMode1 & (TIME_TRIAL | RELIC_RACE)) == 0)
 				{
-					UI_DrawNumWumpa(hudStructPtr[UI_HUD_SLOT_WUMPA_COUNT].x, hudStructPtr[UI_HUD_SLOT_WUMPA_COUNT].y, playerStruct);
+					UI_DrawNumWumpa(hudLoop[UI_HUD_SLOT_WUMPA_COUNT].x, hudLoop[UI_HUD_SLOT_WUMPA_COUNT].y, playerStruct);
 				}
 			}
 
 			// If you're in a Relic Race
-			if ((gameMode1 & RELIC_RACE) != 0)
+			if ((raceMode1 & RELIC_RACE) != 0)
 			{
-				UI_DrawNumTimebox(hudStructPtr[UI_HUD_SLOT_TIMEBOX].x, hudStructPtr[UI_HUD_SLOT_TIMEBOX].y, playerStruct);
+				UI_DrawNumTimebox(hudLoop[UI_HUD_SLOT_TIMEBOX].x, hudLoop[UI_HUD_SLOT_TIMEBOX].y, playerStruct);
 			}
 
 			// If game is not paused
-			if ((gameMode1 & PAUSE_ALL) == 0)
+			if ((raceMode1 & PAUSE_ALL) == 0)
 			{
 				if (playerStruct->PickupWumpaHUD.numCollected != 0)
 				{
 					struct Icon **iconPtrArray;
 
-					wumpaModelPos.x = hudStructPtr[UI_HUD_SLOT_FRUIT_MODEL].x;
-					wumpaModelPos.y = hudStructPtr[UI_HUD_SLOT_FRUIT_MODEL].y;
+					wumpaModelPos.x = hudLoop[UI_HUD_SLOT_FRUIT_MODEL].x;
+					wumpaModelPos.y = hudLoop[UI_HUD_SLOT_FRUIT_MODEL].y;
 
-					// if cooldown between items is over
-					if (playerStruct->PickupWumpaHUD.cooldown == 0)
+					// retail tests a running cooldown first
+					if (playerStruct->PickupWumpaHUD.cooldown != 0)
+					{
+						UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->PickupWumpaHUD.startX, (int)playerStruct->PickupWumpaHUD.startY,
+						              hudLoop[UI_HUD_SLOT_FRUIT_MODEL].x, hudLoop[UI_HUD_SLOT_FRUIT_MODEL].y, playerStruct->PickupWumpaHUD.cooldown,
+						              5);
+
+						// subtract one from timer
+						playerStruct->PickupWumpaHUD.cooldown--;
+					}
+
+					// cooldown between items is over
+					else
 					{
 						// deduct from number of queued items to pick up
 						playerStruct->PickupWumpaHUD.numCollected--;
@@ -229,37 +260,19 @@ void UI_RenderFrame_Racing()
 						if (LOAD_IsOpen_RacingOrBattle() &&
 
 						    // If you're not in Adventure Arena
-						    ((gameMode1 & ADVENTURE_ARENA) == 0))
+						    ((raceMode1 & ADVENTURE_ARENA) == 0))
 						{
 							RB_Player_ModifyWumpa(playerStruct, 1);
 						}
 
-
 						// OtherFX_Play to get wumpa fruit
 						OtherFX_Play(0x42, 1);
 
-						// initial timer value
-						partTimeVariable1 = 5;
-
-						// if timer is already running, set new timer value
+						// more queued: start the timer again
 						if (playerStruct->PickupWumpaHUD.numCollected != 0)
 						{
-							goto LAB_80053498;
+							playerStruct->PickupWumpaHUD.cooldown = 5;
 						}
-					}
-					else
-					{
-						UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->PickupWumpaHUD.startX, (int)playerStruct->PickupWumpaHUD.startY,
-						              hudStructPtr[UI_HUD_SLOT_FRUIT_MODEL].x, hudStructPtr[UI_HUD_SLOT_FRUIT_MODEL].y, playerStruct->PickupWumpaHUD.cooldown,
-						              5);
-
-						// subtract one from timer
-						partTimeVariable1 = playerStruct->PickupWumpaHUD.cooldown - 1;
-
-					LAB_80053498:
-
-						// set timer value
-						playerStruct->PickupWumpaHUD.cooldown = partTimeVariable1;
 					}
 
 					iconPtrArray = ICONGROUP_GETICONS(gGT->iconGroup[0xB]);
@@ -273,38 +286,44 @@ void UI_RenderFrame_Racing()
 					                     // pointer to OT memory
 					                     gGT->pushBuffer_UI.ptrOT,
 
-					                     0, hudStructPtr[UI_HUD_SLOT_WEAPON].scale);
+					                     0, hudLoop[UI_HUD_SLOT_WEAPON].scale);
 				}
 
 				if (playerStruct->PickupLetterHUD.cooldown != 0)
 				{
-					struct Instance *curr;
-					letterCtrPos.x = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].x;
-					letterCtrPos.y = hudStructPtr[UI_HUD_SLOT_TOKEN_OR_CTR].y;
+					register struct Instance *curr CTR_PSX_REGISTER("$16");
+					register struct Instance *letter CTR_PSX_REGISTER("$4");
 
+					// Retail makes the letter visible and places it in each branch of its own.
 					// C-Letter
 					if (playerStruct->PickupLetterHUD.modelID == STATIC_C)
 					{
-						curr = sdata->ptrHudC;
+						letter = sdata->ptrHudC;
+						letter->flags &= ~HIDE_MODEL;
+						letterCtrPos.x = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].x;
+						letterCtrPos.y = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].y;
+						curr = letter;
 					}
 
 					// T-letter
 					else if (playerStruct->PickupLetterHUD.modelID == STATIC_T)
 					{
-						letterCtrPos.x += 0x1d;
-						letterCtrPos.y -= 1;
-						curr = sdata->ptrHudT;
+						letter = sdata->ptrHudT;
+						letter->flags &= ~HIDE_MODEL;
+						letterCtrPos.x = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].x + 0x1d;
+						letterCtrPos.y = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].y - 1;
+						curr = letter;
 					}
 
 					// R-Letter
 					else
 					{
-						letterCtrPos.x += 0x3a;
-						curr = sdata->ptrHudR;
+						letter = sdata->ptrHudR;
+						letter->flags &= ~HIDE_MODEL;
+						letterCtrPos.x = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].x + 0x3a;
+						letterCtrPos.y = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].y;
+						curr = letter;
 					}
-
-					// make visible
-					curr->flags &= ~HIDE_MODEL;
 
 					// reduce frame counter
 					playerStruct->PickupLetterHUD.cooldown--;
@@ -321,19 +340,8 @@ void UI_RenderFrame_Racing()
 				}
 			}
 
-			// If you're not in a Relic Race
-			if ((gameMode1 & RELIC_RACE) == 0)
-			{
-				if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
-				{
-					// Draw weapon and number of wumpa fruit in HUD
-					UI_Weapon_DrawSelf(hudStructPtr[UI_HUD_SLOT_WEAPON].x, hudStructPtr[UI_HUD_SLOT_WEAPON].y, hudStructPtr[UI_HUD_SLOT_WEAPON].scale,
-					                   playerStruct);
-				}
-			}
-
-			// if you are in relic mode
-			else
+			// if you are in relic mode (retail tests this case first)
+			if ((raceMode1 & RELIC_RACE) != 0)
 			{
 				// If you smashed a time crate, this variable is set to 10
 				if (playerStruct->PickupTimeboxHUD.cooldown != 0)
@@ -343,7 +351,7 @@ void UI_RenderFrame_Racing()
 
 					// Make string with number of time crate
 					// print "-x" where x is the amount of seconds
-					sprintf(&string[0], &sdata->s_subtractLongInt[0], gGT->timeCrateTypeSmashed);
+					sprintf(&string[0], &GAME_SDATA_NAME(s_subtractLongInt)[0], gGT->timeCrateTypeSmashed);
 
 					// 4b4 and 4b6 are WindowStartPos(x,y) from PushBuffer, inside Driver
 					UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), playerStruct->PickupTimeboxHUD.startX, playerStruct->PickupTimeboxHUD.startY, 0x14, 8,
@@ -358,6 +366,17 @@ void UI_RenderFrame_Racing()
 				}
 			}
 
+			// If you're not in a Relic Race
+			else
+			{
+				if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
+				{
+					// Draw weapon and number of wumpa fruit in HUD
+					UI_Weapon_DrawSelf(hudLoop[UI_HUD_SLOT_WEAPON].x, hudLoop[UI_HUD_SLOT_WEAPON].y, hudLoop[UI_HUD_SLOT_WEAPON].scale,
+					                   playerStruct);
+				}
+			}
+
 			// === Naughty Dog Bug ===
 			// This block will never execute in Life Limit,
 			// even though original code has a block inside this IF
@@ -365,78 +384,75 @@ void UI_RenderFrame_Racing()
 
 			// if you're in battle mode, while not paused
 			// and you do not have a life limit
-			if ((gameMode1 & (LIFE_LIMIT | BATTLE_MODE | PAUSE_ALL)) == BATTLE_MODE)
+			if ((raceMode1 & (LIFE_LIMIT | BATTLE_MODE | PAUSE_ALL)) == BATTLE_MODE)
 			{
-				// If the animation for adding points is over
-				if (playerStruct->BattleHUD.cooldown == 0)
+				// if the animation is not done (retail tests this case first)
+				if (playerStruct->BattleHUD.cooldown != 0)
 				{
-					// Delete the change that in score that was queued
-					playerStruct->BattleHUD.scoreDelta = 0;
-				}
+					wumpaModelPos.x = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20;
+					wumpaModelPos.y = hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y;
+					// retail keeps the 0x20 of the battle-mode test for the score's lerp target too
+					scoreOffsetX = 0x20;
 
-				// if the animation is not done
-				else
-				{
-					wumpaModelPos.x = hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20;
-					wumpaModelPos.y = hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].y;
-
-					partTimeVariable1 = playerStruct->BattleHUD.scoreDelta;
-
-					if ((gameMode1 & LIFE_LIMIT) == 0)
+					// retail sets up each case's sprintf and shares only the call;
+					// the score change is read again in each case
+					if ((raceMode1 & LIFE_LIMIT) != 0)
 					{
-						if (partTimeVariable1 < 1)
-						{
-							fmt = &sdata->s_subtractInt[0];
-
-							if (partTimeVariable1 < 0)
-							{
-								partTimeVariable1 = -partTimeVariable1;
-							}
-						}
-						else
-						{
-							fmt = &sdata->s_additionLongInt[0];
-						}
+						sprintf(scoreText, &GAME_SDATA_NAME(s_subtractLongInt)[0], playerStruct->BattleHUD.scoreDelta);
 					}
 					else
 					{
-						fmt = &sdata->s_subtractLongInt[0];
+						partTimeVariable1 = playerStruct->BattleHUD.scoreDelta;
+						if (partTimeVariable1 > 0)
+						{
+							sprintf(scoreText, &GAME_SDATA_NAME(s_additionLongInt)[0], partTimeVariable1);
+						}
+						else
+						{
+							sprintf(scoreText, &GAME_SDATA_NAME(s_subtractInt)[0],
+							        (partTimeVariable1 >= 0) ? partTimeVariable1 : -partTimeVariable1);
+						}
 					}
 
-					sprintf((char *)&string[0], fmt, partTimeVariable1);
-
 					UI_Lerp2D_HUD(CTR_VECTOR_DATA(&(wumpaModelPos)), (int)playerStruct->BattleHUD.startX, (int)playerStruct->BattleHUD.startY,
-					              (int)(hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].x + 0x20), (int)(hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].y + 8),
+					              (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x + scoreOffsetX), (int)(hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y + 8),
 					              playerStruct->BattleHUD.cooldown, 5);
 
 					// subtract one from the number of frames that the animation lasts
 					playerStruct->BattleHUD.cooldown--;
 
 					// print the string that shows the change in your score
-					DecalFont_DrawLine((char *)&string[0], (int)wumpaModelPos.x, (int)wumpaModelPos.y, FONT_SMALL, RED);
+					DecalFont_DrawLine(scoreText, (int)wumpaModelPos.x, (int)wumpaModelPos.y, FONT_SMALL, RED);
+				}
+
+				// the animation for adding points is over
+				else
+				{
+					// Delete the change that in score that was queued
+					playerStruct->BattleHUD.scoreDelta = 0;
 				}
 			}
 
-			if ((gameMode1 & BATTLE_MODE) == 0)
+			if ((raceMode1 & BATTLE_MODE) == 0)
 			{
 				if ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0)
 				{
-					UI_DrawLapCount(hudStructPtr[UI_HUD_SLOT_LAP_COUNT].x, hudStructPtr[UI_HUD_SLOT_LAP_COUNT].y,
-					                (u32)hudStructPtr[UI_HUD_SLOT_LAP_COUNT].scale, playerStruct);
+					UI_DrawLapCount(hudLoop[UI_HUD_SLOT_LAP_COUNT].x, hudLoop[UI_HUD_SLOT_LAP_COUNT].y,
+					                (u32)hudLoop[UI_HUD_SLOT_LAP_COUNT].scale, playerStruct);
 				}
 			}
 			else
 			{
 				// Draw how many points or lifes the player has
-				UI_DrawBattleScores((int)hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].x, (int)hudStructPtr[UI_HUD_SLOT_BATTLE_SCORE].y, playerStruct);
+				UI_DrawBattleScores((int)hudLoop[UI_HUD_SLOT_BATTLE_SCORE].x, (int)hudLoop[UI_HUD_SLOT_BATTLE_SCORE].y, playerStruct);
 			}
 
-			if (((gameMode1 & (ARCADE_MODE | ADVENTURE_MODE)) != 0) && ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0))
+			if (((raceMode1 & (ARCADE_MODE | ADVENTURE_MODE)) != 0) && ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0))
 			{
 				AA_EndEvent_DisplayTime((u32)playerStruct->driverID, 0);
 			}
 
-			partTimeVariable5 = gameMode1;
+			partTimeVariable5 = raceMode1;
 
 			// If you are in Relic Race, and not in battle mode, and not in time trial
 			if ((partTimeVariable5 & 0x4020020) == 0)
@@ -450,8 +466,9 @@ void UI_RenderFrame_Racing()
 				                                                                        // Not Arcade Mode (must be VS or Battle)
 				                                                                        ((partTimeVariable5 & 0x400000) == 0))))
 				{
+					// retail sets the suffix call up in each case and shares only the call itself
 					sVar17 = 0;
-					partTimeVariable5 = 0;
+					UI_DrawPosSuffix(hudLoop[UI_HUD_SLOT_RANK].x, hudLoop[UI_HUD_SLOT_RANK].y, playerStruct, 0);
 				}
 				else
 				{
@@ -461,35 +478,28 @@ void UI_RenderFrame_Racing()
 						goto LAB_80053af4;
 					}
 
-					bVar3 = (gGT->timer & 1) == 0;
-					sVar17 = (u16)bVar3 << 2;
-					partTimeVariable5 = ((u32)bVar3 << 0x12) >> 0x10;
+					sVar17 = ((gGT->timer & 1) == 0) << 2;
+					UI_DrawPosSuffix(hudLoop[UI_HUD_SLOT_RANK].x, hudLoop[UI_HUD_SLOT_RANK].y, playerStruct,
+					                 (u16)sVar17);
 				}
-
-				sVar1 = hudStructPtr[UI_HUD_SLOT_RANK].x;
-				sVar2 = hudStructPtr[UI_HUD_SLOT_RANK].y;
-				UI_DrawPosSuffix(sVar1, sVar2, playerStruct, (s16)partTimeVariable5);
 
 				if (numPlyr > 2)
 				{
-					// Get Color Data
-					ptrColor = data.ptrColor[sVar17];
-
-					// icon pointer, specifically for the big rank icons that start at 0x19
-					iconPtr = gGT->ptrIcons[(int)playerStruct->driverRank + 0x19];
-
-				LAB_80053aec:
+					u32 **colorBase = GAME_DATA_NAME(ptrColor);
+					u32 **colorSlot = colorBase + sVar17;
+					// retail reads the icon and each color word straight from their tables, in the call itself
 					DecalHUD_DrawPolyGT4(
-					    // icon pointer
-					    iconPtr,
+					    // icon pointer, specifically for the big rank icons that start at 0x19
+					    gGT->ptrIcons[(int)playerStruct->driverRank + 0x19],
 
 					    // position
-					    (int)hudStructPtr[UI_HUD_SLOT_BIG1].x, (int)hudStructPtr[UI_HUD_SLOT_BIG1].y,
+					    (int)hudLoop[UI_HUD_SLOT_BIG1].x, (int)hudLoop[UI_HUD_SLOT_BIG1].y,
 
 					    &gGT->backBuffer->primMem, gGT->pushBuffer_UI.ptrOT,
 
 					    // color data
-					    ColorCode_Load(&ptrColor[0]), ColorCode_Load(&ptrColor[1]), ColorCode_Load(&ptrColor[2]), ColorCode_Load(&ptrColor[3]),
+					    ColorCode_Load(&(*colorSlot)[0]), ColorCode_Load(&(*colorSlot)[1]),
+					    ColorCode_Load(&(*colorSlot)[2]), ColorCode_Load(&(*colorSlot)[3]),
 
 					    0, FP(1.0));
 				}
@@ -498,20 +508,24 @@ void UI_RenderFrame_Racing()
 			// If you're in end-of-race and Battle
 			else if ((partTimeVariable5 & 0x200020) == 0x200020)
 			{
-				partTimeVariable5 = (u32)((gGT->timer & 1) == 0) << 2;
+				u32 **colorSlot;
+				s16 suffix;
+
+				suffix = (u32)((gGT->timer & 1) == 0) << 2;
 
 				// Draw the "st", "nd", "rd" suffix after "1st, 2nd, 3rd, etc"
-				UI_DrawPosSuffix(hudStructPtr[UI_HUD_SLOT_RANK].x, hudStructPtr[UI_HUD_SLOT_RANK].y, playerStruct, (s16)partTimeVariable5);
+				UI_DrawPosSuffix(hudLoop[UI_HUD_SLOT_RANK].x, hudLoop[UI_HUD_SLOT_RANK].y, playerStruct, (s16)suffix);
 
-				// Get Color Data
-				ptrColor = data.ptrColor[partTimeVariable5];
-
-				// pointer to icon
-				// get rank icon of each battle team after battle is over
-				// OH GOD THIS IS CONVOLUTED and probably wrong --Super
-				iconPtr = gGT->ptrIcons[gGT->battleSetup.finishedRankOfEachTeam[playerStruct->BattleHUD.teamID] + 0x19];
-
-				goto LAB_80053aec;
+				colorSlot = &GAME_DATA_NAME(ptrColor)[suffix];
+				// retail sets this call's arguments up again here and shares only the call itself;
+				// the icon is the rank icon of each battle team after battle is over
+				DecalHUD_DrawPolyGT4(
+				    gGT->ptrIcons[gGT->battleSetup.finishedRankOfEachTeam[playerStruct->BattleHUD.teamID] + 0x19],
+				    (int)hudLoop[UI_HUD_SLOT_BIG1].x, (int)hudLoop[UI_HUD_SLOT_BIG1].y, &gGT->backBuffer->primMem,
+				    gGT->pushBuffer_UI.ptrOT, ColorCode_Load(&(*colorSlot)[0]),
+				    ColorCode_Load(&(*colorSlot)[1]),
+				    ColorCode_Load(&(*colorSlot)[2]),
+				    ColorCode_Load(&(*colorSlot)[3]), 0, FP(1.0));
 			}
 		LAB_80053af4:
 
@@ -520,7 +534,7 @@ void UI_RenderFrame_Racing()
 			UI_TrackerSelf(playerStruct);
 
 			// If you're in Battle
-			if ((gameMode1 & BATTLE_MODE) != 0)
+			if ((raceMode1 & BATTLE_MODE) != 0)
 			{
 				// Draw arrows over the heads of other players (not AIs)
 				UI_BattleDrawHeadArrows(playerStruct);
@@ -529,15 +543,15 @@ void UI_RenderFrame_Racing()
 			if ((playerStruct->numWumpas >= DRIVER_WUMPA_JUICED_COUNT) && ((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) == 0))
 			{
 				// draw shining background behind wumpa fruit
-				UI_Weapon_DrawBG(hudStructPtr[UI_HUD_SLOT_RACING_WEAPON_BG].x, hudStructPtr[UI_HUD_SLOT_RACING_WEAPON_BG].y,
-				                 hudStructPtr[UI_HUD_SLOT_RACING_WEAPON_BG].scale, playerStruct);
+				UI_Weapon_DrawBG(hudLoop[UI_HUD_SLOT_RACING_WEAPON_BG].x, hudLoop[UI_HUD_SLOT_RACING_WEAPON_BG].y,
+				                 hudLoop[UI_HUD_SLOT_RACING_WEAPON_BG].scale, playerStruct);
 
 				// If your weapon is not "no weapon"
 				if (playerStruct->heldItemID != HELD_ITEM_NONE)
 				{
 					// draw shining background behind weapon
-					UI_Weapon_DrawBG(hudStructPtr[UI_HUD_SLOT_BATTLE_WEAPON_BG].x, hudStructPtr[UI_HUD_SLOT_BATTLE_WEAPON_BG].y,
-					                 hudStructPtr[UI_HUD_SLOT_BATTLE_WEAPON_BG].scale, playerStruct);
+					UI_Weapon_DrawBG(hudLoop[UI_HUD_SLOT_BATTLE_WEAPON_BG].x, hudLoop[UI_HUD_SLOT_BATTLE_WEAPON_BG].y,
+					                 hudLoop[UI_HUD_SLOT_BATTLE_WEAPON_BG].scale, playerStruct);
 				}
 			}
 
@@ -545,7 +559,7 @@ void UI_RenderFrame_Racing()
 			// thread = thread->sibling
 			playerThread = playerThread->siblingThread;
 
-			hudStructPtr += UI_HUD_SLOT_COUNT;
+			idx++;
 
 		} while (playerThread != 0);
 	}
@@ -558,9 +572,10 @@ void UI_RenderFrame_Racing()
 
 	sdata->framesDrivingSameDirection++;
 
-	if (numPlyr == 1)
+	clockGT = GAME_TRACKER;
+	if (clockGT->numPlyrCurrGame == 1)
 	{
-		playerStruct = gGT->drivers[0];
+		playerStruct = clockGT->drivers[0];
 
 		UI_DrawRaceClock(0x14, 8, UI_RACE_CLOCK_SHOW_CURRENT_TIME, playerStruct);
 
@@ -569,11 +584,8 @@ void UI_RenderFrame_Racing()
 
 		if ((gGT->gameMode2 & CHEAT_TURBOCOUNT) != 0)
 		{
-			// Get number of boosts
-			sVar1 = playerStruct->numTurbos;
-
-			// If number of boosts is not zero
-			if (sVar1 != 0)
+			// If number of boosts is not zero (retail reads the count again at each test, signed)
+			if (playerStruct->numTurbos != 0)
 			{
 				// Read pointer from address
 				turboThread = gGT->threadBuckets[TURBO].thread;
@@ -588,125 +600,96 @@ void UI_RenderFrame_Racing()
 				{
 					turboThread = turboThread->siblingThread;
 				}
-
-				// Get number of boosts
-				sVar1 = playerStruct->numTurbos;
 			}
 
-			// sdata->TurboDisplayPos_Only1P
+			// GAME_SDATA_NAME(TurboDisplayPos_Only1P)
 			// Position of counter
 			// 0 = offscreen
 			// 1 = just barely on screen
 			// ...
 			// 10 = clearly on screen
 
-			if (
-			    // If number boosts is less than 3
-			    (sVar1 < 3) ||
-
-			    // If display counter is fully on screen
-			    (9 < sdata->TurboDisplayPos_Only1P))
+			// Retail stores the position only when it moves: +1 sliding on (3+ boosts, not fully on screen, a turbo
+			// thread found), -1 sliding off (no turbo thread, or fewer than 3 boosts), each tested in this order.
+			if ((playerStruct->numTurbos >= 3) && (GAME_SDATA_NAME(TurboDisplayPos_Only1P) < 10))
 			{
 				// If pointer == nullptr
 				if (turboThread == 0)
 				{
 					goto LAB_80053c98;
 				}
-			LAB_80053cac:
 
-				// Set sVar1 to current display counter position
-				sVar1 = sdata->TurboDisplayPos_Only1P;
+				// Animate counter to move onto screen
+				GAME_SDATA_NAME(TurboDisplayPos_Only1P) = GAME_SDATA_NAME(TurboDisplayPos_Only1P) + 1;
+			}
+			else
+			{
+				// If pointer == nullptr
+				if (turboThread == 0)
+				{
+				LAB_80053c98:
+					// If counter is on screen
+					if (GAME_SDATA_NAME(TurboDisplayPos_Only1P) > 0)
+					{
+						goto LAB_80053cd4;
+					}
+				}
+
 				if (
 				    // If number boosts is less than 3
 				    (playerStruct->numTurbos < 3) &&
 
 				    // If turbo counter is on screen
-				    (0 < sdata->TurboDisplayPos_Only1P))
+				    (GAME_SDATA_NAME(TurboDisplayPos_Only1P) > 0))
 				{
 				LAB_80053cd4:
 
 					// Animate counter to move off screen
-					sVar1 = sdata->TurboDisplayPos_Only1P - 1;
+					GAME_SDATA_NAME(TurboDisplayPos_Only1P) = GAME_SDATA_NAME(TurboDisplayPos_Only1P) - 1;
 				}
 			}
-
-			// If you have more than 3 boosts, and
-			// display counter is not fully on screen
-			else
-			{
-				// Animate counter to move onto screen
-				sVar1 = sdata->TurboDisplayPos_Only1P + 1;
-
-				// If pointer == nullptr
-				if (turboThread == 0)
-				{
-				LAB_80053c98:
-					// If counter is off screen
-					if (sdata->TurboDisplayPos_Only1P < 1)
-					{
-						// set svar1 to display position
-						goto LAB_80053cac;
-					}
-
-					// If counter is on screen
-					// decrease boost counter,
-					goto LAB_80053cd4;
-				}
-			}
-
-			// Set display position value
-			sdata->TurboDisplayPos_Only1P = sVar1;
 
 			// If display counter is on screen (fully or not fully)
-			if (sdata->TurboDisplayPos_Only1P != 0)
+			if (GAME_SDATA_NAME(TurboDisplayPos_Only1P) != 0)
 			{
 				// Interpolate the turbo counter slide in from the right
-				UI_Lerp2D_Linear(CTR_VECTOR_DATA(&(turboCountPos)), 0x2c8, 0x20, 500, 0x20, sdata->TurboDisplayPos_Only1P, 10);
+				UI_Lerp2D_Linear(CTR_VECTOR_DATA(&(turboCountPos)), 0x2c8, 0x20, 500, 0x20, GAME_SDATA_NAME(TurboDisplayPos_Only1P), 10);
 
 				// The actual counter number will continue to
 				// increase past 1000, but the on-screen text
 				// will cap at 999
 
-				// If you have less than 1000 boosts
-				if (playerStruct->numTurbos < 1000)
+				// If you have 1000 boosts or more, cap the on-screen counter at 999
+				if (playerStruct->numTurbos >= 1000)
 				{
-					// DAT_8008d54c
-					// %d
-
-					// build string for on-screen boost counter
-					sprintf((char *)&string[0], &sdata->s_intSpace[0], playerStruct->numTurbos);
+					sprintf(turboText, &GAME_SDATA_NAME(s_999)[0]);
 				}
-
-				// If you have more than 1000 boosts
 				else
 				{
-					// 8d544
-					// "999" <-- ascii string, not 2-u8 value
-
-					// Cap the on-screen counter at 999
-					sprintf((char *)&string[0], &sdata->s_999[0]);
+					// build string for on-screen boost counter
+					sprintf(turboText, &GAME_SDATA_NAME(s_intSpace)[0], playerStruct->numTurbos);
 				}
 
-				i = DecalFont_GetLineWidth(sdata->lngStrings[LNG_TURBOS], 1);
+				i = DecalFont_GetLineWidth(GAME_LANGUAGE_STRINGS[LNG_TURBOS], 1);
 
 				// Draw the string
-				DecalFont_DrawLine((char *)&string[0], (int)(((u32)turboCountPos.x - i) * 0x10000) >> 0x10, (int)turboCountPos.y, FONT_BIG,
+				DecalFont_DrawLine(turboText, (int)(((u32)(u16)turboCountPos.x - i) * 0x10000) >> 0x10, (int)turboCountPos.y, FONT_BIG,
 				                   (JUSTIFY_RIGHT | ORANGE_RED));
 
 
-				sprintf((char *)&string[0], &sdata->s_str[0], sdata->lngStrings[LNG_TURBOS]);
+				sprintf(turboText, &GAME_SDATA_NAME(s_str)[0], GAME_LANGUAGE_STRINGS[LNG_TURBOS]);
 
 				// Draw the string
-				DecalFont_DrawLine((char *)&string[0], (int)(s16)turboCountPos.x, (int)turboCountPos.y, FONT_BIG, (JUSTIFY_RIGHT | ORANGE));
+				DecalFont_DrawLine(turboText, (int)(s16)turboCountPos.x, (int)turboCountPos.y, FONT_BIG, (JUSTIFY_RIGHT | ORANGE));
 
 				backBuffer = gGT->backBuffer;
 				primMemCurr = backBuffer->primMem.cursor;
 				TurboCounterBar = 0;
 
-				if ((int)primMemCurr <= (int)backBuffer->primMem.guardEnd)
+				if (primMemCurr <= (u32 *)backBuffer->primMem.guardEnd)
 				{
-					backBuffer->primMem.cursor = primMemCurr + 9;
 					TurboCounterBar = (POLY_G4 *)primMemCurr;
+					backBuffer->primMem.cursor = primMemCurr + 9;
 				}
 
 				if (TurboCounterBar == 0)
@@ -728,9 +711,15 @@ void UI_RenderFrame_Racing()
 				TurboCounterBar->y3 = turboCountPos.y + 0x12;
 
 				// pointer to OT memory
-				primMemCurr = gGT->pushBuffer_UI.ptrOT;
+				turboOT = gGT->pushBuffer_UI.ptrOT;
 
-				addPolyG4(primMemCurr, TurboCounterBar);
+#ifndef CTR_NATIVE
+				// retail ORs the whole old OT word in and leaves the code byte the color word set
+				TurboCounterBar->tag = *turboOT | 0x8000000;
+				*turboOT = (u32)TurboCounterBar & 0xffffff;
+#else
+				addPolyG4(turboOT, TurboCounterBar);
+#endif
 			}
 		}
 	}
@@ -739,56 +728,47 @@ void UI_RenderFrame_Racing()
 	else
 	{
 		// if you have a time limit (battle)
-		if ((gameMode1 & TIME_LIMIT) != 0)
+		if ((clockGT->gameMode1 & TIME_LIMIT) != 0)
 		{
 			// draw countdown clock
 			UI_DrawLimitClock(0xd7, 0x68, 2);
 		}
 	}
 
-	if (levPtrMap != 0)
 	{
-		if (((numPlyr == 1)
+		// retail tests the player count first and the map after it, on each side of the ||
+		if (((numPlyr == 1) && (levPtrMap != 0)
 
 		     // if want to draw map, not speedometer
-		     && (sdata->HudAndDebugFlags & 8) == 0) ||
+		     && (GAME_SDATA_NAME(HudAndDebugFlags) & 8) == 0) ||
 
-		    (numPlyr == 3))
+		    ((numPlyr == 3) && (levPtrMap != 0)))
 		{
+			mapThread = gGT->threadBuckets[PLAYER].thread;
 			local_30[0] = 0;
 
-			UI_Map_DrawDrivers(levPtrMap, gGT->threadBuckets[PLAYER].thread, local_30);
+			UI_Map_DrawDrivers(levPtrMap, mapThread, local_30);
 			UI_Map_DrawDrivers(levPtrMap, gGT->threadBuckets[ROBOT].thread, local_30);
 
 			UI_Map_DrawGhosts(levPtrMap, gGT->threadBuckets[GHOST].thread);
 
 			UI_Map_DrawTracking(levPtrMap, gGT->threadBuckets[TRACKING].thread);
 
-			mapPosX = 500;
-			mapPosY = 195;
-
-			if (numPlyr == 3)
+			// Draw the map (top half and bottom half, X and Y, primMem, OT, white): retail sets the call up once
+			// per player count and shares only the call itself; it tests the map pointer once more first
+			if (levPtrMap != 0)
 			{
-				mapPosX -= 60;
-				mapPosY += 10;
+				if (numPlyr == 1)
+				{
+					UI_Map_DrawMap(gGT->ptrIcons[3], gGT->ptrIcons[4], 500, 195, &gGT->backBuffer->primMem,
+					               gGT->pushBuffer_UI.ptrOT, 1);
+				}
+				else if (numPlyr == 3)
+				{
+					UI_Map_DrawMap(gGT->ptrIcons[3], gGT->ptrIcons[4], 440, 205, &gGT->backBuffer->primMem,
+					               gGT->pushBuffer_UI.ptrOT, 1);
+				}
 			}
-
-			// Draw the map
-			UI_Map_DrawMap(
-			    // top half and bottom half
-			    gGT->ptrIcons[3], gGT->ptrIcons[4],
-
-			    // X and Y
-			    mapPosX, mapPosY,
-
-			    // Pointer to primary memory
-			    &gGT->backBuffer->primMem,
-
-			    // pointer to OT memory
-			    gGT->pushBuffer_UI.ptrOT,
-
-			    // color, in this case white
-			    1);
 		}
 	}
 
@@ -797,83 +777,80 @@ void UI_RenderFrame_Racing()
 	// loop counter
 	i = 0;
 
-	// if numPlyrCurrGame is not 0
-	if (numPlyr != '\0')
+	// for(int i = 0; i < numPlyrCurrGame; i++)
+	while (i < (int)numPlyr)
 	{
-		// for(int i = 0; i < numPlyrCurrGame; i++)
-		do
+		endDriver = gGT->drivers[i];
+		pb = &gGT->pushBuffer[endDriver->driverID];
+
+		if ((((endDriver->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((raceMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
+		    ((
+		        // cooldown is finished
+		        gGT->timerEndOfRaceVS == 0 ||
+
+		        // cooldown has not progressed far,
+		        // so you still need to draw "Finished" and "Loser"
+		        (0x96 < gGT->timerEndOfRaceVS))))
 		{
-			playerStruct = gGT->drivers[i];
-			pb = &gGT->pushBuffer[playerStruct->driverID];
+			if (
+			    // player structure + 0x482 is your rank in the race
+			    // 0 = 1st place, 1 = 2nd place, 2 = 3rd place, etc
 
-			if ((((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((gameMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
-			    ((
-			        // cooldown is finished
-			        gGT->timerEndOfRaceVS == 0 ||
+			    // Basically, out of all human players, if you did not come in last
+			    ((int)endDriver->driverRank < (int)numPlyr - 1) &&
 
-			        // cooldown has not progressed far,
-			        // so you still need to draw "Finished" and "Loser"
-			        (0x96 < gGT->timerEndOfRaceVS))))
+			    // If you're not in Battle Mode
+			    // (winner of battle wont use this function)
+			    ((raceMode1 & BATTLE_MODE) == 0))
 			{
-				if (
-				    // player structure + 0x482 is your rank in the race
-				    // 0 = 1st place, 1 = 2nd place, 2 = 3rd place, etc
-
-				    // Basically, out of all human players, if you did not come in last
-				    ((int)playerStruct->driverRank < (int)numPlyr - 1) &&
-
-				    // If you're not in Battle Mode
-				    // (winner of battle wont use this function)
-				    ((gameMode1 & BATTLE_MODE) == 0))
-				{
-					pbVar6 = sdata->lngStrings[LNG_FINISHED];
-				}
-
-				// If you came in last place, or you're in battle
-				else
-				{
-					pbVar6 = sdata->lngStrings[LNG_LOSER];
-				}
-
-				DecalFont_DrawLine(pbVar6,
+				// retail sets each case's call up whole and shares only the call itself
+				DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_FINISHED],
 				                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
 				                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
 				                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
-
-				if (
-				    // If you press Cross or Start
-				    ((sdata->gGamepads->gamepad[i].buttonsTapped & 0x1010) != 0) &&
-
-				    // If you're in End-Of-Race menu
-				    ((gameMode1 & END_OF_RACE) != 0))
-				{
-					// make "Finished" and "Loser" disappear, start
-					// drawing the on-screen comments
-					gGT->timerEndOfRaceVS = 0x96;
-				}
 			}
 
-			// if item roll is not done
-			if (playerStruct->itemRollTimer != 0)
+			// If you came in last place, or you're in battle
+			else
 			{
-				bVar3 = true;
+				DecalFont_DrawLine(GAME_LANGUAGE_STRINGS[LNG_LOSER],
+				                   pb->rect.x + (pb->rect.w >> 1),        // midpointX
+				                   pb->rect.y + (pb->rect.h >> 1) - 0x1e, // midpointY
+				                   FONT_BIG, (JUSTIFY_CENTER | ORANGE));
 			}
 
-			// increment the iteration counter
-			i++;
+			if (
+			    // If you press Cross or Start
+			    ((GAMEPADS->gamepad[i].buttonsTapped & 0x1010) != 0) &&
 
-			// for(int i = 0; i < numPlyrCurrGame; i++)
-		} while (i < (int)numPlyr);
+			    // If you're in End-Of-Race menu
+			    ((raceMode1 & END_OF_RACE) != 0))
+			{
+				// make "Finished" and "Loser" disappear, start
+				// drawing the on-screen comments
+				gGT->timerEndOfRaceVS = 0x96;
+			}
+		}
+
+		// if item roll is not done
+		if (endDriver->itemRollTimer != 0)
+		{
+			bVar3 = true;
+		}
+
+		// increment the iteration counter
+		i++;
+
 	}
 	if ((
 	        // If game is not paused
-	        ((gameMode1 & PAUSE_ALL) == 0) &&
+	        ((raceMode1 & PAUSE_ALL) == 0) &&
 
 	        // item roll is done
 	        (!bVar3)) &&
 
 	    // If you're drawing Weapon Roulette (randomizing)
-	    ((gameMode1 & ROLLING_ITEM) != 0))
+	    ((raceMode1 & ROLLING_ITEM) != 0))
 	{
 		// stop weapon shuffle sound
 		OtherFX_Stop2(0x5d);
@@ -881,6 +858,13 @@ void UI_RenderFrame_Racing()
 		// disable the randomizing effect in the HUD
 		gGT->gameMode1 &= ~ROLLING_ITEM;
 	}
+#ifndef CTR_NATIVE
+#undef gGT
+#undef raceMode1
+#undef numPlyr
+#endif
+#undef scoreText
+#undef turboText
 }
 
 void UI_RenderFrame_AdvHub(void)
