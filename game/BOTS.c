@@ -1494,8 +1494,8 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	u8 cmp2;
 	int iVar4_lifetime_2;
 	s16 iVar3_lifetime_2;
-	register struct Driver *botDriver CTR_PSX_REGISTER("$19") = (struct Driver *)botThread->object;     // iVar17
-	struct Instance *botInstance = (struct Instance *)botThread->inst; // iVar22
+	register struct Driver *botDriver CTR_PSX_REGISTER("$19"); // iVar17
+	struct Instance *botInstance; // iVar22
 #ifdef CTR_NATIVE
 	struct ScratchpadStruct *sps = CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108);
 	struct GameTracker *gGT = GAME_TRACKER;
@@ -1511,6 +1511,8 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	local_3c = 0;
 	navFrameFlags = 0;
 	elapsedMilliseconds = gGT->elapsedTimeMS; // local_34
+	botDriver = (struct Driver *)botThread->object;
+	botInstance = (struct Instance *)botThread->inst;
 	local_38 = 1;
 
 #if 0
