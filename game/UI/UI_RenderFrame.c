@@ -283,34 +283,38 @@ void UI_RenderFrame_Racing()
 
 				if (playerStruct->PickupLetterHUD.cooldown != 0)
 				{
-					struct Instance *curr;
+					register struct Instance *curr CTR_PSX_REGISTER("$16");
+					register struct Instance *letter CTR_PSX_REGISTER("$4");
 
 					// Retail makes the letter visible and places it in each branch of its own.
 					// C-Letter
 					if (playerStruct->PickupLetterHUD.modelID == STATIC_C)
 					{
-						curr = sdata->ptrHudC;
-						curr->flags &= ~HIDE_MODEL;
+						letter = sdata->ptrHudC;
+						letter->flags &= ~HIDE_MODEL;
 						letterCtrPos.x = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].x;
 						letterCtrPos.y = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].y;
+						curr = letter;
 					}
 
 					// T-letter
 					else if (playerStruct->PickupLetterHUD.modelID == STATIC_T)
 					{
-						curr = sdata->ptrHudT;
-						curr->flags &= ~HIDE_MODEL;
+						letter = sdata->ptrHudT;
+						letter->flags &= ~HIDE_MODEL;
 						letterCtrPos.x = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].x + 0x1d;
 						letterCtrPos.y = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].y - 1;
+						curr = letter;
 					}
 
 					// R-Letter
 					else
 					{
-						curr = sdata->ptrHudR;
-						curr->flags &= ~HIDE_MODEL;
+						letter = sdata->ptrHudR;
+						letter->flags &= ~HIDE_MODEL;
 						letterCtrPos.x = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].x + 0x3a;
 						letterCtrPos.y = hudLoop[UI_HUD_SLOT_TOKEN_OR_CTR].y;
+						curr = letter;
 					}
 
 					// reduce frame counter
