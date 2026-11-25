@@ -1575,15 +1575,15 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	botDriver->botData.aiPhysics.driftTarget = 0;
 	botDriver->kartState = KS_NORMAL;
 
-	botDriver->actionsFlagSetPrevFrame = botDriver->actionsFlagSet;
-	botDriver->actionsFlagSet &= ~(ACTION_DROPPING_MINE | ACTION_JUMP_STARTED | ACTION_STARTED_TOUCH_GROUND);
-
 	speedApprox = botDriver->speedApprox; // iVar4
 
 	if (speedApprox < 0)
 	{
 		speedApprox = CTR_MipsNegLo(speedApprox);
 	}
+
+	botDriver->actionsFlagSetPrevFrame = botDriver->actionsFlagSet;
+	botDriver->actionsFlagSet &= ~(ACTION_DROPPING_MINE | ACTION_JUMP_STARTED | ACTION_STARTED_TOUCH_GROUND);
 
 	if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
 	{
