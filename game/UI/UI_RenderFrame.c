@@ -7,7 +7,7 @@ void UI_RenderFrame_Racing()
 {
 	s16 sVar1;
 	s16 sVar2;
-	u8 bVar3;
+	s16 bVar3;
 	int partTimeVariable1;
 	u32 *ptrColor;
 	char *pbVar6;
