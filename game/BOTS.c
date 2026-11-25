@@ -1463,6 +1463,16 @@ void BOTS_Killplane(struct Thread *botThread)
 #define BOTS_PathChangeCap()         ((s16)(BOTS_NAV_PATH_COUNT << BOTS_PATH_CHANGE_PATH_SHIFT))
 #define BOTS_GetTrackDistanceToFinish(g) ((s32)(g)->level1->ptr_restart_points->distToFinish << 3)
 #endif
+#ifndef CTR_NATIVE
+// Retail reaches the nav path tables by their absolute addresses here, not through $gp.
+extern struct NavFrame *ctr_bots_NavPath_ptrNavFrameArray[3] asm("sdata_static+2932");
+extern struct NavHeader *ctr_bots_NavPath_ptrHeader[3] asm("sdata_static+2944");
+#define BOTS_NAV_FRAMES ctr_bots_NavPath_ptrNavFrameArray
+#define BOTS_NAV_HEADERS ctr_bots_NavPath_ptrHeader
+#else
+#define BOTS_NAV_FRAMES sdata->NavPath_ptrNavFrameArray
+#define BOTS_NAV_HEADERS sdata->NavPath_ptrHeader
+#endif
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
 	int elapsedMilliseconds;
@@ -1652,9 +1662,9 @@ UpdateTireColorTimer:
 
 		pathID = botDriver->botData.botPath;
 
-		if (navFrameNext >= sdata->NavPath_ptrHeader[pathID]->last)
+		if (navFrameNext >= BOTS_NAV_HEADERS[pathID]->last)
 		{
-			navFrameNext = sdata->NavPath_ptrNavFrameArray[pathID];
+			navFrameNext = BOTS_NAV_FRAMES[pathID];
 		}
 	}
 
@@ -1775,7 +1785,7 @@ UpdateTireColorTimer:
 				LIST_RemoveMember(&sdata->navBotList[oldPathID], &botDriver->botData.item);
 				LIST_AddFront(&sdata->navBotList[newPathID], &botDriver->botData.item);
 
-				firstNavFrameOnPath = sdata->NavPath_ptrNavFrameArray[newPathID];
+				firstNavFrameOnPath = BOTS_NAV_FRAMES[newPathID];
 				botDriver->botData.botNavFrame = &firstNavFrameOnPath[newFrameIndex];
 
 				BOTS_SetRotation(botDriver, 0);
@@ -1814,7 +1824,7 @@ UpdateTireColorTimer:
 						if (iVar13 < 0)
 						{
 							// assume number of points "away" is large (add track length)
-							iVar13 = CTR_MipsAddLo(iVar13, sdata->NavPath_ptrHeader[botDriver->botData.botPath]->numPoints);
+							iVar13 = CTR_MipsAddLo(iVar13, BOTS_NAV_HEADERS[botDriver->botData.botPath]->numPoints);
 						}
 
 						// find closest "other" botData driver
@@ -1858,7 +1868,7 @@ UpdateTireColorTimer:
 								LIST_RemoveMember(&sdata->navBotList[oldPathID], &botDriver->botData.item);
 								LIST_AddFront(&sdata->navBotList[newPathID], &botDriver->botData.item);
 
-								firstNavFrameOnPath = sdata->NavPath_ptrNavFrameArray[newPathID];
+								firstNavFrameOnPath = BOTS_NAV_FRAMES[newPathID];
 								botDriver->botData.botNavFrame = &firstNavFrameOnPath[newFrameIndex & BOTS_PATH_CHANGE_FRAME_MASK];
 
 								BOTS_SetRotation(botDriver, 0);
@@ -2214,7 +2224,7 @@ UpdateTireColorTimer:
 					botPathIndex = CTR_MipsAddLo(botPathIndex, 3);
 				}
 
-				navFrameIndexOnPath = (int)(navFrameCurr - sdata->NavPath_ptrNavFrameArray[botDriver->botData.botPath]);
+				navFrameIndexOnPath = (int)(navFrameCurr - BOTS_NAV_FRAMES[botDriver->botData.botPath]);
 
 				if ((data.botsThrottle[botPathIndex] <= navFrameIndexOnPath) && (navFrameIndexOnPath < CTR_MipsAddLo(data.botsThrottle[botPathIndex], 0xb)) &&
 				    (9000 < botDriver->botData.aiPhysics.speedLinear))
@@ -2356,9 +2366,9 @@ UpdateTireColorTimer:
 
 		iVar15 = CTR_MipsSubLo(iVar15, iVar3);
 
-		if (navFrameNext >= sdata->NavPath_ptrHeader[index]->last)
+		if (navFrameNext >= BOTS_NAV_HEADERS[index]->last)
 		{
-			navFrameNext = sdata->NavPath_ptrNavFrameArray[index];
+			navFrameNext = BOTS_NAV_FRAMES[index];
 		}
 
 		if ((CTR_MipsSra(botDriver->botData.positionBackup.y, 8) < navFrameNext->pos.y) && ((navFrameCurr->flags & BOTS_NAV_FLAG_KILLPLANE) != 0))
@@ -2545,9 +2555,9 @@ UpdateTireColorTimer:
 
 		navFrameNext = NAVFRAME_GETNEXTFRAME(navFrameCurr);
 
-		if (navFrameNext >= sdata->NavPath_ptrHeader[botPath]->last)
+		if (navFrameNext >= BOTS_NAV_HEADERS[botPath]->last)
 		{
-			navFrameNext = sdata->NavPath_ptrNavFrameArray[botPath];
+			navFrameNext = BOTS_NAV_FRAMES[botPath];
 		}
 	}
 
@@ -3108,8 +3118,8 @@ UpdateTireColorTimer:
 	    ((0x1c1f < botDriver->botData.aiPhysics.speedLinear) || (data.characterIDs[botDriver->driverID] == NITROS_OXIDE)))
 	{
 		int iVar4 = (local_3c & BOTS_NAV_SPECIAL_INDEX_MASK);
-		botDriver->botData.aiPhysics.speedY = sdata->NavPath_ptrHeader[botDriver->botData.botPath]->rampPhys2[iVar4];
-		botDriver->botData.aiPhysics.speedLinear = sdata->NavPath_ptrHeader[botDriver->botData.botPath]->rampPhys1[iVar4];
+		botDriver->botData.aiPhysics.speedY = BOTS_NAV_HEADERS[botDriver->botData.botPath]->rampPhys2[iVar4];
+		botDriver->botData.aiPhysics.speedLinear = BOTS_NAV_HEADERS[botDriver->botData.botPath]->rampPhys1[iVar4];
 
 		if (data.characterIDs[botDriver->driverID] == NITROS_OXIDE)
 		{
@@ -3505,6 +3515,8 @@ FinishHazardTimerUpdate:
 #endif
 }
 #ifndef CTR_NATIVE
+#undef BOTS_NAV_FRAMES
+#undef BOTS_NAV_HEADERS
 #undef BOTS_PathChangePathID
 #undef BOTS_PathChangeFrameIndex
 #undef BOTS_PathChangeCap
