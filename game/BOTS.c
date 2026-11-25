@@ -1494,7 +1494,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	u8 cmp2;
 	int iVar4_lifetime_2;
 	s16 iVar3_lifetime_2;
-	struct Driver *botDriver = (struct Driver *)botThread->object;     // iVar17
+	register struct Driver *botDriver CTR_PSX_REGISTER("$19") = (struct Driver *)botThread->object;     // iVar17
 	struct Instance *botInstance = (struct Instance *)botThread->inst; // iVar22
 #ifdef CTR_NATIVE
 	struct ScratchpadStruct *sps = CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108);
