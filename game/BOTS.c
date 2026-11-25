@@ -2791,30 +2791,33 @@ UpdateTireColorTimer:
 						    CTR_MipsSll(CTR_MipsDiv(CTR_MipsMulLo(deltaPosThisFrame, navFrameCurr->distToNextNavXYZ), iVar3), 8);
 					}
 				}
-				deltaPosThisFrame = CTR_MipsSra(CTR_MipsNegLo(botDriver->botData.aiPhysics.speedY), 1);
-
-				botDriver->botData.aiPhysics.speedY = deltaPosThisFrame;
-
-				if (deltaPosThisFrame < 0)
 				{
-					botDriver->botData.aiPhysics.speedY = CTR_MipsNegLo(deltaPosThisFrame);
+					int bounceSpeed = CTR_MipsSra(CTR_MipsNegLo(botDriver->botData.aiPhysics.speedY), 1);
+
+					botDriver->botData.aiPhysics.speedY = bounceSpeed;
+
+					if (bounceSpeed < 0)
+					{
+						botDriver->botData.aiPhysics.speedY = CTR_MipsNegLo(bounceSpeed);
+					}
 				}
 
 				bVar10 = (u8)CTR_MipsAddLo(botDriver->botData.blastBounceCount, 1);
 				botDriver->botData.blastBounceCount = bVar10;
 
-				if (botDriver->botData.aiDamageState == BOTS_DAMAGE_STATE_SPIN)
+				switch (botDriver->botData.aiDamageState)
 				{
+				case BOTS_DAMAGE_STATE_SPIN:
 					botDriver->actionsFlagSet |= ACTION_BACK_SKID | ACTION_FRONT_SKID;
-				}
-				else
-				{
-					if (botDriver->botData.aiDamageState == BOTS_DAMAGE_STATE_BLAST && (2 < bVar10))
+					break;
+				case BOTS_DAMAGE_STATE_BLAST:
+					if (2 < bVar10)
 					{
 						botDriver->botData.ai_progress_cooldown = 10;
 						botDriver->botData.aiPhysics.speedLinear = 0;
 						botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
 					}
+					break;
 				}
 
 				botDriver->botData.positionBackup.y = botDriver->quadBlockHeight;
@@ -2827,26 +2830,28 @@ UpdateTireColorTimer:
 					s16 sVar7;
 					if (botDriver->instSelf->thread->modelIndex == DYNAMIC_PLAYER)
 					{
-						u32 echo;
 						int flags;
 						int mapped = VehCalc_MapToRange(CTR_MipsSubLo(botDriver->jumpHeightCurr, botDriver->jumpHeightPrev), 0x300, 0x1400, 0x4b, 200); // uVar8
 
-						int volume; // uVar20
-						if (mapped < 0)
+						int volume = mapped; // uVar20
+						if (volume < 0)
 						{
 							volume = 0;
 						}
+						else if (0xff < volume)
+						{
+							volume = 0xff;
+						}
+						// retail packs the volume first, then adds the centre, no distortion and the echo bit
+						flags = (int)HowlSfx_Pack(0, 0, volume, 0);
+						if ((botDriver->actionsFlagSet & ACTION_ENGINE_ECHO) != 0)
+						{
+							flags |= (int)HowlSfx_Pack(HOWL_SFX_LR_CENTER, HOWL_SFX_DISTORTION_NONE, 0, 1);
+						}
 						else
 						{
-							volume = mapped & 0xff;
-
-							if (0xff < mapped)
-							{
-								volume = 0xff;
-							}
+							flags |= (int)HowlSfx_Pack(HOWL_SFX_LR_CENTER, HOWL_SFX_DISTORTION_NONE, 0, 0);
 						}
-						echo = ((botDriver->actionsFlagSet & ACTION_ENGINE_ECHO) != 0);
-						flags = (int)HowlSfx_Pack(HOWL_SFX_LR_CENTER, HOWL_SFX_DISTORTION_NONE, volume, echo);
 
 						OtherFX_Play_LowLevel(7, 1, flags);
 					}
