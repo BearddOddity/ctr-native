@@ -1475,7 +1475,11 @@ extern u8 ctr_bots_accelerateOrder[] asm("sdata_static+1812");
 // and the character ids by their own address where a driver's id indexes them
 extern s16 ctr_bots_characterIDs[] asm("data+25828");
 #define BOTS_CHARACTER_IDS ctr_bots_characterIDs
+// and the bots' per-path lists by their absolute address where a path id indexes them
+extern struct LinkedList ctr_bots_navBotList[3] asm("sdata_static+2956");
+#define BOTS_NAV_LIST_BY_PATH ctr_bots_navBotList
 #else
+#define BOTS_NAV_LIST_BY_PATH sdata->navBotList
 #define BOTS_CHARACTER_IDS data.characterIDs
 #define BOTS_ACCEL_ORDER_BY_ID sdata->accelerateOrder
 #define BOTS_NAV_FRAMES sdata->NavPath_ptrNavFrameArray
@@ -1790,8 +1794,8 @@ UpdateTireColorTimer:
 				oldPathID = botDriver->botData.botPath;
 				botDriver->botData.botPath = newPathID;
 
-				LIST_RemoveMember(&sdata->navBotList[oldPathID], &botDriver->botData.item);
-				LIST_AddFront(&sdata->navBotList[newPathID], &botDriver->botData.item);
+				LIST_RemoveMember(&BOTS_NAV_LIST_BY_PATH[oldPathID], &botDriver->botData.item);
+				LIST_AddFront(&BOTS_NAV_LIST_BY_PATH[newPathID], &botDriver->botData.item);
 
 				firstNavFrameOnPath = BOTS_NAV_FRAMES[newPathID];
 				botDriver->botData.botNavFrame = &firstNavFrameOnPath[newFrameIndex];
@@ -1813,7 +1817,7 @@ UpdateTireColorTimer:
 					int iVar3 = 1000;
 					struct BotData *botData;
 
-					for (botData = (struct BotData *)LIST_GetFirstItem(&sdata->navBotList[botDriver->botData.botPath]); botData != NULL;
+					for (botData = (struct BotData *)LIST_GetFirstItem(&BOTS_NAV_LIST_BY_PATH[botDriver->botData.botPath]); botData != NULL;
 					     botData = (struct BotData *)LIST_GetNextItem((struct Item *)botData), sVar7 = (s16)iVar3)
 					{
 						int iVar13;
@@ -1873,8 +1877,8 @@ UpdateTireColorTimer:
 								s16 oldPathID = botDriver->botData.botPath;
 								botDriver->botData.botPath = newPathID;
 
-								LIST_RemoveMember(&sdata->navBotList[oldPathID], &botDriver->botData.item);
-								LIST_AddFront(&sdata->navBotList[newPathID], &botDriver->botData.item);
+								LIST_RemoveMember(&BOTS_NAV_LIST_BY_PATH[oldPathID], &botDriver->botData.item);
+								LIST_AddFront(&BOTS_NAV_LIST_BY_PATH[newPathID], &botDriver->botData.item);
 
 								firstNavFrameOnPath = BOTS_NAV_FRAMES[newPathID];
 								botDriver->botData.botNavFrame = &firstNavFrameOnPath[newFrameIndex & BOTS_PATH_CHANGE_FRAME_MASK];
