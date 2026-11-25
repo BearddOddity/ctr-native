@@ -645,34 +645,25 @@ void UI_RenderFrame_Racing()
 				// increase past 1000, but the on-screen text
 				// will cap at 999
 
-				// If you have less than 1000 boosts
-				if (playerStruct->numTurbos < 1000)
+				// If you have 1000 boosts or more, cap the on-screen counter at 999
+				if (playerStruct->numTurbos >= 1000)
 				{
-					// DAT_8008d54c
-					// %d
-
-					// build string for on-screen boost counter
-					sprintf((char *)&string[0], &sdata->s_intSpace[0], playerStruct->numTurbos);
+					sprintf((char *)&string[0], &GAME_SDATA_NAME(s_999)[0]);
 				}
-
-				// If you have more than 1000 boosts
 				else
 				{
-					// 8d544
-					// "999" <-- ascii string, not 2-u8 value
-
-					// Cap the on-screen counter at 999
-					sprintf((char *)&string[0], &sdata->s_999[0]);
+					// build string for on-screen boost counter
+					sprintf((char *)&string[0], &GAME_SDATA_NAME(s_intSpace)[0], playerStruct->numTurbos);
 				}
 
 				i = DecalFont_GetLineWidth(GAME_LANGUAGE_STRINGS[LNG_TURBOS], 1);
 
 				// Draw the string
-				DecalFont_DrawLine((char *)&string[0], (int)(((u32)turboCountPos.x - i) * 0x10000) >> 0x10, (int)turboCountPos.y, FONT_BIG,
+				DecalFont_DrawLine((char *)&string[0], (int)(((u32)(u16)turboCountPos.x - i) * 0x10000) >> 0x10, (int)turboCountPos.y, FONT_BIG,
 				                   (JUSTIFY_RIGHT | ORANGE_RED));
 
 
-				sprintf((char *)&string[0], &sdata->s_str[0], GAME_LANGUAGE_STRINGS[LNG_TURBOS]);
+				sprintf((char *)&string[0], &GAME_SDATA_NAME(s_str)[0], GAME_LANGUAGE_STRINGS[LNG_TURBOS]);
 
 				// Draw the string
 				DecalFont_DrawLine((char *)&string[0], (int)(s16)turboCountPos.x, (int)turboCountPos.y, FONT_BIG, (JUSTIFY_RIGHT | ORANGE));
