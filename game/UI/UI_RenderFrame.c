@@ -16,6 +16,7 @@ void UI_RenderFrame_Racing()
 	u32 partTimeVariable5;
 	struct Icon *iconPtr;
 	u32 *primMemCurr;
+	u32 *turboOT;
 	char *fmt;
 	POLY_G4 *TurboCounterBar;
 	s16 sVar17;
@@ -680,10 +681,10 @@ void UI_RenderFrame_Racing()
 				primMemCurr = backBuffer->primMem.cursor;
 				TurboCounterBar = 0;
 
-				if ((int)primMemCurr <= (int)backBuffer->primMem.guardEnd)
+				if (primMemCurr <= (u32 *)backBuffer->primMem.guardEnd)
 				{
-					backBuffer->primMem.cursor = primMemCurr + 9;
 					TurboCounterBar = (POLY_G4 *)primMemCurr;
+					backBuffer->primMem.cursor = primMemCurr + 9;
 				}
 
 				if (TurboCounterBar == 0)
@@ -705,9 +706,15 @@ void UI_RenderFrame_Racing()
 				TurboCounterBar->y3 = turboCountPos.y + 0x12;
 
 				// pointer to OT memory
-				primMemCurr = gGT->pushBuffer_UI.ptrOT;
+				turboOT = gGT->pushBuffer_UI.ptrOT;
 
-				addPolyG4(primMemCurr, TurboCounterBar);
+#ifndef CTR_NATIVE
+				// retail ORs the whole old OT word in and leaves the code byte the color word set
+				TurboCounterBar->tag = *turboOT | 0x8000000;
+				*turboOT = (u32)TurboCounterBar & 0xffffff;
+#else
+				addPolyG4(turboOT, TurboCounterBar);
+#endif
 			}
 		}
 	}
