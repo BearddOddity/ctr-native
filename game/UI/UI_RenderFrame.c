@@ -407,7 +407,7 @@ void UI_RenderFrame_Racing()
 						else
 						{
 							sprintf(scoreText, &GAME_SDATA_NAME(s_subtractInt)[0],
-							        (partTimeVariable1 < 0) ? -partTimeVariable1 : partTimeVariable1);
+							        (partTimeVariable1 >= 0) ? partTimeVariable1 : -partTimeVariable1);
 						}
 					}
 
