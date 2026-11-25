@@ -344,7 +344,7 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	register struct SkyboxGlowGradient *g CTR_PSX_REGISTER("$30");
 	s32 ratio1;
 	struct Level *level;
-	u32 x1;
+	register u32 x1 CTR_PSX_REGISTER("$12");
 	s32 fromLeft;
 	u32 *p;
 
