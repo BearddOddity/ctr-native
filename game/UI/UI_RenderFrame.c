@@ -85,6 +85,8 @@ void UI_RenderFrame_Racing()
 
 	UI_WeaponBG_AnimateShine();
 
+	idx = 0;
+
 	// if time on clock is zero
 	if (gGT->elapsedEventTime == 0)
 	{
@@ -149,7 +151,6 @@ void UI_RenderFrame_Racing()
 
 	// pointer to first Player thread
 	playerThread = gGT->threadBuckets[PLAYER].thread;
-	idx = 0;
 
 	cVar22 = '\0';
 	if (playerThread != 0)
