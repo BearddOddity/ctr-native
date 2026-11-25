@@ -3155,7 +3155,6 @@ UpdateTireColorTimer:
 		int other_uVar8;
 		int curRotY;
 		b32 bVar1;
-		s16 sVar7;
 		b32 other_bVar1;
 		if (((botDriver->botData.botFlags & BOT_FLAG_ESTIMATE_NAV) == 0) && ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0))
 		{
@@ -3213,34 +3212,34 @@ UpdateTireColorTimer:
 				other_uVar8 = -0x20;
 			}
 		}
-		other_uVar8 = (s16)CTR_MipsAddLo((u16)botDriver->turnAngleCurr, other_uVar8);
-		botDriver->turnAngleCurr = other_uVar8;
-
-
-		if (botDriver->botData.aiPhysics.driftTarget != 0)
 		{
-			int uVar11 = CTR_MipsNegLo((u16)botDriver->botData.aiPhysics.mulDrift) & 0xfff;
+			// the new turn angle, kept as the 16-bit sum for the steering below
+			int newTurnAngle = CTR_MipsAddLo((u16)botDriver->turnAngleCurr, other_uVar8);
+			botDriver->turnAngleCurr = (s16)newTurnAngle;
 
-			botDriver->botData.aiPhysics.simpTurnState = uVar11;
-			if (0x7ff < uVar11)
+			if (botDriver->botData.aiPhysics.driftTarget != 0)
 			{
-				botDriver->botData.aiPhysics.simpTurnState = (s16)CTR_MipsSubLo(uVar11, 0x1000);
-			}
+				int uVar11 = CTR_MipsNegLo((u16)botDriver->botData.aiPhysics.mulDrift) & 0xfff;
 
-			sVar7 = (s16)CTR_MipsSra(botDriver->botData.aiPhysics.simpTurnState, 3);
-		}
-		else
-		{
-			other_uVar8 &= 0xfff;
-			sVar7 = other_uVar8;
-			botDriver->botData.aiPhysics.simpTurnState = sVar7;
-			if (0x7ff < other_uVar8)
-			{
-				botDriver->botData.aiPhysics.simpTurnState = (s16)CTR_MipsSubLo(sVar7, 0x1000);
+				botDriver->botData.aiPhysics.simpTurnState = uVar11;
+				if (0x7ff < uVar11)
+				{
+					botDriver->botData.aiPhysics.simpTurnState = (s16)CTR_MipsSubLo(uVar11, 0x1000);
+				}
+
+				botDriver->botData.aiPhysics.simpTurnState = (s16)CTR_MipsSra(botDriver->botData.aiPhysics.simpTurnState, 3);
 			}
-			sVar7 = (s16)CTR_MipsSra(botDriver->botData.aiPhysics.simpTurnState, 2);
+			else
+			{
+				int turn12 = newTurnAngle & 0xfff;
+				botDriver->botData.aiPhysics.simpTurnState = turn12;
+				if (0x7ff < turn12)
+				{
+					botDriver->botData.aiPhysics.simpTurnState = (s16)CTR_MipsSubLo(turn12, 0x1000);
+				}
+				botDriver->botData.aiPhysics.simpTurnState = (s16)CTR_MipsSra(botDriver->botData.aiPhysics.simpTurnState, 2);
+			}
 		}
-		botDriver->botData.aiPhysics.simpTurnState = sVar7;
 
 		other_uVar8 = CTR_MipsSubLo(botDriver->botData.aiPhysics.simpTurnState, botDriver->wheelRotation) & 0xfff;
 		other_bVar1 = other_uVar8 < 0x21;
@@ -3250,20 +3249,19 @@ UpdateTireColorTimer:
 			other_uVar8 = CTR_MipsSubLo(other_uVar8, 0x1000);
 			other_bVar1 = other_uVar8 < 0x21;
 		}
-		sVar7 = other_uVar8;
 		if (!other_bVar1)
 		{
-			sVar7 = 0x20;
+			other_uVar8 = 0x20;
 		}
 		else
 		{
 			if (other_uVar8 < -0x20)
 			{
-				sVar7 = -0x20;
+				other_uVar8 = -0x20;
 			}
 		}
 
-		botDriver->wheelRotation = (s16)CTR_MipsAddLo((u16)botDriver->wheelRotation, sVar7);
+		botDriver->wheelRotation = (s16)CTR_MipsAddLo((u16)botDriver->wheelRotation, other_uVar8);
 		botDriver->simpTurnState = (s8)(u8)botDriver->botData.aiPhysics.simpTurnState;
 	}
 
