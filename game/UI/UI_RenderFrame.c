@@ -506,7 +506,7 @@ void UI_RenderFrame_Racing()
 			else if ((partTimeVariable5 & 0x200020) == 0x200020)
 			{
 				u32 **colorSlot;
-				u32 suffix;
+				s16 suffix;
 
 				suffix = (u32)((gGT->timer & 1) == 0) << 2;
 
