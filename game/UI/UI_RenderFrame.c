@@ -5,6 +5,7 @@
 // CTR_NATIVE only adds an ST1 map-metadata null guard below.
 void UI_RenderFrame_Racing()
 {
+	struct Driver *endDriver;
 	s16 sVar1;
 	s16 sVar2;
 	s16 bVar3;
@@ -772,10 +773,10 @@ void UI_RenderFrame_Racing()
 	// for(int i = 0; i < numPlyrCurrGame; i++)
 	while (i < (int)numPlyr)
 	{
-		playerStruct = gGT->drivers[i];
-		pb = &gGT->pushBuffer[playerStruct->driverID];
+		endDriver = gGT->drivers[i];
+		pb = &gGT->pushBuffer[endDriver->driverID];
 
-		if ((((playerStruct->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((raceMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
+		if ((((endDriver->actionsFlagSet & ACTION_RACE_FINISHED) != 0) && ((raceMode1 & (ARCADE_MODE | TIME_TRIAL)) == 0)) &&
 		    ((
 		        // cooldown is finished
 		        gGT->timerEndOfRaceVS == 0 ||
@@ -789,7 +790,7 @@ void UI_RenderFrame_Racing()
 			    // 0 = 1st place, 1 = 2nd place, 2 = 3rd place, etc
 
 			    // Basically, out of all human players, if you did not come in last
-			    ((int)playerStruct->driverRank < (int)numPlyr - 1) &&
+			    ((int)endDriver->driverRank < (int)numPlyr - 1) &&
 
 			    // If you're not in Battle Mode
 			    // (winner of battle wont use this function)
@@ -825,7 +826,7 @@ void UI_RenderFrame_Racing()
 		}
 
 		// if item roll is not done
-		if (playerStruct->itemRollTimer != 0)
+		if (endDriver->itemRollTimer != 0)
 		{
 			bVar3 = true;
 		}
