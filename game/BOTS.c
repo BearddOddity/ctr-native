@@ -2701,13 +2701,14 @@ UpdateTireColorTimer:
 		s16 probeZ;
 		SVec3 probeTop;
 		SVec3 probeBottom;
-		int deltaRotY = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[1], 4), CTR_MipsSll(navFrameCurr->rot[1], 4)) & 0xfff;
+		int curRotY0 = CTR_MipsSll(navFrameCurr->rot[1], 4);
+		int deltaRotY = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[1], 4), curRotY0) & 0xfff;
 		if (0x7ff < deltaRotY)
 		{
 			deltaRotY = CTR_MipsSubLo(deltaRotY, 0x1000);
 		}
 
-		botDriver->botData.aiRot.y = CTR_MipsAddLo(CTR_MipsSll(navFrameCurr->rot[1], 4), CTR_MipsSra(CTR_MipsMulLo(deltaRotY, percentage), 0xc)) & 0xfff;
+		botDriver->botData.aiRot.y = CTR_MipsAddLo(curRotY0, CTR_MipsSra(CTR_MipsMulLo(deltaRotY, percentage), 0xc)) & 0xfff;
 
 		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
 		probeX = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.x, botDriver->botData.aiPhysics.velocity.x), 8);
@@ -3151,36 +3152,41 @@ UpdateTireColorTimer:
 	if ((0x9e < cmp1) && (0x9e < cmp2))
 	{
 		int other_uVar8;
+		int curRotY;
 		b32 bVar1;
 		s16 sVar7;
 		b32 other_bVar1;
 		if (((botDriver->botData.botFlags & BOT_FLAG_ESTIMATE_NAV) == 0) && ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0))
 		{
 			// Lerp nav-frame rotation through the shortest signed 12-bit delta.
-			int uVar8 = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[0], 4), CTR_MipsSll(navFrameCurr->rot[0], 4)) & 0xfff;
+			int curRotX = CTR_MipsSll(navFrameCurr->rot[0], 4);
+			int curRotZ;
+			int uVar8 = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[0], 4), curRotX) & 0xfff;
 			if (0x7ff < uVar8)
 			{
 				uVar8 = CTR_MipsSubLo(uVar8, 0x1000);
 			}
 
-			botDriver->botData.aiRot.x = CTR_MipsAddLo(CTR_MipsSll(navFrameCurr->rot[0], 4), CTR_MipsSra(CTR_MipsMulLo(uVar8, percentage), 0xc)) & 0xfff;
+			botDriver->botData.aiRot.x = CTR_MipsAddLo(curRotX, CTR_MipsSra(CTR_MipsMulLo(uVar8, percentage), 0xc)) & 0xfff;
 
-			uVar8 = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[2], 4), CTR_MipsSll(navFrameCurr->rot[2], 4)) & 0xfff;
+			curRotZ = CTR_MipsSll(navFrameCurr->rot[2], 4);
+			uVar8 = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[2], 4), curRotZ) & 0xfff;
 			if (0x7ff < uVar8)
 			{
 				uVar8 = CTR_MipsSubLo(uVar8, 0x1000);
 			}
 
-			botDriver->botData.aiRot.z = CTR_MipsAddLo(CTR_MipsSll(navFrameCurr->rot[2], 4), CTR_MipsSra(CTR_MipsMulLo(uVar8, percentage), 0xc)) & 0xfff;
+			botDriver->botData.aiRot.z = CTR_MipsAddLo(curRotZ, CTR_MipsSra(CTR_MipsMulLo(uVar8, percentage), 0xc)) & 0xfff;
 		}
 
-		other_uVar8 = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[1], 4), CTR_MipsSll(navFrameCurr->rot[1], 4)) & 0xfff;
+		curRotY = CTR_MipsSll(navFrameCurr->rot[1], 4);
+		other_uVar8 = CTR_MipsSubLo(CTR_MipsSll(navFrameNext->rot[1], 4), curRotY) & 0xfff;
 		if (0x7ff < other_uVar8)
 		{
 			other_uVar8 = CTR_MipsSubLo(other_uVar8, 0x1000);
 		}
 
-		botDriver->botData.aiRot.y = CTR_MipsAddLo(CTR_MipsSll(navFrameCurr->rot[1], 4), CTR_MipsSra(CTR_MipsMulLo(other_uVar8, percentage), 0xc)) & 0xfff;
+		botDriver->botData.aiRot.y = CTR_MipsAddLo(curRotY, CTR_MipsSra(CTR_MipsMulLo(other_uVar8, percentage), 0xc)) & 0xfff;
 
 		if ((botDriver->botData.botFlags & BOT_FLAG_ESTIMATE_NAV) != 0)
 		{
