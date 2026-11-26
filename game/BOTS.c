@@ -2789,7 +2789,7 @@ UpdateTireColorTimer:
 						}
 #endif
 						botDriver->botData.navProgressRemainder =
-						    CTR_MipsSll(CTR_MipsDiv(CTR_MipsMulLo(deltaPosThisFrame, navFrameCurr->distToNextNavXYZ), iVar3), 8);
+						    CTR_MipsSll(CTR_MipsDiv(CTR_MipsMulLo(CTR_MipsSra(deltaPosThisFrame, 8), navFrameCurr->distToNextNavXYZ), iVar3), 8);
 					}
 				}
 				{
@@ -2870,25 +2870,22 @@ UpdateTireColorTimer:
 						}
 #endif
 						botDriver->botData.navProgressRemainder =
-						    CTR_MipsSll(CTR_MipsDiv(CTR_MipsMulLo(deltaPosThisFrame, navFrameCurr->distToNextNavXYZ), iVar3), 8);
+						    CTR_MipsSll(CTR_MipsDiv(CTR_MipsMulLo(CTR_MipsSra(deltaPosThisFrame, 8), navFrameCurr->distToNextNavXYZ), iVar3), 8);
 					}
 					sVar7 = botDriver->jump_LandingBoost;
 
 					// a landing boost by how long the bot was in the air
-					if (sVar7 < 0x5a1)
-					{
-						if (0x3c0 < sVar7)
-						{
-							VehFire_Increment(botDriver, 0x2d0, 2, CTR_MipsMulLo(local_38, 0x60));
-						}
-						else if (0x280 < sVar7)
-						{
-							VehFire_Increment(botDriver, 0x2d0, 2, 0);
-						}
-					}
-					else
+					if (0x5a0 < sVar7)
 					{
 						VehFire_Increment(botDriver, 0x2d0, 2, CTR_MipsMulLo(local_38, 0xc0));
+					}
+					else if (0x3c0 < sVar7)
+					{
+						VehFire_Increment(botDriver, 0x2d0, 2, CTR_MipsMulLo(local_38, 0x60));
+					}
+					else if (0x280 < sVar7)
+					{
+						VehFire_Increment(botDriver, 0x2d0, 2, 0);
 					}
 
 					botDriver->actionsFlagSet |= ACTION_STARTED_TOUCH_GROUND;
@@ -2959,7 +2956,7 @@ UpdateTireColorTimer:
 					trap(0x1800);
 				}
 #endif
-				botDriver->botData.navProgressRemainder = CTR_MipsSll(CTR_MipsDiv(CTR_MipsMulLo(deltaPosThisFrame, navFrameCurr->distToNextNavXZ), iVar3), 8);
+				botDriver->botData.navProgressRemainder = CTR_MipsSll(CTR_MipsDiv(CTR_MipsMulLo(CTR_MipsSra(deltaPosThisFrame, 8), navFrameCurr->distToNextNavXZ), iVar3), 8);
 			}
 		}
 
