@@ -2874,24 +2874,21 @@ UpdateTireColorTimer:
 					}
 					sVar7 = botDriver->jump_LandingBoost;
 
+					// a landing boost by how long the bot was in the air
 					if (sVar7 < 0x5a1)
 					{
 						if (0x3c0 < sVar7)
 						{
-							deltaPosThisFrame = CTR_MipsMulLo(local_38, 0x60);
-							goto doFireIncrement;
+							VehFire_Increment(botDriver, 0x2d0, 2, CTR_MipsMulLo(local_38, 0x60));
 						}
 						else if (0x280 < sVar7)
 						{
-							deltaPosThisFrame = 0;
-							goto doFireIncrement;
+							VehFire_Increment(botDriver, 0x2d0, 2, 0);
 						}
 					}
 					else
 					{
-						deltaPosThisFrame = CTR_MipsMulLo(local_38, 0xc0);
-					doFireIncrement:
-						VehFire_Increment(botDriver, 0x2d0, 2, deltaPosThisFrame);
+						VehFire_Increment(botDriver, 0x2d0, 2, CTR_MipsMulLo(local_38, 0xc0));
 					}
 
 					botDriver->actionsFlagSet |= ACTION_STARTED_TOUCH_GROUND;
