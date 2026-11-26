@@ -2482,7 +2482,7 @@ UpdateTireColorTimer:
 
 	if (((navFrameCurr->specialBits & (BOTS_NAV_SPECIAL_RAMP_PHYS | BOTS_NAV_SPECIAL_REFLECTIVE)) == 0) && (botThread->modelIndex != DYNAMIC_GHOST))
 	{
-		int transparency = CTR_MipsMulLo(navFrameCurr->specialBits & BOTS_NAV_SPECIAL_INDEX_MASK, 0x9c00);
+		int transparency = CTR_MipsMulLo(CTR_MipsSll(navFrameCurr->specialBits & BOTS_NAV_SPECIAL_INDEX_MASK, 8), 0x9c);
 
 		botDriver->alphaScaleBackup = (s16)CTR_MipsSra(CTR_MipsAddLo(CTR_MipsMulLo((u16)botDriver->alphaScaleBackup, 100), transparency), 8);
 
