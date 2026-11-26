@@ -2491,58 +2491,42 @@ UpdateTireColorTimer:
 
 	if (!(((botDriver->actionsFlagSet & ACTION_FRONT_SKID) == 0) || ((navFrameFlags & BOTS_NAV_FLAG_DRIFT_MASK) == 0)))
 	{
-		int uVar6;
 		botDriver->actionsFlagSet |= ACTION_TURBO_INPUT_LATCH;
 		botDriver->botData.aiPhysics.turboMeter = (s16)CTR_MipsAddLo((u16)botDriver->botData.aiPhysics.turboMeter, elapsedMilliseconds);
 
-		// this ugly tree of ifs may have been a switch perhaps?
-		if (!((botDriver->botData.aiPhysics.turboMeter < 0xb41) || (5 < botDriver->botData.aiPhysics.fireLevel)))
+		// the boost charge levels, highest first: the even ones fire a boost, the odd ones arm the next
+		if ((0xb40 < botDriver->botData.aiPhysics.turboMeter) && (botDriver->botData.aiPhysics.fireLevel < 6))
 		{
-			// trigger a turbo boost?
 			botDriver->botData.aiPhysics.fireLevel = 6;
 			botDriver->turbo_MeterRoomLeft = 0;
 			VehFire_Increment(botDriver, 0x2d0, 2, CTR_MipsMulLo(local_38, 0x180));
 		}
-		else
+		else if ((0x960 < botDriver->botData.aiPhysics.turboMeter) && (botDriver->botData.aiPhysics.fireLevel < 5))
 		{
-			if (!((botDriver->botData.aiPhysics.turboMeter < 0x961) || (uVar6 = 5, 4 < botDriver->botData.aiPhysics.fireLevel)))
-			{
-			SetTurboChargeThreshold:
-				// trigger a turbo boost?
-				botDriver->botData.aiPhysics.fireLevel = uVar6;
-				botDriver->turbo_MeterRoomLeft = 0xa0;
-			}
-			else
-			{
-				if (!((botDriver->botData.aiPhysics.turboMeter < 0x781) || (3 < botDriver->botData.aiPhysics.fireLevel)))
-				{
-					// trigger a turbo boost?
-					botDriver->botData.aiPhysics.fireLevel = 4;
-					botDriver->turbo_MeterRoomLeft = 0;
-					VehFire_Increment(botDriver, 0x1e0, 2, CTR_MipsSll(local_38, 8));
-				}
-				else
-				{
-					if ((0x5a0 < botDriver->botData.aiPhysics.turboMeter) && (uVar6 = 3, botDriver->botData.aiPhysics.fireLevel < 3))
-					{
-						goto SetTurboChargeThreshold;
-					}
-					if (!((botDriver->botData.aiPhysics.turboMeter < 0x3c1) || (1 < botDriver->botData.aiPhysics.fireLevel)))
-					{
-						// trigger a turbo boost?
-						botDriver->botData.aiPhysics.fireLevel = 2;
-						botDriver->turbo_MeterRoomLeft = 0;
-						VehFire_Increment(botDriver, 0xf0, 2, CTR_MipsSll(local_38, 7));
-					}
-					else
-					{
-						if ((0x1e0 < botDriver->botData.aiPhysics.turboMeter) && (uVar6 = 1, botDriver->botData.aiPhysics.fireLevel < 1))
-						{
-							goto SetTurboChargeThreshold;
-						}
-					}
-				}
-			}
+			botDriver->botData.aiPhysics.fireLevel = 5;
+			botDriver->turbo_MeterRoomLeft = 0xa0;
+		}
+		else if ((0x780 < botDriver->botData.aiPhysics.turboMeter) && (botDriver->botData.aiPhysics.fireLevel < 4))
+		{
+			botDriver->botData.aiPhysics.fireLevel = 4;
+			botDriver->turbo_MeterRoomLeft = 0;
+			VehFire_Increment(botDriver, 0x1e0, 2, CTR_MipsSll(local_38, 8));
+		}
+		else if ((0x5a0 < botDriver->botData.aiPhysics.turboMeter) && (botDriver->botData.aiPhysics.fireLevel < 3))
+		{
+			botDriver->botData.aiPhysics.fireLevel = 3;
+			botDriver->turbo_MeterRoomLeft = 0xa0;
+		}
+		else if ((0x3c0 < botDriver->botData.aiPhysics.turboMeter) && (botDriver->botData.aiPhysics.fireLevel < 2))
+		{
+			botDriver->botData.aiPhysics.fireLevel = 2;
+			botDriver->turbo_MeterRoomLeft = 0;
+			VehFire_Increment(botDriver, 0xf0, 2, CTR_MipsSll(local_38, 7));
+		}
+		else if ((0x1e0 < botDriver->botData.aiPhysics.turboMeter) && (botDriver->botData.aiPhysics.fireLevel < 1))
+		{
+			botDriver->botData.aiPhysics.fireLevel = 1;
+			botDriver->turbo_MeterRoomLeft = 0xa0;
 		}
 	}
 	else
