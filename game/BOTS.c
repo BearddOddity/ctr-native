@@ -1504,7 +1504,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	u32 local_38;
 	s16 tireColorStep;
 	int negElapsed;
-	register struct NavFrame *navFrameNext CTR_PSX_REGISTER("$23"); // psVar21
+	struct NavFrame *navFrameNext; // psVar21
 	struct Thread *hitThread;
 	int deltaPosThisFrame; // iVar4
 	int gravity;
@@ -1526,7 +1526,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	u8 cmp2;
 	int iVar4_lifetime_2;
 	s16 newMulDrift;
-	register struct Driver *botDriver CTR_PSX_REGISTER("$19"); // iVar17
+	struct Driver *botDriver; // iVar17
 	struct Instance *botInstance; // iVar22
 #ifdef CTR_NATIVE
 	struct ScratchpadStruct *sps = CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108);
