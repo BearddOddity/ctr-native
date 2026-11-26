@@ -1820,14 +1820,13 @@ UpdateTireColorTimer:
 				struct Driver *otherDriver = NULL; // iVar4
 				if ((botFlags & BOT_FLAG_ESTIMATE_NAV) == 0)
 				{
-					s16 sVar7 = 1000;
-					int iVar3 = 1000;
+					s16 pointsAhead = 1000; // the closest bot ahead so far, in nav points
 					struct BotData *botData;
 
 					for (botData = (struct BotData *)LIST_GetFirstItem(&BOTS_NAV_LIST_BY_PATH[botDriver->botData.botPath]); botData != NULL;
-					     botData = (struct BotData *)LIST_GetNextItem((struct Item *)botData), sVar7 = (s16)iVar3)
+					     botData = (struct BotData *)LIST_GetNextItem((struct Item *)botData))
 					{
-						int iVar13;
+						s16 iVar13;
 						struct Driver *driverFromBotData = (struct Driver *)((char *)botData - offsetof(struct Driver, botData));
 
 						if (driverFromBotData == botDriver)
@@ -1848,17 +1847,17 @@ UpdateTireColorTimer:
 
 						// find closest "other" botData driver
 						// that is AHEAD of "this" botDriver driver
-						if (iVar13 < iVar3)
+						if (iVar13 < pointsAhead)
 						{
 							// save number of points ahead,
 							// and save pointer to other driver
-							iVar3 = iVar13;
+							pointsAhead = iVar13;
 							otherDriver = driverFromBotData;
 						}
 					}
 
 					// If two drivers are within 3 navframe points of each other
-					if ((otherDriver != NULL) && (sVar7 < 3))
+					if ((otherDriver != NULL) && (pointsAhead < 3))
 					{
 						int diff = CTR_MipsSubLo(botDriver->distanceToFinish_curr, otherDriver->distanceToFinish_curr);
 
