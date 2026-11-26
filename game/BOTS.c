@@ -2323,7 +2323,7 @@ UpdateTireColorTimer:
 		deltaPosThisFrame = CTR_MipsAddLo(deltaPosThisFrame, botDriver->botData.navProgressRemainder);
 	}
 
-	navFrameFlags |= navFrameCurr->flags;
+	navFrameFlags |= (u16)navFrameCurr->flags;
 	navFrameSpecialBits |= navFrameCurr->specialBits;
 	// local_3c == 0
 	if ((navFrameSpecialBits & BOTS_NAV_SPECIAL_MOON_GRAVITY) != 0)
@@ -2396,7 +2396,7 @@ UpdateTireColorTimer:
 			BOTS_Killplane(botThread);
 		}
 
-		navFrameFlags |= navFrameCurr->flags;
+		navFrameFlags |= (u16)navFrameCurr->flags;
 		navFrameSpecialBits |= navFrameCurr->specialBits;
 
 
