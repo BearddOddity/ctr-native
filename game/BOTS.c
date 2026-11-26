@@ -2373,7 +2373,6 @@ UpdateTireColorTimer:
 		int index;
 		int uVar8;
 		s16 nextNavDist; // sVar7
-		u8 compare;
 		navFrameCurr = navFrameNext;
 
 		deltaPosThisFrame = CTR_MipsSubLo(deltaPosThisFrame, CTR_MipsSll(iVar3, 8));
@@ -2413,8 +2412,7 @@ UpdateTireColorTimer:
 		// MUST be unsigned,
 		// this makes a range-value check, and makes negatives positive,
 		// so its really checking value between 0x31 and 0x31+0x9e
-		compare = navFrameCurr->rot[3] - 0x31;
-		if (!useGroundedNavDistance && (0x9e < compare))
+		if (!useGroundedNavDistance && (0x9e < (u8)(navFrameCurr->rot[3] - 0x31)))
 		{
 			if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
 			{
