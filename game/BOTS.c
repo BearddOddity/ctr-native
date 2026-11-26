@@ -1497,24 +1497,24 @@ extern s16 ctr_bots_botsThrottle[] asm("data+1424");
 #endif
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
+	int navFrameFlags;
+	int navFrameSpecialBits;
+	int local_3c;
+	u32 local_38;
 	int elapsedMilliseconds;
+	u8 useGroundedNavDistance;
 	int trafficLightsTimer;
 	int speedApprox;
 	struct NavFrame *navFrameCurr;
-	u32 local_38;
 	s16 tireColorStep;
 	int negElapsed;
 	struct NavFrame *navFrameNext; // psVar21
 	struct Thread *hitThread;
 	int deltaPosThisFrame; // iVar4
 	int gravity;
-	int navFrameSpecialBits;
-	int navFrameFlags;
 	s16 navDist; // sVar7
 	int iVar15;
 	struct Terrain *terrain;
-	int local_3c;
-	u8 useGroundedNavDistance;
 	int navActionFlags;
 	int iVar3;
 	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
@@ -1694,6 +1694,10 @@ UpdateTireColorTimer:
 	{
 	{
 		struct DriverCollisionSearch driverSearch;
+#ifndef CTR_NATIVE
+		// retail's frame holds 16 more bytes beside the search in this block; nothing here reads them
+		s32 retailStackPad[4];
+#endif
 
 		CTR_SET_VEC3(CTR_VECTOR_DATA(&(driverSearch.bucket.pos)), (s16)CTR_MipsSra(botDriver->posCurr.x, FRACTIONAL_BITS_8),
 		             (s16)CTR_MipsSra(botDriver->posCurr.y, FRACTIONAL_BITS_8), (s16)CTR_MipsSra(botDriver->posCurr.z, FRACTIONAL_BITS_8));
@@ -2372,7 +2376,7 @@ UpdateTireColorTimer:
 	{
 		int index;
 		int uVar8;
-		s16 nextNavDist; // sVar7
+		int nextNavDist; // sVar7
 		navFrameCurr = navFrameNext;
 
 		deltaPosThisFrame = CTR_MipsSubLo(deltaPosThisFrame, CTR_MipsSll(iVar3, 8));
@@ -3306,8 +3310,8 @@ UpdateTireColorTimer:
 
 	if ((botDriver->botData.botFlags & (BOT_FLAG_ESTIMATE_NAV | BOT_FLAG_FREE_PHYSICS)) == 0)
 	{
-		MATRIX m;
 		SVec3 rot;
+		MATRIX m;
 		rot.x = (s16)CTR_MipsSll(navFrameCurr->rot[0], 4);
 		rot.y = (s16)CTR_MipsSll(navFrameCurr->rot[1], 4);
 		rot.z = (s16)CTR_MipsSll(navFrameCurr->rot[2], 4);
@@ -3463,7 +3467,9 @@ FinishHazardTimerUpdate:
 
 	VehFrameProc_Driving(botThread, botDriver);
 
+	// one block deeper, so GCC 2.8.1 gives the rotation's stack slot back for the probes below, as retail does
 	if (((botDriver->botData.botFlags & BOT_FLAG_DAMAGE_ACTIVE) != 0) && (botDriver->botData.aiDamageState == BOTS_DAMAGE_STATE_BLAST))
+	{
 	{
 		SVec3 rot;
 		rot.x = (s16)CTR_MipsSll(botDriver->botData.aiPhysics.rotXZ, 8);
@@ -3477,6 +3483,7 @@ FinishHazardTimerUpdate:
 		MATH_MatrixMul(&botInstance->matrix, &SDATA_ABS->rotXYZ, &data.identity);
 
 		botInstance->matrix.t[1] = CTR_MipsAddLo(botInstance->matrix.t[1], 0x20);
+	}
 	}
 
 	if ((botDriver->botData.botFlags & BOT_FLAG_DAMAGE_SUPPRESS_EMITTER) == 0)
