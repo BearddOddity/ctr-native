@@ -1522,8 +1522,6 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	s16 camRot;
 	int driftStep;
 	int uVar11;
-	u8 cmp1;
-	u8 cmp2;
 	int iVar4_lifetime_2;
 	s16 newMulDrift;
 	struct Driver *botDriver; // iVar17
@@ -3147,10 +3145,7 @@ UpdateTireColorTimer:
 	}
 
 	// MUST be unsigned, same reason as the other -0x31
-	cmp2 = navFrameNext->rot[3] - 0x31;
-	cmp1 = navFrameCurr->rot[3] - 0x31;
-
-	if ((0x9e < cmp1) && (0x9e < cmp2))
+	if ((0x9e < (u8)(navFrameCurr->rot[3] - 0x31)) && (0x9e < (u8)(navFrameNext->rot[3] - 0x31)))
 	{
 		int other_uVar8;
 		int curRotY;
