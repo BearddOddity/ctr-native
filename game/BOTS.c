@@ -1512,8 +1512,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	struct Thread *hitThread;
 	int deltaPosThisFrame; // iVar4
 	int gravity;
-	s16 navDist; // sVar7
-	int iVar15;
+	register int iVar15 CTR_PSX_REGISTER("$17");
 	struct Terrain *terrain;
 	int navActionFlags;
 	int iVar3;
@@ -2357,11 +2356,11 @@ UpdateTireColorTimer:
 
 	if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
 	{
-		navDist = navFrameCurr->distToNextNavXYZ;
+		iVar3 = navFrameCurr->distToNextNavXYZ;
 	}
 	else
 	{
-		navDist = navFrameCurr->distToNextNavXZ;
+		iVar3 = navFrameCurr->distToNextNavXZ;
 	}
 
 	useGroundedNavDistance = false;
@@ -2372,7 +2371,8 @@ UpdateTireColorTimer:
 	iVar15 = CTR_MipsSra(deltaPosThisFrame, 8);
 
 
-	for (iVar3 = navDist; iVar3 <= iVar15; /* decrement inside loop */)
+	// the loop counter starts as the current frame's distance to the next one
+	for (; iVar3 <= iVar15; /* decrement inside loop */)
 	{
 		int index;
 		int uVar8;
