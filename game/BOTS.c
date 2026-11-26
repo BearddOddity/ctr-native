@@ -1497,6 +1497,7 @@ extern s16 ctr_bots_botsThrottle[] asm("data+1424");
 #endif
 void BOTS_ThTick_Drive(struct Thread *botThread)
 {
+	int speedCap = 0x6400; // the bots' top speed
 	int navFrameFlags;
 	int navFrameSpecialBits;
 	int local_3c;
@@ -2311,9 +2312,9 @@ UpdateTireColorTimer:
 			}
 		}
 
-		if (0x6400 < botDriver->botData.aiPhysics.speedLinear)
+		if (speedCap < botDriver->botData.aiPhysics.speedLinear)
 		{
-			botDriver->botData.aiPhysics.speedLinear = 0x6400;
+			botDriver->botData.aiPhysics.speedLinear = speedCap;
 		}
 
 		deltaPosThisFrame = CTR_MipsSra(CTR_MipsMulLo(botDriver->botData.aiPhysics.speedLinear, elapsedMilliseconds), 5); // iVar4
