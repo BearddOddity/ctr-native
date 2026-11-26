@@ -3326,7 +3326,11 @@ UpdateTireColorTimer:
 		botDriver->AxisAngle3_normalVec.y = m.m[1][1];
 		botDriver->AxisAngle3_normalVec.z = m.m[2][1];
 
-		botInstance->compressedNormalAndDriverIndex = INST_CompressNormalVectorAndDriverIndex(m.m[0][1], m.m[1][1], m.m[2][1], botDriver->driverID);
+		// packed in place, x, y, z, then the driver index, as retail does
+		botInstance->compressedNormalAndDriverIndex = (((u32)(u16)m.m[0][1] >> INST_COMPRESSED_NORMAL_SHIFT) & INST_COMPRESSED_NORMAL_MASK) |
+		                                              ((((u32)(u16)m.m[1][1] >> INST_COMPRESSED_NORMAL_SHIFT) & INST_COMPRESSED_NORMAL_MASK) << INST_COMPRESSED_NORMAL_Y_SHIFT) |
+		                                              ((((u32)(u16)m.m[2][1] >> INST_COMPRESSED_NORMAL_SHIFT) & INST_COMPRESSED_NORMAL_MASK) << INST_COMPRESSED_NORMAL_Z_SHIFT) |
+		                                              (((u32)botDriver->driverID + INST_COMPRESSED_DRIVER_INDEX_OFFSET) << INST_COMPRESSED_DRIVER_INDEX_SHIFT);
 	}
 
 	ConvertRotToMatrix(&botInstance->matrix, SVec3Slot_AsVec3(&botDriver->rotCurr));
