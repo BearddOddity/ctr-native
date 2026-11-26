@@ -2716,14 +2716,14 @@ UpdateTireColorTimer:
 
 		botDriver->botData.aiRot.y = CTR_MipsAddLo(curRotY0, CTR_MipsSra(CTR_MipsMulLo(deltaRotY, percentage), 0xc)) & 0xfff;
 
-		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
 		probeX = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.x, botDriver->botData.aiPhysics.velocity.x), 8);
+		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
 		probeZ = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.z, botDriver->botData.aiPhysics.velocity.z), 8);
 		probeTop.x = probeX;
 		probeTop.y = (s16)CTR_MipsSubLo(probeY, 0x100);
-		probeTop.z = probeZ;
-		probeBottom.x = probeX;
 		probeBottom.y = (s16)CTR_MipsAddLo(probeY, 0x80);
+		probeBottom.x = probeX;
+		probeTop.z = probeZ;
 		probeBottom.z = probeZ;
 
 		sps->ptr_mesh_info = gGT->level1->ptr_mesh_info;
