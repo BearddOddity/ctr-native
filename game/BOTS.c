@@ -2450,6 +2450,8 @@ UpdateTireColorTimer:
 
 	botDriver->botData.navProgressRemainder = deltaPosThisFrame;
 
+	botDriver->actionsFlagSet &= ~(ACTION_ENGINE_ECHO | ACTION_BACK_SKID | ACTION_FRONT_SKID);
+
 	navActionFlags = ((navFrameFlags & BOTS_NAV_FLAG_BACK_SKID) != 0) ? ACTION_BACK_SKID : 0;
 
 	if ((navFrameFlags & BOTS_NAV_FLAG_ENGINE_ECHO) != 0)
@@ -2459,11 +2461,12 @@ UpdateTireColorTimer:
 
 	if ((navFrameFlags & BOTS_NAV_FLAG_FRONT_SKID) != 0)
 	{
-		navActionFlags |= ACTION_FRONT_SKID;
+		botDriver->actionsFlagSet |= ACTION_FRONT_SKID | navActionFlags;
 	}
-
-	botDriver->actionsFlagSet &= ~(ACTION_ENGINE_ECHO | ACTION_BACK_SKID | ACTION_FRONT_SKID);
-	botDriver->actionsFlagSet |= navActionFlags;
+	else
+	{
+		botDriver->actionsFlagSet |= navActionFlags;
+	}
 
 	terrain = VehAfterColl_GetTerrain(((u8)navFrameCurr->flags) >> 3);
 
