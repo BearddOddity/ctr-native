@@ -2041,18 +2041,20 @@ UpdateTireColorTimer:
 						otherDifficultyStat = sdata->arcade_difficultyParams[0x9];
 					}
 				}
-				botVelocity = complexDifficultyStat; // iVar3
-				if (complexDifficultyStat < 0)
 				{
-					botVelocity = CTR_MipsNegLo(complexDifficultyStat);
-				}
-				iVar9 = otherDifficultyStat;
-				if (otherDifficultyStat < 0)
-				{
-					iVar9 = CTR_MipsNegLo(otherDifficultyStat);
-				}
+					int absComplex = complexDifficultyStat; // iVar3
+					if (complexDifficultyStat < 0)
+					{
+						absComplex = CTR_MipsNegLo(absComplex);
+					}
+					iVar9 = otherDifficultyStat;
+					if (otherDifficultyStat < 0)
+					{
+						iVar9 = CTR_MipsNegLo(iVar9);
+					}
 
-				botVelocity = CTR_MipsSra(CTR_MipsMulLo(iVar9, CTR_MipsDiv(CTR_MipsSll(CTR_MipsAddLo(botVelocity, 0x80), 0xc), 0xa00)), 0xc);
+					botVelocity = CTR_MipsSra(CTR_MipsMulLo(iVar9, CTR_MipsDiv(CTR_MipsSll(CTR_MipsAddLo(absComplex, 0x80), 0xc), 0xa00)), 0xc);
+				}
 				local_38 = 0 < complexDifficultyStat;
 				botVelocity = CTR_MipsAddLo(botVelocity, CTR_MipsMulLo(CTR_MipsDiv(CTR_MipsSll(botVelocity, 3), 100), CTR_MipsSubLo(7, driverRank)));
 
