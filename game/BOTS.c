@@ -2601,8 +2601,8 @@ UpdateTireColorTimer:
 		botDriver->botData.aiPhysics.velocity.y = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.y, botDriver->botData.aiPhysics.accel.y);
 		botDriver->botData.aiPhysics.velocity.z = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.z, botDriver->botData.aiPhysics.accel.z);
 		preAccelX = botDriver->botData.aiPhysics.accel.x; // iVar3
-		preAccelZ = botDriver->botData.aiPhysics.accel.z; // iVar15
 		botDriver->botData.aiPhysics.accel.x = CTR_MipsSra(botDriver->botData.aiPhysics.accel.x, 1);
+		preAccelZ = botDriver->botData.aiPhysics.accel.z; // iVar15
 		botDriver->botData.aiPhysics.accel.z = CTR_MipsSra(botDriver->botData.aiPhysics.accel.z, 1);
 		botDriver->botData.aiPhysics.velocity.y = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.y, botDriver->botData.aiPhysics.accel.y);
 
