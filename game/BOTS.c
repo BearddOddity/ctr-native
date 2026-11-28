@@ -1500,33 +1500,33 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	int speedCap = 0x6400; // the bots' top speed
 	int navFrameFlags;
 	int navFrameSpecialBits;
-	int local_3c;
-	u32 local_38;
-	int elapsedMilliseconds;
-	u8 useGroundedNavDistance;
 	int speedApprox;
 	int trafficLightsTimer;
+	int local_3c;
+	u32 local_38;
 	int negElapsed;
-	s16 tireColorStep;
-	struct NavFrame *navFrameCurr;
-	struct NavFrame *navFrameNext; // psVar21
-	struct Thread *hitThread;
+	int elapsedMilliseconds;
 	int deltaPosThisFrame; // iVar4
+	s16 tireColorStep;
+	struct Thread *hitThread;
+	struct NavFrame *navFrameNext; // psVar21
 	int gravity;
 	register int iVar15 CTR_PSX_REGISTER("$17");
+	u8 useGroundedNavDistance;
+	struct NavFrame *navFrameCurr;
+	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
 	int navActionFlags;
 	struct Terrain *terrain;
 	int iVar3;
-	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
-	int uVar11;
+	s16 newMulDrift;
 	int badnessRecieveTimer;
 	s16 camRot;
-	int hazardSource;
-	s16 newMulDrift;
 	int driftStep;
+	struct Instance *botInstance; // iVar22
+	int uVar11;
 	int iVar4_lifetime_2;
 	struct Driver *botDriver; // iVar17
-	struct Instance *botInstance; // iVar22
+	int hazardSource;
 #ifdef CTR_NATIVE
 	struct ScratchpadStruct *sps = CTR_SCRATCHPAD_PTR(struct ScratchpadStruct, 0x108);
 	struct GameTracker *gGT = GAME_TRACKER;
@@ -1543,8 +1543,8 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	local_3c = 0;
 	elapsedMilliseconds = gGT->elapsedTimeMS; // local_34
 	botDriver = (struct Driver *)botThread->object;
-	botInstance = (struct Instance *)botThread->inst;
 	local_38 = 1;
+	botInstance = (struct Instance *)botThread->inst;
 
 #if 0
 	if(botDriver->driverID != 0)
@@ -1811,8 +1811,8 @@ UpdateTireColorTimer:
 
 				BOTS_SetRotation(botDriver, 0);
 
-				navFrameCurr = &botDriver->botData.estimateNavFrame;
 				navFrameNext = botDriver->botData.botNavFrame;
+				navFrameCurr = &botDriver->botData.estimateNavFrame;
 			}
 		}
 		else
@@ -1892,8 +1892,8 @@ UpdateTireColorTimer:
 
 								BOTS_SetRotation(botDriver, 0);
 
-								navFrameCurr = &botDriver->botData.estimateNavFrame;
 								navFrameNext = botDriver->botData.botNavFrame;
+								navFrameCurr = &botDriver->botData.estimateNavFrame;
 							}
 						}
 					}
@@ -2602,15 +2602,15 @@ UpdateTireColorTimer:
 		int preAccelZ;
 		int preX;
 		int preZ;
-		botDriver->botData.aiPhysics.accel.y = 0;
 		botDriver->botData.aiPhysics.velocity.x = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.x, botDriver->botData.aiPhysics.accel.x);
-		botDriver->botData.aiPhysics.velocity.y = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.y, botDriver->botData.aiPhysics.accel.y);
+		botDriver->botData.aiPhysics.accel.y = 0;
 		botDriver->botData.aiPhysics.velocity.z = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.z, botDriver->botData.aiPhysics.accel.z);
+		botDriver->botData.aiPhysics.velocity.y = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.y, botDriver->botData.aiPhysics.accel.y);
 		preAccelX = botDriver->botData.aiPhysics.accel.x; // iVar3
 		botDriver->botData.aiPhysics.accel.x = CTR_MipsSra(botDriver->botData.aiPhysics.accel.x, 1);
 		preAccelZ = botDriver->botData.aiPhysics.accel.z; // iVar15
-		botDriver->botData.aiPhysics.accel.z = CTR_MipsSra(botDriver->botData.aiPhysics.accel.z, 1);
 		botDriver->botData.aiPhysics.velocity.y = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.y, botDriver->botData.aiPhysics.accel.y);
+		botDriver->botData.aiPhysics.accel.z = CTR_MipsSra(botDriver->botData.aiPhysics.accel.z, 1);
 
 		botDriver->botData.aiPhysics.velocity.x = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.x, preAccelX);
 		botDriver->botData.aiPhysics.velocity.z = CTR_MipsAddLo(botDriver->botData.aiPhysics.velocity.z, preAccelZ);
@@ -2705,15 +2705,15 @@ UpdateTireColorTimer:
 
 		botDriver->botData.aiRot.y = CTR_MipsAddLo(curRotY0, CTR_MipsSra(CTR_MipsMulLo(deltaRotY, percentage), 0xc)) & 0xfff;
 
-		probeX = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.x, botDriver->botData.aiPhysics.velocity.x), 8);
 		probeZ = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.z, botDriver->botData.aiPhysics.velocity.z), 8);
 		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
+		probeX = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.x, botDriver->botData.aiPhysics.velocity.x), 8);
 		probeTop.x = probeX;
 		probeTop.y = (s16)CTR_MipsSubLo(probeY, 0x100);
 		probeBottom.y = (s16)CTR_MipsAddLo(probeY, 0x80);
 		probeBottom.x = probeX;
-		probeTop.z = probeZ;
 		probeBottom.z = probeZ;
+		probeTop.z = probeZ;
 
 		sps->ptr_mesh_info = gGT->level1->ptr_mesh_info;
 		sps->Union.QuadBlockColl.quadFlagsWanted = QUADBLOCK_FLAG_GROUND;
@@ -2804,9 +2804,9 @@ UpdateTireColorTimer:
 				case BOTS_DAMAGE_STATE_BLAST:
 					if (2 < bVar10)
 					{
+						botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
 						botDriver->botData.ai_progress_cooldown = 10;
 						botDriver->botData.aiPhysics.speedLinear = 0;
-						botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
 					}
 					break;
 				}
@@ -3025,8 +3025,8 @@ UpdateTireColorTimer:
 			botDriver->botData.aiPhysics.rotXZ = (s16)CTR_MipsSubLo((u16)botDriver->botData.aiPhysics.rotXZ, elapsedMilliseconds);
 			if (botDriver->botData.aiPhysics.rotXZ <= 0)
 			{
-				botDriver->botData.aiPhysics.speedY = 0x1400;
 				botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
+				botDriver->botData.aiPhysics.speedY = 0x1400;
 				botDriver->actionsFlagSet |= ACTION_JUMP_STARTED;
 			}
 			break;
@@ -3069,8 +3069,8 @@ UpdateTireColorTimer:
 				gGT->pushBuffer[botDriver->driverID].pos.z = v2.vz;
 
 				camDriverYDelta = CTR_MipsSubLo(gGT->pushBuffer[botDriver->driverID].pos.y, plantInst->matrix.t[1]);
-				camDriverZDelta = CTR_MipsSubLo(v2.vz, plantInst->matrix.t[2]);
 				camDriverXDelta = CTR_MipsSubLo(v2.vx, plantInst->matrix.t[0]);
+				camDriverZDelta = CTR_MipsSubLo(v2.vz, plantInst->matrix.t[2]);
 
 				rotY = ratan2(camDriverXDelta, camDriverZDelta);
 				gGT->pushBuffer[botDriver->driverID].rot.y = rotY;
@@ -3125,8 +3125,8 @@ UpdateTireColorTimer:
 		if (BOTS_CHARACTER_IDS[botDriver->driverID] == NITROS_OXIDE)
 		{
 			botDriver->botData.aiPhysics.squishCooldown = 0;
-			botDriver->botData.aiPhysics.mulDrift = 0;
 			botDriver->botData.botFlags &= ~(BOT_FLAG_DAMAGE_ACTIVE | BOT_FLAG_DAMAGE_SUPPRESS_EMITTER);
+			botDriver->botData.aiPhysics.mulDrift = 0;
 		}
 	}
 
@@ -3292,8 +3292,8 @@ UpdateTireColorTimer:
 			botDriver->botData.aiPhysics.turboMeter = 0;
 
 			botDriver->rotCurr.x = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.x, rotX);
-			botDriver->rotCurr.z = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.z, rotZ);
 			botDriver->rotCurr.y = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.y, rotY);
+			botDriver->rotCurr.z = (s16)CTR_MipsAddLo((u16)botDriver->rotCurr.z, rotZ);
 		}
 	}
 
@@ -3461,8 +3461,8 @@ FinishHazardTimerUpdate:
 	{
 		SVec3 rot;
 		rot.x = (s16)CTR_MipsSll(botDriver->botData.aiPhysics.rotXZ, 8);
-		rot.z = 0;
 		rot.y = (s16)CTR_MipsMulLo(botDriver->botData.aiPhysics.rotXZ, 0xe0);
+		rot.z = 0;
 
 		ConvertRotToMatrix(&SDATA_ABS->rotXZ, &rot);
 
@@ -3507,15 +3507,15 @@ FinishHazardTimerUpdate:
 		probeTop.x = probeX;
 		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
 		probeTop.y = (s16)CTR_MipsSubLo(probeY, 0x100);
-		probeBottom.y = (s16)CTR_MipsAddLo(probeY, 0x40);
-		probeBottom.x = probeX;
 		probeZ = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.z, botDriver->botData.aiPhysics.velocity.z), 8);
 		probeTop.z = probeZ;
 		probeBottom.z = probeZ;
+		probeBottom.y = (s16)CTR_MipsAddLo(probeY, 0x40);
+		probeBottom.x = probeX;
 
 		sps->ptr_mesh_info = gGT->level1->ptr_mesh_info;
-		sps->Union.QuadBlockColl.quadFlagsWanted = QUADBLOCK_FLAG_GROUND;
 		sps->Union.QuadBlockColl.quadFlagsIgnored = 0;
+		sps->Union.QuadBlockColl.quadFlagsWanted = QUADBLOCK_FLAG_GROUND;
 		sps->Union.QuadBlockColl.searchFlags = COLL_SEARCH_HIGH_LOD;
 
 		COLL_SearchBSP_CallbackQUADBLK(&probeTop, &probeBottom, sps, 0);
