@@ -1699,10 +1699,11 @@ UpdateTireColorTimer:
 		s32 retailStackPad[4];
 #endif
 
-		CTR_SET_VEC3(CTR_VECTOR_DATA(&(driverSearch.bucket.pos)), (s16)CTR_MipsSra(botDriver->posCurr.x, FRACTIONAL_BITS_8),
-		             (s16)CTR_MipsSra(botDriver->posCurr.y, FRACTIONAL_BITS_8), (s16)CTR_MipsSra(botDriver->posCurr.z, FRACTIONAL_BITS_8));
-		driverSearch.bucket.th = NULL;
+		driverSearch.bucket.pos.x = (s16)CTR_MipsSra(botDriver->posCurr.x, FRACTIONAL_BITS_8);
+		driverSearch.bucket.pos.y = (s16)CTR_MipsSra(botDriver->posCurr.y, FRACTIONAL_BITS_8);
+		driverSearch.bucket.pos.z = (s16)CTR_MipsSra(botDriver->posCurr.z, FRACTIONAL_BITS_8);
 		driverSearch.bucket.bestDistSq = 0x7fffffff;
+		driverSearch.bucket.th = NULL;
 
 		if ((botThread->flags & (THREAD_FLAG_DEAD | THREAD_FLAG_DISABLE_COLLISION)) == 0)
 		{
