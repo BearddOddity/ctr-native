@@ -2691,6 +2691,7 @@ UpdateTireColorTimer:
 
 	if ((botDriver->botData.botFlags & (BOT_FLAG_ESTIMATE_NAV | BOT_FLAG_FREE_PHYSICS)) != 0)
 	{
+		struct ScratchpadStruct *probeScratch = sps;
 		s16 probeY;
 		s16 probeX;
 		s16 probeZ;
@@ -2715,30 +2716,30 @@ UpdateTireColorTimer:
 		probeBottom.z = probeZ;
 		probeTop.z = probeZ;
 
-		sps->ptr_mesh_info = gGT->level1->ptr_mesh_info;
-		sps->Union.QuadBlockColl.quadFlagsWanted = QUADBLOCK_FLAG_GROUND;
-		sps->Union.QuadBlockColl.quadFlagsIgnored = QUADBLOCK_FLAG_NO_COLLISION_RESPONSE;
-		sps->Union.QuadBlockColl.searchFlags = COLL_SEARCH_HIGH_LOD;
+		probeScratch->ptr_mesh_info = gGT->level1->ptr_mesh_info;
+		probeScratch->Union.QuadBlockColl.quadFlagsWanted = QUADBLOCK_FLAG_GROUND;
+		probeScratch->Union.QuadBlockColl.quadFlagsIgnored = QUADBLOCK_FLAG_NO_COLLISION_RESPONSE;
+		probeScratch->Union.QuadBlockColl.searchFlags = COLL_SEARCH_HIGH_LOD;
 
-		COLL_SearchBSP_CallbackQUADBLK(&probeTop, &probeBottom, sps, 0);
+		COLL_SearchBSP_CallbackQUADBLK(&probeTop, &probeBottom, probeScratch, 0);
 
-		if (sps->boolDidTouchQuadblock != 0)
+		if (probeScratch->boolDidTouchQuadblock != 0)
 		{
-			botDriver->quadBlockHeight = CTR_MipsSll(sps->Union.QuadBlockColl.hitPos.y, 8);
+			botDriver->quadBlockHeight = CTR_MipsSll(probeScratch->Union.QuadBlockColl.hitPos.y, 8);
 
-			botDriver->botData.ai_quadblock_checkpointIndex = sps->hit.ptrQuadblock->checkpointIndex;
+			botDriver->botData.ai_quadblock_checkpointIndex = probeScratch->hit.ptrQuadblock->checkpointIndex;
 
-			VehPhysForce_RotAxisAngle(&botInstance->matrix, CTR_VECTOR_DATA(&(sps->hit.plane.normal)), botDriver->botData.aiRot.y);
+			VehPhysForce_RotAxisAngle(&botInstance->matrix, CTR_VECTOR_DATA(&(probeScratch->hit.plane.normal)), botDriver->botData.aiRot.y);
 
 			// copied field by field, as retail does
-			botDriver->AxisAngle3_normalVec.x = sps->hit.plane.normal.x;
-			botDriver->AxisAngle3_normalVec.y = sps->hit.plane.normal.y;
-			botDriver->AxisAngle3_normalVec.z = sps->hit.plane.normal.z;
+			botDriver->AxisAngle3_normalVec.x = probeScratch->hit.plane.normal.x;
+			botDriver->AxisAngle3_normalVec.y = probeScratch->hit.plane.normal.y;
+			botDriver->AxisAngle3_normalVec.z = probeScratch->hit.plane.normal.z;
 
 			botInstance->compressedNormalAndDriverIndex =
-			    INST_CompressNormalVectorAndDriverIndex(sps->hit.plane.normal.x, sps->hit.plane.normal.y, sps->hit.plane.normal.z, botDriver->driverID);
+			    INST_CompressNormalVectorAndDriverIndex(probeScratch->hit.plane.normal.x, probeScratch->hit.plane.normal.y, probeScratch->hit.plane.normal.z, botDriver->driverID);
 
-			if ((sps->hit.ptrQuadblock->quadFlags & QUADBLOCK_FLAG_KILL_PLANE) != 0)
+			if ((probeScratch->hit.ptrQuadblock->quadFlags & QUADBLOCK_FLAG_KILL_PLANE) != 0)
 			{
 				BOTS_Killplane(botThread);
 			}
