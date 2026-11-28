@@ -831,8 +831,11 @@ GLint u_psxTextureOutputStpLoc;
 	"		+2.0,  -2.0,  +3.0,  -1.0,\n"                              \
 	"		-3.0,  +1.0,  -4.0,  +0.0,\n"                              \
 	"		+3.0,  -1.0,  +2.0,  -2.0) / 255.0;\n"                     \
+	"	uniform int ditherMode;\n"                                 \
 	"	vec4 dither(vec4 color) {\n"                                \
-	"		ivec2 dc = ivec2(mod(floor(v_ditherCoord), 4.0));\n"       \
+	"		if(ditherMode == 0) { return color; }\n"                  \
+	"		vec2 dp = (ditherMode == 2) ? gl_FragCoord.xy : v_ditherCoord;\n" \
+	"		ivec2 dc = ivec2(mod(floor(dp), 4.0));\n"                \
 	"		color.xyz += vec3(c_dither[dc.x][dc.y] * v_texcoord.w);\n" \
 	"		return color;\n"                                           \
 	"	}\n"
@@ -1126,6 +1129,18 @@ internal void NativeRenderer_CompilePSXShader(GTEShader *sh, const char *source)
 	sh->psxSemiTransPassLoc = glGetUniformLocation(sh->shader, "psxSemiTransPass");
 	sh->psxDrawMaskSetLoc = glGetUniformLocation(sh->shader, "psxDrawMaskSet");
 	sh->psxTextureOutputStpLoc = glGetUniformLocation(sh->shader, "psxTextureOutputStp");
+
+	// Graphics' dithering, fixed for the run: 0 off, 1 the PS1's 4x4 pattern on its own pixels, 2 the same pattern
+	// on the screen's pixels (finer at high resolutions).
+	const GLint ditherModeLoc = glGetUniformLocation(sh->shader, "ditherMode");
+	if (ditherModeLoc >= 0)
+	{
+		GLint previous = 0;
+		glGetIntegerv(GL_CURRENT_PROGRAM, &previous);
+		glUseProgram(sh->shader);
+		glUniform1i(ditherModeLoc, g_nativeConfig.dither);
+		glUseProgram((GLuint)previous);
+	}
 }
 
 internal void NativeRenderer_InitialisePSXShaders(void)

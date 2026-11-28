@@ -20,6 +20,12 @@ export const UPSCALE = ["SHARP PIXELS", "SMOOTH", "FSR 1"];
 export const SHARPNESS = ["LOW", "MEDIUM", "HIGH"];
 export const ANTIALIASING = ["OFF", "FXAA"];
 export const CRT = ["OFF", "SCANLINES", "CURVED CRT"];
+export const DITHER = ["OFF", "PS1", "FINE"];
+const DITHER_HINT = [
+  "No dithering: smooth colour gradients with no pattern over them.",
+  "The PlayStation's own dither pattern, the size of its pixels.",
+  "The same pattern on your screen's own pixels: barely visible at high resolutions.",
+];
 export const BRIGHTNESS = ["DARKER", "DARK", "NORMAL", "BRIGHT", "BRIGHTER"];
 export const MAX_RENDER_SCALE = 8;
 export const WIDESCREEN = ["OFF  4:3", "STRETCHED", "TRUE WIDESCREEN"];
@@ -163,6 +169,7 @@ export function settingsRows(v: View, tab: number): Row[] {
       },
       { id: "brightness", kind: "choice", label: "BRIGHTNESS", value: BRIGHTNESS[s.brightness + 2], enabled: true, hint: "Lifts or lowers the whole picture." },
       toggle("texfilter", "TEXTURE FILTER", s, "Smooths the 3D textures (the PlayStation drew them unfiltered)."),
+      { id: "dither", kind: "choice", label: "DITHERING", value: DITHER[s.dither], enabled: true, hint: DITHER_HINT[s.dither] },
     );
   } else if (tab === 3) {
     rows.push(
@@ -236,6 +243,9 @@ export function change(s: Settings, id: string, dir: 1 | -1, list: Resolution[])
       break;
     case "aa":
       n.aa = wrap(s.aa + dir, ANTIALIASING.length);
+      break;
+    case "dither":
+      n.dither = wrap(s.dither + dir, DITHER.length);
       break;
     case "crt":
       n.crt = wrap(s.crt + dir, CRT.length);

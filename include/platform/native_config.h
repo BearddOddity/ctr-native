@@ -40,6 +40,7 @@ struct NativeConfig
 	int textureFilter; // bilinear texture filtering in 3D (the PSX had none)
 	int brightness;   // -2 .. 2
 	int integerScale; // whole-number scaling only (sharp pixels, bars around)
+	int dither;       // NATIVE_DITHER_*
 	// Internal resolution: the 3D is drawn at the PSX display size times this (1 = the PlayStation's own), or at
 	// the screen's own size with NATIVE_CONFIG_RENDER_SCALE_NATIVE.
 	int renderScale;
@@ -87,6 +88,13 @@ enum
 	NATIVE_UPSCALE_SHARP,  // nearest neighbour: the original pixels
 	NATIVE_UPSCALE_SMOOTH, // bilinear
 	NATIVE_UPSCALE_FSR,    // AMD FidelityFX Super Resolution 1 (EASU + RCAS)
+};
+
+enum
+{
+	NATIVE_DITHER_OFF,
+	NATIVE_DITHER_PS1,  // the PlayStation's 4x4 pattern, one step per PS1 pixel
+	NATIVE_DITHER_FINE, // the same pattern on the screen's own pixels
 };
 
 enum

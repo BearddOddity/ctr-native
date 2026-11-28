@@ -23,6 +23,8 @@ export interface Settings {
   crt: number;
   brightness: number;
   texfilter: boolean;
+  /** 0 off, 1 the PS1's, 2 fine (on the screen's own pixels) */
+  dither: number;
   /** internal resolution: the 3D at the PlayStation's size times this, 1 to 8 */
   renderscale: number;
   keyboard: boolean;

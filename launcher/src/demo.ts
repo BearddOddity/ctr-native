@@ -40,6 +40,7 @@ export function demoBackend(q: URLSearchParams): Backend {
     crt: 0,
     brightness: 0,
     texfilter: false,
+    dither: 1,
     renderscale: 2,
     keyboard: true,
     controller: true,

@@ -146,6 +146,14 @@ int main(void)
 	NativeConfig_ParseText(&c, "true_widescreen=0\n");
 	EXPECT(c.trueWidescreen == 0);
 
+	// Dithering: the PS1's by default.
+	NativeConfig_SetDefaults(&c);
+	EXPECT(c.dither == NATIVE_DITHER_PS1);
+	NativeConfig_ParseText(&c, "dither=off\n");
+	EXPECT(c.dither == NATIVE_DITHER_OFF);
+	NativeConfig_ParseText(&c, "dither=fine\n");
+	EXPECT(c.dither == NATIVE_DITHER_FINE);
+
 	// Native resolution.
 	NativeConfig_SetDefaults(&c);
 	NativeConfig_ParseText(&c, "render_scale=native\n");

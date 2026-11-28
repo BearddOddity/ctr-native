@@ -8,6 +8,7 @@ pub const UPSCALE: [&str; 3] = ["sharp", "smooth", "fsr"];
 pub const SHARPNESS: [&str; 3] = ["low", "medium", "high"];
 pub const ANTIALIASING: [&str; 2] = ["off", "fxaa"];
 pub const CRT: [&str; 3] = ["off", "scanlines", "curved"];
+pub const DITHER: [&str; 3] = ["off", "ps1", "fine"];
 
 #[derive(Serialize, Clone, Copy, Debug, PartialEq)]
 pub struct Resolution {
@@ -53,6 +54,7 @@ pub struct Settings {
     pub crt: usize,
     pub brightness: i32,
     pub texfilter: bool,
+    pub dither: usize,
     /// Internal resolution: the 3D drawn at the PlayStation's size times this, 1 (its own) to 8.
     pub renderscale: i32,
     pub keyboard: bool,
@@ -111,6 +113,7 @@ impl Settings {
             crt: choice(ini, "graphics", "crt", &CRT, 0),
             brightness: ini.get_int("graphics", "brightness", 0) as i32,
             texfilter: ini.get_bool("graphics", "texture_filter", false),
+            dither: choice(ini, "graphics", "dither", &DITHER, 1),
             renderscale: match ini.get("graphics", "render_scale") {
                 Some(v) if v.trim().eq_ignore_ascii_case("native") => 0,
                 _ => ini.get_int("graphics", "render_scale", 1) as i32,
@@ -159,6 +162,9 @@ impl Settings {
         if self.crt >= CRT.len() {
             self.crt = 0;
         }
+        if self.dither >= DITHER.len() {
+            self.dither = 1;
+        }
         if !(-2..=2).contains(&self.brightness) {
             self.brightness = 0;
         }
@@ -196,6 +202,7 @@ impl Settings {
         ini.set("graphics", "crt", CRT[self.crt]);
         ini.set("graphics", "brightness", &self.brightness.to_string());
         ini.set("graphics", "texture_filter", b(self.texfilter));
+        ini.set("graphics", "dither", DITHER[self.dither]);
         ini.set("graphics", "integer_scale", b(self.intscale));
         let scale = if self.renderscale == 0 { "native".to_string() } else { self.renderscale.to_string() };
         ini.set("graphics", "render_scale", &scale);

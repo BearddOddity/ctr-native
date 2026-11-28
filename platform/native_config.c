@@ -35,6 +35,7 @@ void NativeConfig_SetDefaults(struct NativeConfig *config)
 	config->textureFilter = 0;
 	config->brightness = 0;
 	config->integerScale = 0;
+	config->dither = NATIVE_DITHER_PS1;
 	config->renderScale = 1;
 	config->skipIntro = 0;
 	config->unlockAll = 0;
@@ -130,6 +131,7 @@ static const char *const s_upscaleWords[] = {"sharp", "smooth", "fsr"};
 static const char *const s_aaWords[] = {"off", "fxaa"};
 static const char *const s_crtWords[] = {"off", "scanlines", "curved"};
 static const char *const s_sharpWords[] = {"low", "medium", "high"};
+static const char *const s_ditherWords[] = {"off", "ps1", "fine"};
 
 static int NativeConfig_ParseResolution(const char *value, int *width, int *height)
 {
@@ -235,6 +237,10 @@ static void NativeConfig_SetKey(struct NativeConfig *config, const char *key, co
 		{
 			config->renderScale = number;
 		}
+	}
+	else if (NativeConfig_EqualsNoCase(key, "dither"))
+	{
+		NativeConfig_ParseChoice(value, s_ditherWords, 3, &config->dither);
 	}
 	else if (NativeConfig_EqualsNoCase(key, "true_widescreen"))
 	{
