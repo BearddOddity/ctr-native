@@ -20,6 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / "build/matching/ntsc-u-926/namespaces"
+PROBES = ROOT / "build/matching/ntsc-u-926/probes"
 SYMBOLS = ROOT / "metadata/retail/ntsc-u-926/symbols/syms926.txt"
 REMAINING = ROOT / "metadata/retail/ntsc-u-926/remaining.json"
 
@@ -58,6 +59,16 @@ def exact_intervals() -> tuple[list[tuple[int, int]], list[str]]:
                 if "address" in interval and interval.get("matching_bytes") == interval.get("expected_size"):
                     start = int(interval["address"], 16)
                     intervals.append((start, start + interval["expected_size"]))
+    # A probe compares one extracted function on its own; it proves its range when its region is the exe.
+    for path in sorted(PROBES.glob("*/*/result.json")):
+        result = json.loads(path.read_text())
+        if result.get("region") != "exe" or "address" not in result:
+            continue
+        start = int(result["address"], 16)
+        if result.get("exact"):
+            intervals.append((start, start + result["expected_size"]))
+        else:
+            inexact.append(result.get("symbol") or result["name"])
     return sorted(intervals), sorted(set(inexact))
 
 
