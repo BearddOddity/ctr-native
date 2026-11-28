@@ -57,7 +57,8 @@ def target_for(manifest: dict, entry: dict) -> dict:
         symbol_prefix=entry["name"],
         source=entry["source"],
     )
-    for key in ("compiler_flags", "small_data_limit", "forced_includes", "aspsx_version", "link_symbols"):
+    for key in ("compiler_flags", "small_data_limit", "forced_includes", "aspsx_version", "link_symbols",
+                "function_rodata_addresses", "linked_block"):
         if key in entry:
             target[key] = copy.deepcopy(entry[key])
     # The unit beside it may bind this very function to its retail address (to call it); here it is the one built.

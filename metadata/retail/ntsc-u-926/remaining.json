@@ -5,26 +5,14 @@
       "name": "CAM_ThTick",
       "end_symbol": "CDSYS_Init",
       "source": "game/CAM.c",
-      "like": "cam-pose"
-    },
-    {
-      "name": "CAM_FollowDriver_Normal",
-      "end_symbol": "CAM_MapRange_PosPoints",
-      "source": "game/CAM.c",
-      "like": "cam-pose"
+      "like": "cam-pose",
+      "note": "Its C builds to the bytes Revenant's saved match makes (src/auto/8001b334.c). It joins cam-pose once CAM.c's .rodata has its retail address (CAM_SkyboxGlow's and CAM_ThTick's jump tables share it): read it from retail.objdump, then set function_rodata_addresses for both."
     },
     {
       "name": "BOTS_ThTick_Drive",
       "end_symbol": "BOTS_ChangeState",
       "source": "game/BOTS.c",
       "like": "bots-support"
-    },
-    {
-      "name": "main",
-      "end_symbol": "MainRaceTrack_StartLoad",
-      "source": "game/MAIN/MainMain.c",
-      "like": "main-race-track",
-      "forced_includes": ["tools/matching/retail_bindings.h"]
     },
     {
       "name": "CAM_SkyboxGlow",

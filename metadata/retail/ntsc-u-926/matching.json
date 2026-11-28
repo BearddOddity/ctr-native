@@ -3447,6 +3447,27 @@
       }
     },
     {
+      "name": "main-main",
+      "kind": "resident",
+      "artifact": "exe",
+      "symbol_file": "metadata/retail/ntsc-u-926/symbols/syms926.txt",
+      "start_symbol": "main",
+      "end_symbol": "MainRaceTrack_StartLoad",
+      "symbol_prefix": "main",
+      "source": "game/MAIN/MainMain.c",
+      "include_directories": ["include"],
+      "forced_includes": ["tools/matching/retail_bindings.h", "tools/matching/namespaces/main-main/retail_symbols.h"],
+      "compiler_flags": ["-O2", "-G8", "-msoft-float"],
+      "small_data_limit": 8,
+      "aspsx_version": "2.77",
+      "function_rodata_addresses": {"main": "0x80011594"},
+      "linked_block": {"rodata_address": "0x80011594", "rodata_size": 20},
+      "link_symbols": {"_gp": "0x8008cf6c", "ctr_mainGameTracker": "0x8008d2ac", "ctr_mainGamepads": "0x8008d2b0",
+                       "ctr_mainLngStrings": "0x8008d878", "ctr_mainSoundPaused": "0x8008d8a4",
+                       "ctr_mainGameState": "0x8008d0f4", "ctr_mainLoadingStage": "0x8008d0f8",
+                       "ctr_mainBigfile": "0x8008d86c", "ctr_mainDrawSyncPtr": "0x8008d3f8", "ctr_mainNdi": "0x8008d16c"}
+    },
+    {
       "name": "main-race-track",
       "kind": "resident",
       "artifact": "exe",
@@ -4258,10 +4279,6 @@
       "code_intervals": [
         {
           "start_symbol": "CAM_LookAtPosition",
-          "end_symbol": "CAM_FollowDriver_Normal"
-        },
-        {
-          "start_symbol": "CAM_MapRange_PosPoints",
           "end_symbol": "CAM_ThTick"
         }
       ],
@@ -4272,7 +4289,9 @@
       "compiler_flags": ["-O2", "-G8", "-msoft-float"],
       "small_data_limit": 8,
       "aspsx_version": "2.77",
-      "linked_block": {}
+      "linked_block": {},
+      "link_symbols": {"CAM_FindClosestQuadblock": "0x800188a8", "CAM_ProcessTransition": "0x80018fec",
+                       "CAM_StartLine_FlyIn": "0x800194c8"}
     },
     {
       "name": "ui-render-frame-racing",
