@@ -1519,6 +1519,7 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	int iVar3;
 	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
 	int badnessRecieveTimer;
+	int hazardSource;
 	s16 camRot;
 	int driftStep;
 	int uVar11;
@@ -3357,10 +3358,10 @@ UpdateTireColorTimer:
 	botInstance->matrix.t[1] = CTR_MipsAddLo(CTR_MipsSra(botDriver->posCurr.y, FRACTIONAL_BITS_8), botDriver->Screen_OffsetY);
 	botInstance->matrix.t[2] = CTR_MipsSra(botDriver->posCurr.z, FRACTIONAL_BITS_8);
 
-	badnessRecieveTimer = botDriver->clockReceive;
+	hazardSource = botDriver->clockReceive;
 
 	// retail lays the hazard timer's countdown (no clock and no squish) out last
-	if ((badnessRecieveTimer != 0) || ((badnessRecieveTimer = botDriver->squishTimer) != 0))
+	if ((hazardSource != 0) || ((hazardSource = botDriver->squishTimer) != 0))
 	{
 		if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) == 0)
 		{
@@ -3375,12 +3376,11 @@ UpdateTireColorTimer:
 				goto CheckExistingHazardTimer;
 			}
 
-			if (badnessRecieveTimer < 0)
+			if (hazardSource < 0)
 			{
-				badnessRecieveTimer = CTR_MipsNegLo(badnessRecieveTimer);
+				hazardSource = CTR_MipsNegLo(hazardSource);
 			}
-		StoreNegativeHazardTimer:
-			botDriver->hazardTimer = (s16)CTR_MipsNegLo(badnessRecieveTimer);
+			botDriver->hazardTimer = (s16)CTR_MipsNegLo(hazardSource);
 		}
 		else
 		{
@@ -3393,19 +3393,19 @@ UpdateTireColorTimer:
 
 			if (iVar4 >= 0x101)
 			{
-				if (badnessRecieveTimer < 0)
+				if (hazardSource < 0)
 				{
-					badnessRecieveTimer = CTR_MipsNegLo(badnessRecieveTimer);
+					hazardSource = CTR_MipsNegLo(hazardSource);
 				}
-				botDriver->hazardTimer = (s16)badnessRecieveTimer;
+				botDriver->hazardTimer = (s16)hazardSource;
 			}
 			else
 			{
 			CheckExistingHazardTimer:
-				badnessRecieveTimer = botDriver->hazardTimer;
-				if (0 < badnessRecieveTimer)
+				hazardSource = botDriver->hazardTimer;
+				if (0 < hazardSource)
 				{
-					goto StoreNegativeHazardTimer;
+					botDriver->hazardTimer = (s16)CTR_MipsNegLo(hazardSource);
 				}
 			}
 		}
