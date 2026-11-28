@@ -43,7 +43,18 @@ struct NativeConfig
 	int skipIntro; // boot past the Naughty Dog crate and the "Sony Computer Entertainment presents" voice
 	int unlockAll; // every character, track, battle arena and the scrapbook, as the game's own unlock codes do
 	int cheats;    // NATIVE_CHEAT_* bits: the game's own main-menu cheat codes, always on
+
+	// Camera (Display tab). The race camera's horizontal field of view in degrees for one player, the PS1's
+	// 90 by default (split screen views scale with it), and its distance behind the kart in percent.
+	int fov;
+	int cameraDistance;
 };
+
+#define NATIVE_CONFIG_FOV_DEFAULT 90
+#define NATIVE_CONFIG_FOV_MIN     60
+#define NATIVE_CONFIG_FOV_MAX     120
+#define NATIVE_CONFIG_CAMERA_DISTANCE_MIN 50
+#define NATIVE_CONFIG_CAMERA_DISTANCE_MAX 200
 
 // The game's main-menu cheat codes, by their ctr_native.ini key (cheat_<name>).
 enum

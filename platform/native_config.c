@@ -38,6 +38,8 @@ void NativeConfig_SetDefaults(struct NativeConfig *config)
 	config->skipIntro = 0;
 	config->unlockAll = 0;
 	config->cheats = 0;
+	config->fov = NATIVE_CONFIG_FOV_DEFAULT;
+	config->cameraDistance = 100;
 }
 
 const char *const g_nativeCheatKeys[NATIVE_CHEAT_COUNT] = {
@@ -228,6 +230,14 @@ static void NativeConfig_SetKey(struct NativeConfig *config, const char *key, co
 		{
 			config->renderScale = number;
 		}
+	}
+	else if (NativeConfig_EqualsNoCase(key, "fov"))
+	{
+		NativeConfig_ParseInt(value, &config->fov);
+	}
+	else if (NativeConfig_EqualsNoCase(key, "camera_distance"))
+	{
+		NativeConfig_ParseInt(value, &config->cameraDistance);
 	}
 	else if (NativeConfig_EqualsNoCase(key, "skip_intro"))
 	{
@@ -439,6 +449,11 @@ void NativeConfig_ApplyArgs(struct NativeConfig *config, int argc, char **argv)
 			NativeConfig_ParseChoice(next, s_crtWords, 3, &config->crt);
 			i++;
 		}
+		else if ((strcmp(arg, "--fov") == 0) && (next != NULL))
+		{
+			NativeConfig_ParseInt(next, &config->fov);
+			i++;
+		}
 		else if (strcmp(arg, "--skip-intro") == 0)
 		{
 			config->skipIntro = 1;
@@ -449,6 +464,8 @@ void NativeConfig_ApplyArgs(struct NativeConfig *config, int argc, char **argv)
 			config->skipIntro = 0;
 			config->unlockAll = 0;
 			config->cheats = 0;
+			config->fov = NATIVE_CONFIG_FOV_DEFAULT;
+			config->cameraDistance = 100;
 		}
 		else if ((strcmp(arg, "--render-scale") == 0) && (next != NULL))
 		{
@@ -533,6 +550,18 @@ void NativeConfig_Clamp(struct NativeConfig *config)
 	if (config->brightness > 2)
 	{
 		config->brightness = 2;
+	}
+	if ((config->fov < NATIVE_CONFIG_FOV_MIN) || (config->fov > NATIVE_CONFIG_FOV_MAX))
+	{
+		config->fov = (config->fov < NATIVE_CONFIG_FOV_MIN) ? NATIVE_CONFIG_FOV_MIN : NATIVE_CONFIG_FOV_MAX;
+	}
+	if (config->cameraDistance < NATIVE_CONFIG_CAMERA_DISTANCE_MIN)
+	{
+		config->cameraDistance = NATIVE_CONFIG_CAMERA_DISTANCE_MIN;
+	}
+	if (config->cameraDistance > NATIVE_CONFIG_CAMERA_DISTANCE_MAX)
+	{
+		config->cameraDistance = NATIVE_CONFIG_CAMERA_DISTANCE_MAX;
 	}
 	if (config->renderScale < 1)
 	{

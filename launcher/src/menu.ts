@@ -22,6 +22,16 @@ export const ANTIALIASING = ["OFF", "FXAA"];
 export const CRT = ["OFF", "SCANLINES", "CURVED CRT"];
 export const BRIGHTNESS = ["DARKER", "DARK", "NORMAL", "BRIGHT", "BRIGHTER"];
 export const MAX_RENDER_SCALE = 8;
+export const FOV = { min: 60, max: 120, step: 5, ps1: 90 };
+export const CAMERA_DISTANCE = { min: 50, max: 200, step: 10, ps1: 100 };
+
+export function fovLabel(n: number): string {
+  return n === FOV.ps1 ? `${n}°  PS1` : `${n}°`;
+}
+
+export function cameraDistanceLabel(n: number): string {
+  return n === CAMERA_DISTANCE.ps1 ? `${n}%  PS1` : `${n}%`;
+}
 
 export function renderScaleLabel(n: number): string {
   return n <= 1 ? "1X  PS1" : `${n}X`;
@@ -85,6 +95,22 @@ export function settingsRows(v: View, tab: number): Row[] {
       toggle("widescreen", "WIDESCREEN", s, "Fill a 16:9 or 16:10 screen. Off: the original 4:3 picture with bars."),
       toggle("vsync", "VSYNC", s, "No tearing: every frame waits for the screen's refresh."),
       toggle("intscale", "PIXEL-PERFECT", s, "Whole-number scaling: every scanline the same height."),
+      {
+        id: "fov",
+        kind: "choice",
+        label: "FIELD OF VIEW",
+        value: fovLabel(s.fov),
+        enabled: true,
+        hint: "How wide the race camera sees. 90° is the PlayStation's; wider shows more of the track around you.",
+      },
+      {
+        id: "camera_distance",
+        kind: "choice",
+        label: "CAMERA DISTANCE",
+        value: cameraDistanceLabel(s.camera_distance),
+        enabled: true,
+        hint: "How far behind your kart the race camera sits. 100% is the PlayStation's.",
+      },
     );
   } else if (tab === 1) {
     rows.push(
@@ -195,6 +221,12 @@ export function change(s: Settings, id: string, dir: 1 | -1, list: Resolution[])
       break;
     case "brightness":
       n.brightness = Math.min(2, Math.max(-2, s.brightness + dir));
+      break;
+    case "fov":
+      n.fov = Math.min(FOV.max, Math.max(FOV.min, s.fov + dir * FOV.step));
+      break;
+    case "camera_distance":
+      n.camera_distance = Math.min(CAMERA_DISTANCE.max, Math.max(CAMERA_DISTANCE.min, s.camera_distance + dir * CAMERA_DISTANCE.step));
       break;
     case "renderscale":
       n.renderscale = Math.min(MAX_RENDER_SCALE, Math.max(1, s.renderscale + dir));

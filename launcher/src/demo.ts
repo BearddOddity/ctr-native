@@ -45,6 +45,8 @@ export function demoBackend(q: URLSearchParams): Backend {
     xbox: true,
     playstation: true,
     vibration: true,
+    fov: 90,
+    camera_distance: 100,
     skip_intro: false,
     unlock_all: false,
     cheat_wumpa: false,

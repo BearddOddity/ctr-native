@@ -28,6 +28,8 @@ function settings(over: Partial<Settings> = {}): Settings {
     xbox: true,
     playstation: true,
     vibration: true,
+    fov: 90,
+    camera_distance: 100,
     skip_intro: false,
     unlock_all: false,
     cheat_wumpa: false,
@@ -110,6 +112,15 @@ describe("settings", () => {
       expect(rows[rows.length - 1].id).toBe("back");
       for (const r of rows) expect(r.hint.length).toBeGreaterThan(0);
     }
+  });
+
+  test("field of view and camera distance step and stop at their ends", () => {
+    expect(settingsRows(view(), 0).find((r) => r.id === "fov")!.value).toBe("90°  PS1");
+    expect(change(settings(), "fov", 1, RES).fov).toBe(95);
+    expect(change(settings({ fov: 120 }), "fov", 1, RES).fov).toBe(120);
+    expect(change(settings({ fov: 60 }), "fov", -1, RES).fov).toBe(60);
+    expect(change(settings(), "camera_distance", -1, RES).camera_distance).toBe(90);
+    expect(change(settings({ camera_distance: 200 }), "camera_distance", 1, RES).camera_distance).toBe(200);
   });
 
   test("every extra and cheat starts off and flips", () => {

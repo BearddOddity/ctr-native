@@ -1,5 +1,9 @@
 #include <common.h>
 
+#ifdef CTR_NATIVE
+#include <platform/native_extras.h>
+#endif
+
 
 enum
 {
@@ -1318,6 +1322,10 @@ void CAM_FollowDriver_Normal(struct CameraDC *cDC, struct Driver *d, SVec3 *push
 	sw->camera.rot.x = 0;
 	sw->camera.rot.y = 0;
 	sw->camera.rot.z = VehCalc_MapToRange(cDC->cameraMoveSpeed, zoom->speedMin, zoom->speedMax, zoom->distMin, zoom->distMax);
+#ifdef CTR_NATIVE
+	// Display's camera distance.
+	sw->camera.rot.z = NativeExtras_CameraDistance(sw->camera.rot.z);
+#endif
 
 	if (cDC->fireSpeedZoom.timer != 0)
 	{
@@ -2215,6 +2223,10 @@ findQuad:
 	CAM_FindClosestQuadblock((struct ScratchpadStruct *)sw, cDC, d, &sw->camera.pos);
 
 done:
+#ifdef CTR_NATIVE
+	// Display's field of view: every path here set H afresh from distanceToScreen_CURR this frame.
+	pb->distanceToScreen_PREV = NativeExtras_DistanceToScreen(pb->distanceToScreen_PREV);
+#endif
 	cDC->cameraModePrev = cDC->cameraMode;
 
 	if (cDC->ptrQuadBlock != 0)

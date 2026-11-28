@@ -11,4 +11,11 @@ void NativeExtras_Frame(void);
 // 1 when the intro (the Naughty Dog crate, the "Sony Computer Entertainment presents" voice) is skipped.
 int NativeExtras_SkipIntro(void);
 
+// The race camera's distance to the screen (the GTE's H) for the field of view picked: the PS1's 90 degrees
+// gives h back. Every reader of the view's H (projection, frustum, skids, effects) then agrees on it.
+int NativeExtras_DistanceToScreen(int h);
+
+// The race camera's distance behind the kart, scaled by the camera distance picked (100% = the PS1's).
+int NativeExtras_CameraDistance(int distance);
+
 #endif
