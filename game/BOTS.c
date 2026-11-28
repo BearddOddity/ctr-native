@@ -1504,27 +1504,27 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	u32 local_38;
 	int elapsedMilliseconds;
 	u8 useGroundedNavDistance;
-	int trafficLightsTimer;
 	int speedApprox;
-	struct NavFrame *navFrameCurr;
-	s16 tireColorStep;
+	int trafficLightsTimer;
 	int negElapsed;
+	s16 tireColorStep;
+	struct NavFrame *navFrameCurr;
 	struct NavFrame *navFrameNext; // psVar21
 	struct Thread *hitThread;
 	int deltaPosThisFrame; // iVar4
 	int gravity;
 	register int iVar15 CTR_PSX_REGISTER("$17");
-	struct Terrain *terrain;
 	int navActionFlags;
+	struct Terrain *terrain;
 	int iVar3;
 	register int percentage CTR_PSX_REGISTER("$22"); // iVar13
-	int badnessRecieveTimer;
-	int hazardSource;
-	s16 camRot;
-	int driftStep;
 	int uVar11;
-	int iVar4_lifetime_2;
+	int badnessRecieveTimer;
+	s16 camRot;
+	int hazardSource;
 	s16 newMulDrift;
+	int driftStep;
+	int iVar4_lifetime_2;
 	struct Driver *botDriver; // iVar17
 	struct Instance *botInstance; // iVar22
 #ifdef CTR_NATIVE
@@ -1538,9 +1538,9 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 
 	// Retail sets these at entry: the nav flags gathered with |= below, the ramp bits, the frame time and the
 	// boost scale.
+	navFrameFlags = 0;
 	navFrameSpecialBits = 0;
 	local_3c = 0;
-	navFrameFlags = 0;
 	elapsedMilliseconds = gGT->elapsedTimeMS; // local_34
 	botDriver = (struct Driver *)botThread->object;
 	botInstance = (struct Instance *)botThread->inst;
@@ -2052,8 +2052,8 @@ UpdateTireColorTimer:
 					iVar9 = CTR_MipsNegLo(otherDifficultyStat);
 				}
 
-				local_38 = 0 < complexDifficultyStat;
 				botVelocity = CTR_MipsSra(CTR_MipsMulLo(iVar9, CTR_MipsDiv(CTR_MipsSll(CTR_MipsAddLo(botVelocity, 0x80), 0xc), 0xa00)), 0xc);
+				local_38 = 0 < complexDifficultyStat;
 				botVelocity = CTR_MipsAddLo(botVelocity, CTR_MipsMulLo(CTR_MipsDiv(CTR_MipsSll(botVelocity, 3), 100), CTR_MipsSubLo(7, driverRank)));
 
 				if (iVar9 < botVelocity)
@@ -2422,13 +2422,13 @@ UpdateTireColorTimer:
 		// so its really checking value between 0x31 and 0x31+0x9e
 		if (!useGroundedNavDistance && (0x9e < (u8)(navFrameCurr->rot[3] - 0x31)))
 		{
-			if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
+			if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) == 0)
 			{
-				nextNavDist = navFrameCurr->distToNextNavXYZ;
+				nextNavDist = navFrameCurr->distToNextNavXZ;
 			}
 			else
 			{
-				nextNavDist = navFrameCurr->distToNextNavXZ;
+				nextNavDist = navFrameCurr->distToNextNavXYZ;
 			}
 		}
 		else
@@ -2704,8 +2704,8 @@ UpdateTireColorTimer:
 		botDriver->botData.aiRot.y = CTR_MipsAddLo(curRotY0, CTR_MipsSra(CTR_MipsMulLo(deltaRotY, percentage), 0xc)) & 0xfff;
 
 		probeX = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.x, botDriver->botData.aiPhysics.velocity.x), 8);
-		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
 		probeZ = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.z, botDriver->botData.aiPhysics.velocity.z), 8);
+		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
 		probeTop.x = probeX;
 		probeTop.y = (s16)CTR_MipsSubLo(probeY, 0x100);
 		probeBottom.y = (s16)CTR_MipsAddLo(probeY, 0x80);
@@ -3066,9 +3066,9 @@ UpdateTireColorTimer:
 				gGT->pushBuffer[botDriver->driverID].pos.y = CTR_MipsAddLo(plantInst->matrix.t[1], 0xc0);
 				gGT->pushBuffer[botDriver->driverID].pos.z = v2.vz;
 
-				camDriverXDelta = CTR_MipsSubLo(v2.vx, plantInst->matrix.t[0]);
-				camDriverZDelta = CTR_MipsSubLo(v2.vz, plantInst->matrix.t[2]);
 				camDriverYDelta = CTR_MipsSubLo(gGT->pushBuffer[botDriver->driverID].pos.y, plantInst->matrix.t[1]);
+				camDriverZDelta = CTR_MipsSubLo(v2.vz, plantInst->matrix.t[2]);
+				camDriverXDelta = CTR_MipsSubLo(v2.vx, plantInst->matrix.t[0]);
 
 				rotY = ratan2(camDriverXDelta, camDriverZDelta);
 				gGT->pushBuffer[botDriver->driverID].rot.y = rotY;
@@ -3283,9 +3283,9 @@ UpdateTireColorTimer:
 			MTC2(wiggleZ, 1);
 			gte_mvmva(1, 0, 0, 3, 0);
 
-			rotX = MFC2(25);
 			rotY = MFC2(26);
 			rotZ = MFC2(27);
+			rotX = MFC2(25);
 
 			botDriver->botData.aiPhysics.turboMeter = 0;
 
