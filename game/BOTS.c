@@ -3491,14 +3491,17 @@ FinishHazardTimerUpdate:
 	{
 		SVec3 probeTop;
 		SVec3 probeBottom;
-		s16 probeX = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.x, botDriver->botData.aiPhysics.velocity.x), 8);
-		s16 probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
-		s16 probeZ = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.z, botDriver->botData.aiPhysics.velocity.z), 8);
+		s16 probeX;
+		s16 probeY;
+		s16 probeZ;
+		probeX = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.x, botDriver->botData.aiPhysics.velocity.x), 8);
 		probeTop.x = probeX;
+		probeY = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.y, botDriver->botData.aiPhysics.velocity.y), 8);
 		probeTop.y = (s16)CTR_MipsSubLo(probeY, 0x100);
-		probeTop.z = probeZ;
-		probeBottom.x = probeX;
 		probeBottom.y = (s16)CTR_MipsAddLo(probeY, 0x40);
+		probeBottom.x = probeX;
+		probeZ = (s16)CTR_MipsSra(CTR_MipsAddLo(botDriver->botData.positionBackup.z, botDriver->botData.aiPhysics.velocity.z), 8);
+		probeTop.z = probeZ;
 		probeBottom.z = probeZ;
 
 		sps->ptr_mesh_info = gGT->level1->ptr_mesh_info;
