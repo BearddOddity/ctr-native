@@ -12,6 +12,9 @@
 
 # Local matching experiments and caches.
 /.cache/
+# The Windows matching toolchain, built on each machine by tools/matching/windows/build-toolchain.sh.
+/externals/old-gcc/prebuilt/windows-i386/
+/externals/psx-binutils/prebuilt/windows-i386/
 
 # Runtime state.
 /memcards/

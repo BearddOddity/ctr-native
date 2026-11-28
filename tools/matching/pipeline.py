@@ -365,7 +365,84 @@ def require_tool(path: Path, description: str, expected_hash: str) -> Path:
     return path
 
 
+WINDOWS_TOOLCHAIN = ROOT / "tools/matching/windows/toolchain.json"
+
+
+def resolve_windows_toolchain(manifest: dict[str, Any]) -> Toolchain:
+    """The same toolchain built as native Windows programs (tools/matching/windows/build-toolchain.sh).
+
+    They are built on each machine, so they have no fixed checksums: their version banners are checked, and their
+    actual checksums are what the results record.
+    """
+    config = manifest["toolchain"]
+    local = load_json(WINDOWS_TOOLCHAIN)
+    compiler = config["compiler"]
+    gcc_dir = repository_path(local["compiler"]["directory"])
+    compiler_hashes = {}
+    for name in local["compiler"]["programs"]:
+        path = gcc_dir / name
+        if not path.is_file():
+            raise MatchError(
+                f"{path} is missing: build the Windows toolchain with tools/matching/windows/build-toolchain.sh"
+            )
+        # keyed by the program's name without .exe, as the rest of the pipeline knows them
+        compiler_hashes[name.removesuffix(".exe")] = sha256_file(path)
+    gcc = gcc_dir / local["compiler"]["executable"]
+
+    maspsx_config = config["maspsx"]
+    maspsx_dir = repository_path(maspsx_config["directory"])
+    maspsx_files = {}
+    for name, expected_hash in maspsx_config["sha256"].items():
+        maspsx_files[name] = require_tool(maspsx_dir / name, f"maspsx {name}", expected_hash)
+    maspsx = maspsx_files[maspsx_config["entrypoint"]]
+
+    binutils = config["binutils"]
+    prefix = repository_path(local["binutils"]["prefix"])
+    suffix = local["binutils"]["suffix"]
+    tools = {}
+    binutils_hashes = {}
+    for name in binutils["sha256"]:
+        path = Path(f"{prefix}{name}{suffix}")
+        if not path.is_file():
+            raise MatchError(
+                f"{path} is missing: build the Windows toolchain with tools/matching/windows/build-toolchain.sh"
+            )
+        tools[name] = path
+        binutils_hashes[name] = sha256_file(path)
+
+    try:
+        compiler_banner = command_output([str(gcc), "--version"]).splitlines()[0]
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise MatchError(f"Windows GCC {compiler['version']} does not run here: {exc}") from exc
+    if compiler_banner != compiler["version"]:
+        raise MatchError(f"Windows GCC reports {compiler_banner}, expected {compiler['version']}")
+    assembler_banner = command_output([str(tools["as"]), "--version"]).splitlines()[0]
+    if binutils["version"] not in assembler_banner:
+        raise MatchError(
+            f"Windows assembler reports {assembler_banner}, expected binutils {binutils['version']}"
+        )
+
+    return Toolchain(
+        compiler_version=compiler["version"],
+        compiler_banner=compiler_banner,
+        compiler_directory=gcc_dir,
+        compiler=gcc,
+        compiler_hashes=compiler_hashes,
+        maspsx=maspsx,
+        maspsx_commit=maspsx_config["commit"],
+        maspsx_hashes=maspsx_config["sha256"],
+        default_aspsx_version=maspsx_config["aspsx_version"],
+        assembler_banner=assembler_banner,
+        binutils=tools,
+        binutils_hashes=binutils_hashes,
+        config_hash=sha256_json({"toolchain": config, "windows": local, "compiler": compiler_hashes,
+                                 "binutils": binutils_hashes}),
+    )
+
+
 def resolve_toolchain(manifest: dict[str, Any]) -> Toolchain:
+    if sys.platform == "win32" and WINDOWS_TOOLCHAIN.is_file():
+        return resolve_windows_toolchain(manifest)
     if not sys.platform.startswith("linux"):
         # The vendored GCC 2.8.1, maspsx's assembler and binutils are 32-bit Linux ELF programs: Windows can't start
         # them (WinError 193) and WSL can't run them from a Windows drive (GCC 2.8.1 gets EOVERFLOW on /mnt/<drive>).
@@ -470,7 +547,31 @@ def reference_bytes(
     return value
 
 
+WINDOWS_COMMAND_LIMIT = 30000
+
+
+def with_response_file(command: list[str]) -> list[str]:
+    """On Windows, move a command's arguments into an @file when the command line would be too long to start.
+
+    Windows caps a command line at 32767 characters, and a resident link passes every retail symbol as a --defsym.
+    The GNU tools read @file the way libiberty does: whitespace separates arguments, and a backslash escapes the
+    character after it, so each argument is quoted with its backslashes and quotes escaped.
+    """
+    if sys.platform != "win32" or len(subprocess.list2cmdline(command)) < WINDOWS_COMMAND_LIMIT:
+        return command
+    import tempfile
+
+    def quoted(argument: str) -> str:
+        return '"' + argument.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+    handle, name = tempfile.mkstemp(prefix="ctr-match-", suffix=".rsp")
+    with open(handle, "w", newline="\n") as stream:
+        stream.write("\n".join(quoted(argument) for argument in command[1:]) + "\n")
+    return [command[0], f"@{name}"]
+
+
 def run_checked(command: list[str], stdin_path: Path | None = None) -> None:
+    command = with_response_file(command)
     if stdin_path is None:
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
@@ -512,6 +613,10 @@ def compile_c(
         command.extend(["-include", str(path)])
     command.append(str(source))
     run_checked(command)
+    if sys.platform == "win32":
+        # GCC built for Windows writes its assembly in text mode (CRLF); maspsx reads lines as Linux GCC writes them,
+        # and with a CR left on each it drops the first character of every label.
+        assembly.write_bytes(assembly.read_bytes().replace(b"\r\n", b"\n"))
 
 
 def assemble_compiler_output(
@@ -760,10 +865,12 @@ def binary_comparison(expected: bytes, actual: bytes) -> dict[str, Any]:
 
 def dependency_inputs(path: Path) -> list[str]:
     text = path.read_text().replace("\\\n", " ")
-    try:
-        _, values = text.split(":", 1)
-    except ValueError as exc:
-        raise MatchError(f"invalid dependency file: {path}") from exc
+    # The rule's target ends at the first colon followed by whitespace: on Windows the paths start with a drive
+    # letter (D:\...), whose colon is not the rule's.
+    parts = re.split(r":\s", text, maxsplit=1)
+    if len(parts) != 2:
+        raise MatchError(f"invalid dependency file: {path}")
+    values = parts[1]
     inputs: list[str] = []
     for value in values.split():
         dependency = repository_path(value)
@@ -1134,7 +1241,8 @@ def normalize_compiler_directives(assembly: Path) -> None:
         elif directive in (".text", ".data", ".rdata", ".rodata"):
             in_small_data = False
         lines.append(line)
-    assembly.write_text("".join(lines))
+    # newline="\n": in text mode Python would write CRLF on Windows, which maspsx misreads
+    assembly.write_text("".join(lines), newline="\n")
 
 
 def build_object(

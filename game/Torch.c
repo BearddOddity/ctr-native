@@ -1,4 +1,21 @@
+#ifndef CTR_NATIVE
+// The registers the hand-written retail Torch helpers pass values in (PS1 build only). Global register variables
+// are never dead to GCC, so each result stays in retail's register with nothing after its last store. They must
+// come before any function definition, so before common.h and its inline helpers (and the matching build compiles
+// this file without a forced include).
+register unsigned int torchV1 __asm__("$3");
+register unsigned int torchT0 __asm__("$8");
+register unsigned int torchT1 __asm__("$9");
+register unsigned int torchT2 __asm__("$10");
+register unsigned int torchLeft __asm__("$11");
+register unsigned int torchRight __asm__("$12");
+register unsigned int torchTop __asm__("$13");
+register unsigned int torchBottom __asm__("$14");
+#endif
+
 #include <common.h>
+
+#ifdef CTR_NATIVE
 
 enum
 {
@@ -646,3 +663,66 @@ void Torch_Main(void *particleList_heatWarp, struct PushBuffer *pb, struct PrimM
 done:
 	primMem->cursor = prim;
 }
+#else
+// The retail Torch (PS1 build only). Retail's torch code is hand-written assembly: Torch_Main calls the nine
+// Torch_SubsetN helpers with their inputs and results in fixed registers, outside the C calling convention. Each
+// helper is written here with register variables pinned to retail's registers (the shared results as global
+// register variables, declared at the top of this file), so GCC 2.8.1 emits retail's instructions.
+
+// Builds the four card corners around (centerX, centerY): in v1 the centre Y packed into the high half, in t4 and t6
+// the radius words; out t3/t4 the left and right corners, t5/t6 the top and bottom ones.
+void Torch_Subset1(s32 centerX, s32 centerY)
+{
+	torchLeft = centerX - torchRight;
+	torchRight = centerX + torchRight;
+	torchLeft &= 0xffff;
+	torchRight &= 0xffff;
+	torchLeft |= torchV1;
+	torchRight |= torchV1;
+	torchBottom = (s32)torchBottom >> 16;
+	torchTop = centerY - torchBottom;
+	torchBottom = centerY + torchBottom;
+	torchTop <<= 16;
+	torchBottom <<= 16;
+	torchTop |= centerX;
+	torchBottom |= centerX;
+}
+// Stores Torch_Subset1's four corners into the card at a3, then the four diagonal corners around (centerX, centerY)
+// from the GTE's SXY2 (x radius low, y radius high), each worked out from scratch as retail does.
+void Torch_Subset2(s32 centerX, s32 centerY, s32 unused, u32 *card)
+{
+	__asm__ volatile("mfc2	%0,$14" : "=r"(torchT2));
+	card[7] = torchLeft;
+	card[3] = torchRight;
+	card[1] = torchTop;
+	card[5] = torchBottom;
+	__asm__ volatile("" : : : "memory"); // the four stores fill the mfc2 delay, as retail orders them
+	torchT1 = torchT2 & 0xffff;
+	torchT2 = (s32)torchT2 >> 16;
+	torchV1 = centerX - torchT1;
+	torchT0 = centerY - torchT2;
+	torchV1 &= 0xffff;
+	torchT0 <<= 16;
+	torchV1 |= torchT0;
+	card[8] = torchV1;
+	torchV1 = centerX + torchT1;
+	torchT0 = centerY - torchT2;
+	torchV1 &= 0xffff;
+	torchT0 <<= 16;
+	torchV1 |= torchT0;
+	card[2] = torchV1;
+	torchV1 = centerX - torchT1;
+	torchT0 = centerY + torchT2;
+	torchV1 &= 0xffff;
+	torchT0 <<= 16;
+	torchV1 |= torchT0;
+	card[6] = torchV1;
+	torchV1 = centerX + torchT1;
+	torchT0 = centerY + torchT2;
+	torchV1 &= 0xffff;
+	torchT0 <<= 16;
+	torchV1 |= torchT0;
+	card[4] = torchV1;
+}
+
+#endif
