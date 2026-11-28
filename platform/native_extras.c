@@ -76,3 +76,47 @@ int NativeExtras_CameraDistance(int distance)
 	}
 	return (distance * g_nativeConfig.cameraDistance) / 100;
 }
+
+extern s32 g_nativeGteWideX;
+
+// 16.16: 4:3 over the shape the frame is shown in; 1.0 when that is no wider than 4:3 or widescreen stretches.
+static s32 NativeExtras_WideScale(void)
+{
+	int w = 4;
+	int h = 3;
+
+	if (!g_nativeConfig.widescreen || !g_nativeConfig.trueWidescreen)
+	{
+		return 0x10000;
+	}
+	NativeRenderer_GetPresentAspect(&w, &h);
+	if ((w <= 0) || (h <= 0) || (w * 3 <= h * 4))
+	{
+		return 0x10000;
+	}
+	return (s32)(((s64)4 * h << 16) / ((s64)3 * w));
+}
+
+static int NativeExtras_IsUiView(const struct PushBuffer *pb)
+{
+	struct GameTracker *gGT = GAME_TRACKER;
+
+	return (pb == NULL) || ((gGT != NULL) && (pb == &gGT->pushBuffer_UI)) || (pb == &GAME_SDATA_NAME(pushBuffer_DecalMP));
+}
+
+void NativeExtras_WideForView(const struct PushBuffer *pb)
+{
+	g_nativeGteWideX = NativeExtras_IsUiView(pb) ? 0x10000 : NativeExtras_WideScale();
+}
+
+void NativeExtras_WideOff(void)
+{
+	g_nativeGteWideX = 0x10000;
+}
+
+int NativeExtras_FrustumWidth(const struct PushBuffer *pb, int width)
+{
+	const s32 scale = NativeExtras_IsUiView(pb) ? 0x10000 : NativeExtras_WideScale();
+
+	return (int)(((s64)width << 16) / scale);
+}

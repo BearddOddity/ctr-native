@@ -18,4 +18,12 @@ int NativeExtras_DistanceToScreen(int h);
 // The race camera's distance behind the kart, scaled by the camera distance picked (100% = the PS1's).
 int NativeExtras_CameraDistance(int distance);
 
+// True widescreen. The world's 3D is drawn narrower by the 4:3 picture's stretch, the HUD's 3D (the UI views)
+// as it was. Called where a view's H goes into the GTE, after the HUD and at the frame's end (ui = 1).
+struct PushBuffer;
+void NativeExtras_WideForView(const struct PushBuffer *pb);
+void NativeExtras_WideOff(void);
+// A view's width for its frustum: wider by the same stretch, so what now shows at the sides isn't culled.
+int NativeExtras_FrustumWidth(const struct PushBuffer *pb, int width);
+
 #endif

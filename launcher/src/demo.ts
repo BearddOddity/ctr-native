@@ -31,6 +31,7 @@ export function demoBackend(q: URLSearchParams): Backend {
     height: 1080,
     fullscreen: false,
     widescreen: true,
+    true_widescreen: true,
     vsync: true,
     intscale: false,
     upscale: 2,

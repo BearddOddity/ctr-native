@@ -13,6 +13,8 @@ export interface Settings {
   height: number;
   fullscreen: boolean;
   widescreen: boolean;
+  /** with widescreen: the 3D sees more to the sides (true) or the 4:3 picture is stretched (false) */
+  true_widescreen: boolean;
   vsync: boolean;
   intscale: boolean;
   upscale: number;

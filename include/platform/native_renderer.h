@@ -46,4 +46,7 @@ void NativeRenderer_DrawTriangles(int startVertex, int triangles);
 void NativeRenderer_PushDebugLabel(const char *label);
 void NativeRenderer_PopDebugLabel(void);
 
+// The shape the PSX frame is shown in (the window's at start, or 4:3 when widescreen is off).
+void NativeRenderer_GetPresentAspect(int *width, int *height);
+
 #endif

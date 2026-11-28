@@ -21,6 +21,7 @@ void NativeConfig_SetDefaults(struct NativeConfig *config)
 	config->widescreen = 0;
 #endif
 	config->fullscreen = 0;
+	config->trueWidescreen = 1;
 	config->keyboard = 1;
 	config->controller = 1;
 	config->xboxControllers = 1;
@@ -230,6 +231,10 @@ static void NativeConfig_SetKey(struct NativeConfig *config, const char *key, co
 		{
 			config->renderScale = number;
 		}
+	}
+	else if (NativeConfig_EqualsNoCase(key, "true_widescreen"))
+	{
+		NativeConfig_ParseBool(value, &config->trueWidescreen);
 	}
 	else if (NativeConfig_EqualsNoCase(key, "fov"))
 	{
@@ -449,6 +454,10 @@ void NativeConfig_ApplyArgs(struct NativeConfig *config, int argc, char **argv)
 			NativeConfig_ParseChoice(next, s_crtWords, 3, &config->crt);
 			i++;
 		}
+		else if (strcmp(arg, "--stretch") == 0)
+		{
+			config->trueWidescreen = 0;
+		}
 		else if ((strcmp(arg, "--fov") == 0) && (next != NULL))
 		{
 			NativeConfig_ParseInt(next, &config->fov);
@@ -466,6 +475,7 @@ void NativeConfig_ApplyArgs(struct NativeConfig *config, int argc, char **argv)
 			config->cheats = 0;
 			config->fov = NATIVE_CONFIG_FOV_DEFAULT;
 			config->cameraDistance = 100;
+			config->trueWidescreen = 0;
 		}
 		else if ((strcmp(arg, "--render-scale") == 0) && (next != NULL))
 		{

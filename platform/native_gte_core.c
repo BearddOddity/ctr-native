@@ -36,6 +36,9 @@ GTERegisters gteRegs;
 #define CV3(n)        (n < 3 ? gteRegs.CP2C.p[(n << 3) + 7].sd : 0)
 
 global_variable int m_sf;
+// True widescreen: how much RTPS/RTPT draw the 3D narrower (16.16, 1.0 = the PS1's). The 4:3 picture is then
+// stretched to the wider window, so the 3D keeps its shape and the view takes in more to the sides.
+s32 g_nativeGteWideX = 0x10000;
 global_variable s64 m_mac0;
 global_variable s64 m_mac3;
 
@@ -316,7 +319,7 @@ internal int GTE_RotTransPers(int idx, int lm)
 	int h_over_sz3 = Lm_E(gte_divide(C2_H, C2_SZ3));
 	C2_SXY0 = C2_SXY1;
 	C2_SXY1 = C2_SXY2;
-	C2_SX2 = Lm_G1(F((s64)C2_OFX + ((s64)C2_IR1 * h_over_sz3)) >> 16);
+	C2_SX2 = Lm_G1(F((s64)C2_OFX + ((((s64)C2_IR1 * h_over_sz3) * g_nativeGteWideX) >> 16)) >> 16);
 	C2_SY2 = Lm_G2(F((s64)C2_OFY + ((s64)C2_IR2 * h_over_sz3)) >> 16);
 
 	return h_over_sz3;

@@ -1,5 +1,9 @@
 #include <common.h>
 
+#ifdef CTR_NATIVE
+#include <platform/native_extras.h>
+#endif
+
 #if defined(CTR_NATIVE)
 // NOTE(aalhendi): Overlay 221 consumes this value through retail stack residue.
 // Native retains it explicitly instead of reading unrelated stack storage.
@@ -58,6 +62,10 @@ void PushBuffer_UpdateFrustum(struct PushBuffer *pb)
 #endif
 
 	screenWidth = pb->rect.w;
+#if defined(CTR_NATIVE)
+	// True widescreen: the frustum as wide as what is drawn.
+	screenWidth = (s16)NativeExtras_FrustumWidth(pb, screenWidth);
+#endif
 	screenHeight = (s16)CTR_MipsSra((s32)((u32)(s32)pb->rect.h * 0x600000u) / 0x360, 12);
 	cornerXY = CTR_PackS16Pair(screenWidth / 2, screenHeight / 2);
 	distToScreen = pb->distanceToScreen_PREV;
