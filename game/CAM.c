@@ -335,19 +335,19 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	register s32 width CTR_PSX_REGISTER("$22");
 	s32 toLeft;
 	register s32 i CTR_PSX_REGISTER("$23");
-	s32 toRight;
 	register s32 tilt CTR_PSX_REGISTER("$21");
+	s32 toRight;
 	u32 widthXY;
 	u32 mask;
 	u32 xy;
-	s32 fromRight;
 	register struct SkyboxGlowGradient *g CTR_PSX_REGISTER("$30");
+	s32 fromRight;
 	struct Level *level;
 	s32 ratio1;
 	register u32 x1 CTR_PSX_REGISTER("$12");
 	s32 fromLeft;
-	u32 *p;
 	register u32 tag CTR_PSX_REGISTER("$20");
+	u32 *p;
 
 	tilt = MATH_Sin(pb->rot.z) << 12;
 	cosine = MATH_Cos(pb->rot.z);
@@ -363,8 +363,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 	SKYGLOW->centerY2 = ((pb->rot.x - 0x800) * 0x78) / 0x400 + (s16)pb->rect.h / 2;
 
 	width = pb->rect.w;
-	g = grad;
 	widthXY = width & 0xffff;
+	g = grad;
 
 	for (i = 0; i < 3; i++, g++)
 	{
@@ -398,8 +398,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			SKYGLOW_LERP(3, 2, 3, ratio1);
 
 			p = (u32 *)primMem->cursor;
-			p[4] = toLeft << 16;
 			tag = 0x30000000;
+			p[4] = toLeft << 16;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | tag;
 			p[3] = SKYGLOW->color[2].w;
 			p[5] = SKYGLOW->color[3].w;
@@ -461,16 +461,16 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			x1 = (width * ratio1 >> 12) & 0xffff;
 			ratio1 = (toLeft << 12) / (toLeft - toRight);
 
-			p = (u32 *)primMem->cursor;
 			tag = 0x38000000;
+			p = (u32 *)primMem->cursor;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | tag;
 			p[3] = SKYGLOW->color[1].w;
-			p[4] = x1;
 			p[5] = SKYGLOW->color[2].w;
-			p[7] = SKYGLOW->color[3].w;
+			p[4] = x1;
 			p[2] = fromLeft << 16;
-			tag = 0x8000000;
+			p[7] = SKYGLOW->color[3].w;
 			p[8] = (width * ratio1 >> 12) & 0xffff;
+			tag = 0x8000000;
 			p[6] = toLeft << 16;
 			p[0] = *ptrOT | tag;
 			*ptrOT = (u32)p << 8 >> 8;
@@ -503,11 +503,11 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[2] = fromLeft << 16;
 			p[1] = (SKYGLOW->color[0].w << 8 >> 8) | tag;
 			p[3] = SKYGLOW->color[4].w;
-			p[6] = widthXY;
 			tag = 0x6000000;
 			p[5] = SKYGLOW->color[1].w;
-			p[4] = x1;
+			p[6] = widthXY;
 			p[0] = *ptrOT | tag;
+			p[4] = x1;
 			primMem->cursor = p + 7;
 			*ptrOT = (u32)p << 8 >> 8;
 
@@ -600,10 +600,10 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[12] = SKYGLOW->color[2].w;
 			p[14] = SKYGLOW->color[3].w;
 			p[13] = toLeft << 16;
-			p[11] = xy;
 			p[9] = 0;
 			tag = 0x8000000;
 			p[15] = widthXY | (toRight << 16);
+			p[11] = xy;
 			p[7] = *ptrOT | tag;
 			*ptrOT = (u32)(p + 7) << 8 >> 8;
 			primMem->cursor = p + 16;
@@ -632,8 +632,8 @@ void CAM_SkyboxGlow(struct SkyboxGlowGradient *grad, struct PushBuffer *pb, stru
 			p[5] = SKYGLOW->color[2].w;
 			p[7] = SKYGLOW->color[3].w;
 			p[2] = x1;
-			tag = 0x8000000;
 			p[4] = xy;
+			tag = 0x8000000;
 			p[6] = toLeft << 16;
 			p[8] = widthXY | (toRight << 16);
 			p[0] = *ptrOT | tag;
