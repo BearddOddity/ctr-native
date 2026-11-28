@@ -60,6 +60,9 @@
 #define GAME_CHARACTER_METADATA                              ctr_characterMetadata
 #define GAME_CHARACTER_IDS                                   ctr_characterIDs
 #define GAME_HUD_LAYOUTS                                     ctr_hudLayouts
+// CAM_ThTick's zoom table and end-of-race camera sizes, each reached by its own lui as retail does
+#define GAME_CAMERA_ZOOM_DATA                                ctr_cameraZoomData
+#define GAME_EOR_CAMERA_SIZES                                ctr_eorCameraSizes
 // NOTE(aalhendi): Retain the page owner separately from the indexed table;
 // unsplit loads otherwise merge these address producers in the HUD loop.
 #define GAME_LOAD_UI_COLOR_TABLE(result) \
@@ -203,6 +206,8 @@ extern s32 ctr_languageStringCount asm("sdata_static+420");
 extern char **ctr_languageStrings asm(RETAIL_LANGUAGE_STRINGS_ASM_NAME);
 extern s16 ctr_positionSuffixIndices[8] asm("data+23196");
 extern s16 ctr_battleScoreColors[4][4] asm("data+23212");
+extern struct ZoomData ctr_cameraZoomData[] asm("data+1480");
+extern s16 ctr_eorCameraSizes[] asm("data+1552");
 extern s16 ctr_data_font_charPixWidth[] asm("data+6592");
 extern s16 ctr_data_font_charPixHeight[] asm("data+6600");
 // NOTE(aalhendi): Unspecified string extents retain absolute resident addresses.

@@ -682,6 +682,7 @@
   },
   "cam-pose": {
    "game/CAM.c": {
+    ".CAM_FollowDriver_Normal": "1198:c75d7215f59cd53b09b0",
     ".CAM_FollowDriver_Spin360": "fc:1484d2affb4ed82b7795",
     ".CAM_LookAtPosition": "dc:be3ba1c1217949a719dc",
     ".CAM_MapRange_PosPoints": "e0:ef8bdba48ff89a880e58",
@@ -1655,6 +1656,12 @@
   "main-load-vlc-callback": {
    "game/MAIN/MainLoadVLC.c": {
     ".MainLoadVLC_Callback": "10:92a23421d8528684ec46"
+   }
+  },
+  "main-main": {
+   "game/MAIN/MainMain.c": {
+    ".main": "9f0:90e08cba4b2dae425daa",
+    ".rodata": "14:dc44035af4bf6055089a"
    }
   },
   "main-race-track": {
