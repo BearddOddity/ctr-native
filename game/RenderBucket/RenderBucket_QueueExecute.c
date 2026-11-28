@@ -1,4 +1,8 @@
 #include <common.h>
+
+#ifdef CTR_NATIVE
+#include <platform/native_extras.h>
+#endif
 #include <ctr_gte_transfer.h>
 
 #include "RenderBucket_ProjectedBounds.h"
@@ -983,6 +987,9 @@ static void RenderBucket_ProjectFrameBounds(struct ModelFrame *frame, struct Mod
 	gte_SetTransMatrix(projectionMvp);
 	gte_SetGeomOffset(pb->rect.w >> 1, pb->rect.h >> 1);
 	gte_SetGeomScreen(pb->distanceToScreen_PREV);
+#ifdef CTR_NATIVE
+	NativeExtras_WideForView(pb);
+#endif
 
 	MTC2(minXY, 0);
 	MTC2(minZ, 1);
@@ -4709,6 +4716,9 @@ static int RenderBucket_PrepareDrawContext(struct RenderBucketDrawContext *ctx, 
 		scratch->geomH = pb->rect.h;
 		gte_SetGeomOffset(pb->rect.w >> 1, pb->rect.h >> 1);
 		gte_SetGeomScreen(pb->distanceToScreen_PREV);
+#ifdef CTR_NATIVE
+		NativeExtras_WideForView(pb);
+#endif
 	}
 
 	if ((idpp->instFlags & 0x40) == 0)

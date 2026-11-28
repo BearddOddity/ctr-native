@@ -22,6 +22,16 @@ export const ANTIALIASING = ["OFF", "FXAA"];
 export const CRT = ["OFF", "SCANLINES", "CURVED CRT"];
 export const BRIGHTNESS = ["DARKER", "DARK", "NORMAL", "BRIGHT", "BRIGHTER"];
 export const MAX_RENDER_SCALE = 8;
+export const WIDESCREEN = ["OFF  4:3", "STRETCHED", "TRUE WIDESCREEN"];
+const WIDESCREEN_HINT = [
+  "The original 4:3 picture, with bars at the sides of a wider screen.",
+  "The 4:3 picture stretched to fill the screen, as before.",
+  "Fills the screen without stretching: the race shows more to the left and right.",
+];
+
+export function widescreenIndex(s: Settings): number {
+  return !s.widescreen ? 0 : s.true_widescreen ? 2 : 1;
+}
 export const FOV = { min: 60, max: 120, step: 5, ps1: 90 };
 export const CAMERA_DISTANCE = { min: 50, max: 200, step: 10, ps1: 100 };
 
@@ -92,7 +102,14 @@ export function settingsRows(v: View, tab: number): Row[] {
         hint: "The game's window: 16:9, 16:10, 4:3 or 21:9. A size set by hand in ctr_native.ini stays until you pick another.",
       },
       toggle("fullscreen", "FULLSCREEN", s, "The whole screen, no window border. Alt + Enter switches while you play."),
-      toggle("widescreen", "WIDESCREEN", s, "Fill a 16:9 or 16:10 screen. Off: the original 4:3 picture with bars."),
+      {
+        id: "widescreen",
+        kind: "choice",
+        label: "WIDESCREEN",
+        value: WIDESCREEN[widescreenIndex(s)],
+        enabled: true,
+        hint: WIDESCREEN_HINT[widescreenIndex(s)],
+      },
       toggle("vsync", "VSYNC", s, "No tearing: every frame waits for the screen's refresh."),
       toggle("intscale", "PIXEL-PERFECT", s, "Whole-number scaling: every scanline the same height."),
       {
@@ -222,6 +239,12 @@ export function change(s: Settings, id: string, dir: 1 | -1, list: Resolution[])
     case "brightness":
       n.brightness = Math.min(2, Math.max(-2, s.brightness + dir));
       break;
+    case "widescreen": {
+      const at = wrap(widescreenIndex(s) + dir, WIDESCREEN.length);
+      n.widescreen = at > 0;
+      n.true_widescreen = at === 2 || (at === 0 && s.true_widescreen);
+      break;
+    }
     case "fov":
       n.fov = Math.min(FOV.max, Math.max(FOV.min, s.fov + dir * FOV.step));
       break;

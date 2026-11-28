@@ -43,6 +43,8 @@ pub struct Settings {
     pub height: i32,
     pub fullscreen: bool,
     pub widescreen: bool,
+    /// With widescreen: the 3D sees more to the sides; false stretches the 4:3 picture.
+    pub true_widescreen: bool,
     pub vsync: bool,
     pub intscale: bool,
     pub upscale: usize,
@@ -100,6 +102,7 @@ impl Settings {
             height: ini.get_int("video", "height", default.1 as i64) as i32,
             fullscreen: ini.get_bool("video", "fullscreen", false),
             widescreen: ini.get_bool("video", "widescreen", true),
+            true_widescreen: ini.get_bool("video", "true_widescreen", true),
             vsync: ini.get_bool("video", "vsync", false),
             intscale: ini.get_bool("graphics", "integer_scale", false),
             upscale: choice(ini, "graphics", "upscale", &UPSCALE, 0),
@@ -174,6 +177,7 @@ impl Settings {
         ini.set("video", "height", &self.height.to_string());
         ini.set("video", "fullscreen", b(self.fullscreen));
         ini.set("video", "widescreen", b(self.widescreen));
+        ini.set("video", "true_widescreen", b(self.true_widescreen));
         ini.set("input", "keyboard", b(self.keyboard));
         ini.set("input", "controller", b(self.controller));
         ini.set("input", "xbox", b(self.xbox));

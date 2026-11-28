@@ -140,6 +140,12 @@ int main(void)
 	NativeConfig_ParseText(&c, "fov=400\ncamera_distance=1\n");
 	EXPECT(c.fov == 120 && c.cameraDistance == 50);
 
+	// True widescreen: on by default, stretch by hand.
+	NativeConfig_SetDefaults(&c);
+	EXPECT(c.trueWidescreen == 1);
+	NativeConfig_ParseText(&c, "true_widescreen=0\n");
+	EXPECT(c.trueWidescreen == 0);
+
 	// A missing file leaves the defaults.
 	NativeConfig_SetDefaults(&c);
 	EXPECT(NativeConfig_LoadFile(&c, "this-file-does-not-exist.ini") == 0);

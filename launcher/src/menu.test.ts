@@ -14,6 +14,7 @@ function settings(over: Partial<Settings> = {}): Settings {
     height: 1080,
     fullscreen: false,
     widescreen: true,
+    true_widescreen: true,
     vsync: true,
     intscale: false,
     upscale: 0,
@@ -112,6 +113,16 @@ describe("settings", () => {
       expect(rows[rows.length - 1].id).toBe("back");
       for (const r of rows) expect(r.hint.length).toBeGreaterThan(0);
     }
+  });
+
+  test("widescreen goes 4:3, stretched, true", () => {
+    expect(settingsRows(view(), 0).find((r) => r.id === "widescreen")!.value).toBe("TRUE WIDESCREEN");
+    const off = change(settings(), "widescreen", 1, RES);
+    expect([off.widescreen, off.true_widescreen]).toEqual([false, true]);
+    const stretched = change(off, "widescreen", 1, RES);
+    expect([stretched.widescreen, stretched.true_widescreen]).toEqual([true, false]);
+    const back = change(stretched, "widescreen", 1, RES);
+    expect([back.widescreen, back.true_widescreen]).toEqual([true, true]);
   });
 
   test("field of view and camera distance step and stop at their ends", () => {

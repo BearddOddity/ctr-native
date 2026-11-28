@@ -1,4 +1,8 @@
 #include <common.h>
+
+#ifdef CTR_NATIVE
+#include <platform/native_extras.h>
+#endif
 #include <ctr_trig.h>
 
 #ifndef MAIN_FRAME_ACTIVE_MENU
@@ -978,6 +982,9 @@ void MainFrame_RenderFrame(struct GameTracker *gGT, struct GamepadSystem *gGamep
 	RECT battleWindow;
 
 	(void)gGamepads;
+#ifdef CTR_NATIVE
+	NativeExtras_WideOff();
+#endif
 
 	MAINFRAME_PERF_BEGIN(NATIVE_PERF_BUCKET_MAINFRAME_SETUP);
 	{
@@ -1143,6 +1150,10 @@ DrawFinalLap:
 	MAINFRAME_PERF_BEGIN(NATIVE_PERF_BUCKET_MAINFRAME_HUD);
 	RenderAllHUD(gGT);
 	MAINFRAME_PERF_END(NATIVE_PERF_BUCKET_MAINFRAME_HUD);
+#ifdef CTR_NATIVE
+	// True widescreen: the world's 3D from here on (RenderBucket picks per view again).
+	NativeExtras_WideForView(&gGT->pushBuffer[0]);
+#endif
 
 	MAINFRAME_PERF_BEGIN(NATIVE_PERF_BUCKET_MAINFRAME_EFFECTS);
 	RenderAllBeakerRain(gGT);
@@ -1264,6 +1275,10 @@ DrawFinalLap:
 		MAINFRAME_PERF_END(NATIVE_PERF_BUCKET_MAINFRAME_CLEAR_SCREEN);
 	}
 
+#ifdef CTR_NATIVE
+	// The checkered flag and the rest of the frame are 2D: drawn as the PS1 drew them.
+	NativeExtras_WideOff();
+#endif
 	MAINFRAME_PERF_BEGIN(NATIVE_PERF_BUCKET_MAINFRAME_UI);
 	if ((GAME_TRACKER->renderFlags & RENDER_FLAG_CHECKERED_FLAG) != 0)
 	{

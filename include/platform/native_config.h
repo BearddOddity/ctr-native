@@ -19,6 +19,9 @@ struct NativeConfig
 	int fullscreen;
 	// 1: the PSX frame fills the window's aspect (16:9, 16:10). 0: 4:3, pillarboxed.
 	int widescreen;
+	// With widescreen: 1 (true widescreen) the 3D sees more to the sides instead of the 4:3 picture being
+	// stretched; 0 stretches it as before.
+	int trueWidescreen;
 	int keyboard;
 	int controller;
 	// Controller families the game opens when controller support is on.

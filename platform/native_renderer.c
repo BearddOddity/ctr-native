@@ -460,6 +460,12 @@ internal void NativeRenderer_SetPresentationAspect(int width, int height)
 	s_presentAspectH = height / divisor;
 }
 
+void NativeRenderer_GetPresentAspect(int *width, int *height)
+{
+	*width = s_presentAspectW;
+	*height = s_presentAspectH;
+}
+
 void NativeRenderer_SetAspect(int width, int height)
 {
 	NativeRenderer_SetPresentationAspect(width, height);
