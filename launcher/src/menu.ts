@@ -43,7 +43,11 @@ export function cameraDistanceLabel(n: number): string {
   return n === CAMERA_DISTANCE.ps1 ? `${n}%  PS1` : `${n}%`;
 }
 
+/** Internal resolutions in menu order: 1X (the PS1's) to 8X, then NATIVE (0: the screen's own size). */
+export const RENDER_SCALES = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+
 export function renderScaleLabel(n: number): string {
+  if (n === 0) return "NATIVE";
   return n <= 1 ? "1X  PS1" : `${n}X`;
 }
 
@@ -137,7 +141,7 @@ export function settingsRows(v: View, tab: number): Row[] {
         label: "INTERNAL RESOLUTION",
         value: renderScaleLabel(s.renderscale),
         enabled: true,
-        hint: "The 3D is drawn at the PlayStation's own size times this, then scaled to your window: 2X and up are sharper and cost more. A build of the game from before this setting draws at 1X.",
+        hint: "The 3D is drawn at the PlayStation's own size times this, then scaled to your window: 2X and up are sharper and cost more. Native draws it at your screen's own resolution, pixel for pixel.",
       },
       { id: "upscale", kind: "choice", label: "UPSCALING", value: UPSCALE[s.upscale], enabled: true, hint: UPSCALE_HINT[s.upscale] },
       {
@@ -252,7 +256,10 @@ export function change(s: Settings, id: string, dir: 1 | -1, list: Resolution[])
       n.camera_distance = Math.min(CAMERA_DISTANCE.max, Math.max(CAMERA_DISTANCE.min, s.camera_distance + dir * CAMERA_DISTANCE.step));
       break;
     case "renderscale":
-      n.renderscale = Math.min(MAX_RENDER_SCALE, Math.max(1, s.renderscale + dir));
+      {
+        const at = Math.max(0, RENDER_SCALES.indexOf(s.renderscale));
+        n.renderscale = RENDER_SCALES[Math.min(RENDER_SCALES.length - 1, Math.max(0, at + dir))];
+      }
       break;
     default: {
       const key = id as keyof Settings;

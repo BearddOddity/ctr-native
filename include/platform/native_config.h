@@ -11,6 +11,8 @@
 #define NATIVE_CONFIG_MAX_WIDTH   7680
 #define NATIVE_CONFIG_MAX_HEIGHT  4320
 #define NATIVE_CONFIG_MAX_RENDER_SCALE 8
+// render_scale = native (0): the 3D at the size the frame is shown at on the screen.
+#define NATIVE_CONFIG_RENDER_SCALE_NATIVE 0
 
 struct NativeConfig
 {
@@ -38,7 +40,8 @@ struct NativeConfig
 	int textureFilter; // bilinear texture filtering in 3D (the PSX had none)
 	int brightness;   // -2 .. 2
 	int integerScale; // whole-number scaling only (sharp pixels, bars around)
-	// Internal resolution: the 3D is drawn at the PSX display size times this (1 = the PlayStation's own).
+	// Internal resolution: the 3D is drawn at the PSX display size times this (1 = the PlayStation's own), or at
+	// the screen's own size with NATIVE_CONFIG_RENDER_SCALE_NATIVE.
 	int renderScale;
 
 	// Extras (the launcher's Extras tab): opt-in changes to how the game plays. All off by default, so the

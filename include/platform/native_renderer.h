@@ -19,6 +19,8 @@ void NativeRenderer_StoreFrameBuffer(int x, int y, int w, int h);
 void NativeRenderer_PresentVRAMDisplay(void);
 void NativeRenderer_PresentVRAMRect(int x, int y, int w, int h);
 int NativeRenderer_GetRenderScale(void);
+// 1 when the 3D is drawn to a target bigger than the PS1's own (render_scale 2-8, or native).
+int NativeRenderer_UsesMainTarget(void);
 void NativeRenderer_PresentMainTarget(void);
 void NativeRenderer_SaveVRAM(const char *outputFileName, int x, int y, int width, int height, int readFromFramebuffer);
 void NativeRenderer_Clear(int x, int y, int w, int h, u8 r, u8 g, u8 b);

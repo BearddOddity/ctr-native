@@ -146,6 +146,13 @@ int main(void)
 	NativeConfig_ParseText(&c, "true_widescreen=0\n");
 	EXPECT(c.trueWidescreen == 0);
 
+	// Native resolution.
+	NativeConfig_SetDefaults(&c);
+	NativeConfig_ParseText(&c, "render_scale=native\n");
+	EXPECT(c.renderScale == NATIVE_CONFIG_RENDER_SCALE_NATIVE);
+	NativeConfig_ParseText(&c, "render_scale=0\n");
+	EXPECT(c.renderScale == 0);
+
 	// A missing file leaves the defaults.
 	NativeConfig_SetDefaults(&c);
 	EXPECT(NativeConfig_LoadFile(&c, "this-file-does-not-exist.ini") == 0);

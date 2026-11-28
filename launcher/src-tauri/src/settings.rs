@@ -111,7 +111,10 @@ impl Settings {
             crt: choice(ini, "graphics", "crt", &CRT, 0),
             brightness: ini.get_int("graphics", "brightness", 0) as i32,
             texfilter: ini.get_bool("graphics", "texture_filter", false),
-            renderscale: ini.get_int("graphics", "render_scale", 1) as i32,
+            renderscale: match ini.get("graphics", "render_scale") {
+                Some(v) if v.trim().eq_ignore_ascii_case("native") => 0,
+                _ => ini.get_int("graphics", "render_scale", 1) as i32,
+            },
             keyboard: ini.get_bool("input", "keyboard", true),
             controller: ini.get_bool("input", "controller", true),
             xbox: ini.get_bool("input", "xbox", true),
@@ -159,7 +162,10 @@ impl Settings {
         if !(-2..=2).contains(&self.brightness) {
             self.brightness = 0;
         }
-        self.renderscale = self.renderscale.clamp(1, MAX_RENDER_SCALE);
+        // 0 = native: the screen's own size.
+        if self.renderscale != 0 {
+            self.renderscale = self.renderscale.clamp(1, MAX_RENDER_SCALE);
+        }
         self.fov = self.fov.clamp(FOV.0, FOV.1);
         self.camera_distance = self.camera_distance.clamp(CAMERA_DISTANCE.0, CAMERA_DISTANCE.1);
         if self.width < 320 || self.height < 240 {
@@ -191,7 +197,8 @@ impl Settings {
         ini.set("graphics", "brightness", &self.brightness.to_string());
         ini.set("graphics", "texture_filter", b(self.texfilter));
         ini.set("graphics", "integer_scale", b(self.intscale));
-        ini.set("graphics", "render_scale", &self.renderscale.to_string());
+        let scale = if self.renderscale == 0 { "native".to_string() } else { self.renderscale.to_string() };
+        ini.set("graphics", "render_scale", &scale);
         ini.set("camera", "fov", &self.fov.to_string());
         ini.set("camera", "camera_distance", &self.camera_distance.to_string());
         ini.set("extras", "skip_intro", b(self.skip_intro));
