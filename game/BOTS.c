@@ -2228,20 +2228,22 @@ UpdateTireColorTimer:
 			if ((levelID == HOT_AIR_SKYWAY || levelID == PAPU_PYRAMID) || levelID == POLAR_PASS)
 			{
 				int navFrameIndexOnPath;
-				s16 *throttle = &BOTS_THROTTLE[botDriver->botData.botPath]; // iVar3
+				s16 *throttle;
+				int throttleIndex = botDriver->botData.botPath; // iVar3
 
 				if (gGT->levelID == POLAR_PASS)
 				{
-					throttle += 3;
+					throttleIndex += 3;
 				}
 				else if (gGT->levelID == PAPU_PYRAMID)
 				{
-					throttle += 6;
+					throttleIndex += 6;
 				}
 				else if (gGT->levelID == SLIDE_COLISEUM)
 				{
-					throttle += 9;
+					throttleIndex += 9;
 				}
+				throttle = &BOTS_THROTTLE[throttleIndex];
 
 				navFrameIndexOnPath = (int)(navFrameCurr - BOTS_NAV_FRAMES[botDriver->botData.botPath]);
 
