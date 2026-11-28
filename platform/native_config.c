@@ -227,7 +227,11 @@ static void NativeConfig_SetKey(struct NativeConfig *config, const char *key, co
 	else if (NativeConfig_EqualsNoCase(key, "render_scale"))
 	{
 		int number;
-		if (NativeConfig_ParseInt(value, &number))
+		if (NativeConfig_EqualsNoCase(value, "native"))
+		{
+			config->renderScale = NATIVE_CONFIG_RENDER_SCALE_NATIVE;
+		}
+		else if (NativeConfig_ParseInt(value, &number))
 		{
 			config->renderScale = number;
 		}
@@ -573,7 +577,7 @@ void NativeConfig_Clamp(struct NativeConfig *config)
 	{
 		config->cameraDistance = NATIVE_CONFIG_CAMERA_DISTANCE_MAX;
 	}
-	if (config->renderScale < 1)
+	if (config->renderScale < 0)
 	{
 		config->renderScale = 1;
 	}

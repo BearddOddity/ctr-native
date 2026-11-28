@@ -108,10 +108,13 @@ struct NativeRenderTarget
 
 global_variable struct NativeRenderTarget s_mainRenderTarget;
 // Internal resolution: the main target is the PS1 display size times g_nativeConfig.renderScale (1 = the
-// PlayStation's own). s_boundTargetScale is the scale of the framebuffer drawn to now: scissor and clear boxes
+// PlayStation's own). s_boundScaleX/Y are the scale of the framebuffer drawn to now: scissor and clear boxes
 // are given in PS1 display pixels and are multiplied by it. s_presentMainTarget: the frame being presented is the
 // main target at that scale, not its PS1-sized VRAM copy.
-global_variable int s_boundTargetScale = 1;
+// With render_scale = native (0) the main target is the size the frame is shown at instead, so the scale is a
+// fraction and differs across and down: s_boundScaleX and s_boundScaleY.
+global_variable float s_boundScaleX = 1.0f;
+global_variable float s_boundScaleY = 1.0f;
 global_variable int s_presentMainTarget = 0;
 global_variable struct NativeRenderTarget s_offscreenRenderTarget;
 
@@ -594,15 +597,28 @@ internal void NativeRenderer_BindMainRenderTarget(void)
 		height = activeDrawEnv.clip.h;
 	}
 
-	const int scale = NativeRenderer_GetRenderScale();
-	NativeRenderer_EnsureRenderTarget(&s_mainRenderTarget, width * scale, height * scale);
+	int targetW = width * NativeRenderer_GetRenderScale();
+	int targetH = height * NativeRenderer_GetRenderScale();
+	if (g_nativeConfig.renderScale == 0)
+	{
+		// Native: as many pixels as the frame covers on the screen, never fewer than the PS1's.
+		targetW = (s_presentViewport.w > width) ? s_presentViewport.w : width;
+		targetH = (s_presentViewport.h > height) ? s_presentViewport.h : height;
+	}
+	NativeRenderer_EnsureRenderTarget(&s_mainRenderTarget, targetW, targetH);
 	glBindFramebuffer(GL_FRAMEBUFFER, s_mainRenderTarget.framebuffer);
-	s_boundTargetScale = scale;
+	s_boundScaleX = (float)s_mainRenderTarget.width / (float)width;
+	s_boundScaleY = (float)s_mainRenderTarget.height / (float)height;
 }
 
 int NativeRenderer_GetRenderScale(void)
 {
 	return g_nativeConfig.renderScale > 1 ? g_nativeConfig.renderScale : 1;
+}
+
+int NativeRenderer_UsesMainTarget(void)
+{
+	return (g_nativeConfig.renderScale > 1) || (g_nativeConfig.renderScale == 0);
 }
 
 internal void NativeRenderer_DrawVRAMRegion(int x, int y, int width, int height)
@@ -624,7 +640,18 @@ internal void NativeRenderer_LoadRenderTargetFromVRAM(struct NativeRenderTarget 
 
 	NativeRenderer_UpdateVRAM();
 	glBindFramebuffer(GL_FRAMEBUFFER, target->framebuffer);
-	s_boundTargetScale = (target == &s_mainRenderTarget) ? NativeRenderer_GetRenderScale() : 1;
+	if (target == &s_mainRenderTarget)
+	{
+		const int dispW = (activeDispEnv.disp.w > 0) ? activeDispEnv.disp.w : activeDrawEnv.clip.w;
+		const int dispH = (activeDispEnv.disp.h > 0) ? activeDispEnv.disp.h : activeDrawEnv.clip.h;
+		s_boundScaleX = (dispW > 0) ? (float)target->width / (float)dispW : 1.0f;
+		s_boundScaleY = (dispH > 0) ? (float)target->height / (float)dispH : 1.0f;
+	}
+	else
+	{
+		s_boundScaleX = 1.0f;
+		s_boundScaleY = 1.0f;
+	}
 	glDisable(GL_BLEND);
 	glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_STENCIL_TEST);
@@ -1381,8 +1408,8 @@ void NativeRenderer_SetupClipMode(const RECT16 *rect, const DISPENV *displayEnv,
 	const float crw = clipRectW * viewportW;
 	const float crh = clipRectH * viewportH;
 
-	const float s = (float)s_boundTargetScale;
-	glScissor(crx * s, (flipOffset - cry) * s, crw * s, crh * s);
+	glScissor((GLint)(crx * s_boundScaleX + 0.5f), (GLint)((flipOffset - cry) * s_boundScaleY + 0.5f), (GLsizei)(crw * s_boundScaleX + 0.5f),
+	          (GLsizei)(crh * s_boundScaleY + 0.5f));
 }
 
 internal void NativeRenderer_SetShader(const ShaderID shader)
@@ -1752,8 +1779,8 @@ void NativeRenderer_Clear(int x, int y, int w, int h, u8 r, u8 g, u8 b)
 	glGetIntegerv(GL_SCISSOR_BOX, previousScissorBox);
 
 	glEnable(GL_SCISSOR_TEST);
-	glScissor(scissorX * s_boundTargetScale, scissorY * s_boundTargetScale, scissorW * s_boundTargetScale,
-	          scissorH * s_boundTargetScale);
+	glScissor((GLint)(scissorX * s_boundScaleX + 0.5f), (GLint)(scissorY * s_boundScaleY + 0.5f), (GLsizei)(scissorW * s_boundScaleX + 0.5f),
+	          (GLsizei)(scissorH * s_boundScaleY + 0.5f));
 	glClearColor(NativeRenderer_PSXColorComponentFloat(r), NativeRenderer_PSXColorComponentFloat(g), NativeRenderer_PSXColorComponentFloat(b), 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -2005,7 +2032,8 @@ internal void NativeRenderer_GpuPackTextureToVRAM(TextureID sourceTexture, int x
 	if (s_previousOffscreenState)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, s_offscreenRenderTarget.framebuffer);
-		s_boundTargetScale = 1;
+		s_boundScaleX = 1.0f;
+		s_boundScaleY = 1.0f;
 		glViewport(0, 0, s_offscreenRenderTarget.width, s_offscreenRenderTarget.height);
 	}
 	else
@@ -2537,7 +2565,8 @@ internal int NativeRenderer_PresentPostFx(int displayX, int displayY, int displa
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
-	s_boundTargetScale = 1;
+	s_boundScaleX = 1.0f;
+		s_boundScaleY = 1.0f;
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glEnable(GL_STENCIL_TEST);
 	return 1;
@@ -2596,7 +2625,8 @@ void NativeRenderer_PresentVRAMRect(int displayX, int displayY, int displayW, in
 			NativeRenderer_DrawVRAMRegion(displayX, displayY, displayW, displayH);
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		s_boundTargetScale = 1;
+		s_boundScaleX = 1.0f;
+		s_boundScaleY = 1.0f;
 	}
 	glBindVertexArray(0);
 

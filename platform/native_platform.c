@@ -384,7 +384,7 @@ void Platform_EndScene(void)
 	// NOTE(aalhendi): Keep the displayed VRAM region current for screen-copy
 	// effects without forcing a CPU readback.
 	NativeRenderer_StoreFrameBuffer(activeDispEnv.disp.x, activeDispEnv.disp.y, activeDispEnv.disp.w, activeDispEnv.disp.h);
-	if (NativeRenderer_GetRenderScale() > 1)
+	if (NativeRenderer_UsesMainTarget())
 	{
 		NativeRenderer_PresentMainTarget();
 	}

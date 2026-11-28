@@ -173,7 +173,9 @@ describe("settings", () => {
     expect(change(settings({ brightness: -2 }), "brightness", -1, RES).brightness).toBe(-2);
     expect(change(settings({ renderscale: 1 }), "renderscale", -1, RES).renderscale).toBe(1);
     expect(change(settings({ renderscale: 7 }), "renderscale", 1, RES).renderscale).toBe(8);
-    expect(change(settings({ renderscale: 8 }), "renderscale", 1, RES).renderscale).toBe(8);
+    expect(change(settings({ renderscale: 8 }), "renderscale", 1, RES).renderscale).toBe(0);
+    expect(change(settings({ renderscale: 0 }), "renderscale", 1, RES).renderscale).toBe(0);
+    expect(change(settings({ renderscale: 0 }), "renderscale", -1, RES).renderscale).toBe(8);
     expect(change(settings(), "vsync", 1, RES).vsync).toBe(false);
   });
 
