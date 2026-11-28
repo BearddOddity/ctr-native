@@ -1,0 +1,12 @@
+{
+  "about": "Where the matching pipeline finds the PSX toolchain on Windows. These are native Windows builds of the same GCC 2.8.1 (with the same patches) and binutils 2.40 the Linux toolchain uses, made locally from the vendored sources by tools/matching/windows/build-toolchain.sh. They are built on each machine, so there are no fixed checksums here: the pipeline checks their version banners and records their actual checksums in every result.",
+  "compiler": {
+    "directory": "externals/old-gcc/prebuilt/windows-i386/2.8.1",
+    "executable": "gcc.exe",
+    "programs": ["gcc.exe", "cpp.exe", "cc1.exe"]
+  },
+  "binutils": {
+    "prefix": "externals/psx-binutils/prebuilt/windows-i386/bin/mipsel-none-elf-",
+    "suffix": ".exe"
+  }
+}

@@ -1,0 +1,42 @@
+--- a/pexecute.c
++++ b/pexecute.c
+@@ -224,6 +224,7 @@
+ 
+ #include <process.h>
+ #include <signal.h>
++#include <string.h>
+ extern int _spawnv ();
+ extern int _spawnvp ();
+ 
+@@ -264,6 +265,31 @@
+             }
+         }
+ 
++        /* The spawn functions join the arguments with spaces and quote none of them, so an argument with a
++           space (such as -D__SIZE_TYPE__=unsigned int) would reach the child as two.  Quote those, doubling
++           any backslashes that end up in front of the closing quote, as the Microsoft C runtime parses them.  */
++        if (strchr (temp, ' ') != 0 || strchr (temp, '\t') != 0)
++          {
++            int k, backslashes = 0;
++            char *quoted = (char *) xmalloc (2 * strlen (temp) + 3);
++            char *out = quoted;
++
++            *out++ = '"';
++            for (k = 0; temp[k] != 0; k++)
++              {
++                if (temp[k] == '\\')
++                  backslashes++;
++                else
++                  backslashes = 0;
++                *out++ = temp[k];
++              }
++            while (backslashes-- > 0)
++              *out++ = '\\';
++            *out++ = '"';
++            *out = 0;
++            temp = quoted;
++          }
++
+         argvec[i] = temp;
+       }
+ 
