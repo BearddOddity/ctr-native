@@ -2518,6 +2518,12 @@
     ".Timer_Init": "54:4eb1b93f5521cfbcddb5"
    }
   },
+  "torch-subsets": {
+   "game/Torch.c": {
+    ".Torch_Subset1": "38:b58eb67cfdec36c097fd",
+    ".Torch_Subset2": "80:08505874bf2ea1b1e4ac"
+   }
+  },
   "ui-convert-y": {
    "game/UI/UI_Convert.c": {
     ".UI_ConvertY_2": "20:a958f998dd2fd41aea65"
