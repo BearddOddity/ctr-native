@@ -696,6 +696,11 @@
     ".CAM_Init": "90:82c498e8327142ebcff0"
    }
   },
+  "cam-thtick": {
+   "game/CAM.c": {
+    ".CAM_ThTick": "102c:de81c7fb4db64db4107c"
+   }
+  },
   "cam-trackpath": {
    "game/CAM/CAM_FollowDriver_TrackPath.c": {
     ".CAM_FollowDriver_TrackPath": "584:6a143fc579e3917365d6"

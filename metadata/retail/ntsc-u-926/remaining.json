@@ -2,13 +2,6 @@
   "about": "The game functions no matching target covers yet. tools/matching/remaining.py builds each from its whole source file with these flags and scores it against the retail exe. When one matches, move it into a real target in matching.json and take it out of here.",
   "functions": [
     {
-      "name": "CAM_ThTick",
-      "end_symbol": "CDSYS_Init",
-      "source": "game/CAM.c",
-      "like": "cam-pose",
-      "note": "Its C builds to the bytes Revenant's saved match makes (src/auto/8001b334.c). It joins cam-pose once CAM.c's .rodata has its retail address (CAM_SkyboxGlow's and CAM_ThTick's jump tables share it): read it from retail.objdump, then set function_rodata_addresses for both."
-    },
-    {
       "name": "BOTS_ThTick_Drive",
       "end_symbol": "BOTS_ChangeState",
       "source": "game/BOTS.c",
