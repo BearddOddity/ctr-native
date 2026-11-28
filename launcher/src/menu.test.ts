@@ -23,6 +23,7 @@ function settings(over: Partial<Settings> = {}): Settings {
     crt: 0,
     brightness: 0,
     texfilter: false,
+    dither: 1,
     renderscale: 1,
     keyboard: true,
     controller: true,
@@ -113,6 +114,12 @@ describe("settings", () => {
       expect(rows[rows.length - 1].id).toBe("back");
       for (const r of rows) expect(r.hint.length).toBeGreaterThan(0);
     }
+  });
+
+  test("dithering cycles off, PS1, fine", () => {
+    expect(settingsRows(view(), 1).find((r) => r.id === "dither")!.value).toBe("PS1");
+    expect(change(settings(), "dither", 1, RES).dither).toBe(2);
+    expect(change(settings(), "dither", -1, RES).dither).toBe(0);
   });
 
   test("widescreen goes 4:3, stretched, true", () => {
