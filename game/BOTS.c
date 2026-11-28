@@ -1603,6 +1603,9 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 		botDriver->clockReceive = 0;
 	}
 
+	botDriver->actionsFlagSetPrevFrame = botDriver->actionsFlagSet;
+	botDriver->actionsFlagSet &= ~(ACTION_DROPPING_MINE | ACTION_JUMP_STARTED | ACTION_STARTED_TOUCH_GROUND);
+
 	botDriver->botData.aiPhysics.driftTarget = 0;
 	botDriver->kartState = KS_NORMAL;
 
@@ -1612,9 +1615,6 @@ void BOTS_ThTick_Drive(struct Thread *botThread)
 	{
 		speedApprox = CTR_MipsNegLo(speedApprox);
 	}
-
-	botDriver->actionsFlagSetPrevFrame = botDriver->actionsFlagSet;
-	botDriver->actionsFlagSet &= ~(ACTION_DROPPING_MINE | ACTION_JUMP_STARTED | ACTION_STARTED_TOUCH_GROUND);
 
 	if ((botDriver->actionsFlagSet & ACTION_TOUCH_GROUND) != 0)
 	{
