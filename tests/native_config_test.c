@@ -132,6 +132,14 @@ int main(void)
 		EXPECT(c.skipIntro == 0 && c.unlockAll == 0 && c.cheats == 0);
 	}
 
+	// Camera: the PS1's 90 degrees and 100% by default, hand edits kept in range.
+	NativeConfig_SetDefaults(&c);
+	EXPECT(c.fov == 90 && c.cameraDistance == 100);
+	NativeConfig_ParseText(&c, "[camera]\nfov=105\ncamera_distance=150\n");
+	EXPECT(c.fov == 105 && c.cameraDistance == 150);
+	NativeConfig_ParseText(&c, "fov=400\ncamera_distance=1\n");
+	EXPECT(c.fov == 120 && c.cameraDistance == 50);
+
 	// A missing file leaves the defaults.
 	NativeConfig_SetDefaults(&c);
 	EXPECT(NativeConfig_LoadFile(&c, "this-file-does-not-exist.ini") == 0);

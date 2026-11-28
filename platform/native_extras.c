@@ -2,6 +2,8 @@
 
 #include "platform/native_config.h"
 
+#include <math.h>
+
 // The game's own flag for each NATIVE_CHEAT_*, as its main-menu cheat codes set it (game/230/MM_CheatCodes.c).
 static const u32 s_nativeCheatFlags[NATIVE_CHEAT_COUNT] = {
 	CHEAT_WUMPA, CHEAT_MASK, CHEAT_TURBO, CHEAT_BOMBS, CHEAT_INVISIBLE, CHEAT_ENGINE,
@@ -50,4 +52,27 @@ void NativeExtras_Frame(void)
 		flags &= ~(u32)NATIVE_EXTRAS_ITEM_CHEATS;
 	}
 	gGT->gameMode2 |= flags;
+}
+
+int NativeExtras_DistanceToScreen(int h)
+{
+	const int fov = g_nativeConfig.fov;
+
+	if ((fov == NATIVE_CONFIG_FOV_DEFAULT) || (h <= 0))
+	{
+		return h;
+	}
+	// The PS1's view is 90 degrees wide: half its width over H is tan(45) = 1. H scales by 1 / tan(fov / 2).
+	const double half = (double)fov * 0.5 * 3.14159265358979323846 / 180.0;
+	const int scaled = (int)((double)h / tan(half) + 0.5);
+	return scaled < 1 ? 1 : scaled;
+}
+
+int NativeExtras_CameraDistance(int distance)
+{
+	if (g_nativeConfig.cameraDistance == 100)
+	{
+		return distance;
+	}
+	return (distance * g_nativeConfig.cameraDistance) / 100;
 }

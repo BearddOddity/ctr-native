@@ -28,6 +28,10 @@ export interface Settings {
   xbox: boolean;
   playstation: boolean;
   vibration: boolean;
+  /** the race camera's field of view in degrees, 60 to 120 (90 = the PS1's) */
+  fov: number;
+  /** the race camera's distance behind the kart in percent, 50 to 200 */
+  camera_distance: number;
   /** Extras: off unless the player turns them on (ctr_native.ini's [extras], platform/native_extras.c) */
   skip_intro: boolean;
   unlock_all: boolean;

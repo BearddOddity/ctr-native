@@ -32,6 +32,11 @@ pub const RESOLUTIONS: [Resolution; 10] = [
 /// The game's own limit (NATIVE_CONFIG_MAX_RENDER_SCALE).
 pub const MAX_RENDER_SCALE: i32 = 8;
 
+/// The race camera's field of view in degrees (NATIVE_CONFIG_FOV_*): the PS1's 90 by default.
+pub const FOV: (i32, i32, i32) = (60, 120, 90);
+/// The race camera's distance behind the kart in percent (NATIVE_CONFIG_CAMERA_DISTANCE_*).
+pub const CAMERA_DISTANCE: (i32, i32, i32) = (50, 200, 100);
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Settings {
     pub width: i32,
@@ -53,6 +58,8 @@ pub struct Settings {
     pub xbox: bool,
     pub playstation: bool,
     pub vibration: bool,
+    pub fov: i32,
+    pub camera_distance: i32,
     /// Extras, off unless the player turns them on: [extras] in ctr_native.ini (platform/native_extras.c).
     pub skip_intro: bool,
     pub unlock_all: bool,
@@ -107,6 +114,8 @@ impl Settings {
             xbox: ini.get_bool("input", "xbox", true),
             playstation: ini.get_bool("input", "playstation", true),
             vibration: ini.get_bool("input", "vibration", true),
+            fov: ini.get_int("camera", "fov", FOV.2 as i64) as i32,
+            camera_distance: ini.get_int("camera", "camera_distance", CAMERA_DISTANCE.2 as i64) as i32,
             skip_intro: ini.get_bool("extras", "skip_intro", false),
             unlock_all: ini.get_bool("extras", "unlock_all", false),
             cheat_wumpa: ini.get_bool("extras", "cheat_wumpa", false),
@@ -148,6 +157,8 @@ impl Settings {
             self.brightness = 0;
         }
         self.renderscale = self.renderscale.clamp(1, MAX_RENDER_SCALE);
+        self.fov = self.fov.clamp(FOV.0, FOV.1);
+        self.camera_distance = self.camera_distance.clamp(CAMERA_DISTANCE.0, CAMERA_DISTANCE.1);
         if self.width < 320 || self.height < 240 {
             self.width = RESOLUTIONS[0].w;
             self.height = RESOLUTIONS[0].h;
@@ -177,6 +188,8 @@ impl Settings {
         ini.set("graphics", "texture_filter", b(self.texfilter));
         ini.set("graphics", "integer_scale", b(self.intscale));
         ini.set("graphics", "render_scale", &self.renderscale.to_string());
+        ini.set("camera", "fov", &self.fov.to_string());
+        ini.set("camera", "camera_distance", &self.camera_distance.to_string());
         ini.set("extras", "skip_intro", b(self.skip_intro));
         ini.set("extras", "unlock_all", b(self.unlock_all));
         ini.set("extras", "cheat_wumpa", b(self.cheat_wumpa));
@@ -219,7 +232,11 @@ mod tests {
         assert_eq!(out.get("graphics", "render_scale").as_deref(), Some("8"));
         assert!(out.text().contains("; kept"));
         assert_eq!(out.get("extras", "unlock_all").as_deref(), Some("0"));
+        assert_eq!(out.get("camera", "fov").as_deref(), Some("90"));
         s.skip_intro = true;
+        s.fov = 300; // a hand edit past the end
+        s.tidy();
+        assert_eq!(s.fov, 120);
         s.cheat_one_lap = true;
         s.save(&mut out);
         assert_eq!(out.get("extras", "skip_intro").as_deref(), Some("1"));
