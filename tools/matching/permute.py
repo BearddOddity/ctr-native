@@ -15,6 +15,8 @@ build/permute/<name>/best.c, and every kept step is in build/permute/<name>/log.
 
     python tools/matching/permute.py start bots1 game/BOTS.c BOTS_ThTick_Drive \\
         --start "void BOTS_ThTick_Drive(struct Thread *botThread)" --end "\\n}\\n" --minutes 360
+    python tools/matching/permute.py start sky1 game/CAM.c CAM_SkyboxGlow --anchor "void CAM_SkyboxGlow(" \\
+        --start "#else\\n" --end "#endif\\n}\\n#ifndef CTR_NATIVE\\n#undef SKYGLOW_LERP"
     python tools/matching/permute.py status            # best score of every sandbox
     python tools/matching/permute.py diff bots1        # the best source's changes against the checkout
 
@@ -170,9 +172,13 @@ def mutations(lines: list[str]) -> list[int]:
     return found
 
 
-def region(text: str, start: str, end: str) -> tuple[int, int]:
-    begin = text.index(start)
-    finish = text.index(end, begin + len(start))
+def region(text: str, start: str, end: str, anchor: str = "") -> tuple[int, int]:
+    """The text strictly between the start marker (searched after the anchor) and the end marker.
+
+    The markers themselves are outside the region, so no swap can move a line they are made of.
+    """
+    begin = text.index(start, text.index(anchor) if anchor else 0) + len(start)
+    finish = text.index(end, begin)
     return begin, finish
 
 
@@ -197,8 +203,16 @@ def better(a: tuple[int, float], b: tuple[int, float]) -> bool:
 
 def make_sandbox(name: str) -> Path:
     sandbox = SANDBOXES / name
+    for _ in range(30):
+        if not sandbox.exists():
+            break
+        try:
+            shutil.rmtree(sandbox)
+        except OSError:
+            # a compiler or linker from a stopped run can still hold a file for a moment
+            time.sleep(2)
     if sandbox.exists():
-        shutil.rmtree(sandbox)
+        raise SystemExit(f"{sandbox} is still in use: stop the run using it first")
     for relative in COPIED:
         source = ROOT / relative
         if not source.exists():
@@ -230,7 +244,7 @@ def start(args: argparse.Namespace) -> int:
     tries = 0
     while time.time() < deadline and best_score[0] > 0:
         tries += 1
-        begin, finish = region(current, start_marker, end_marker)
+        begin, finish = region(current, start_marker, end_marker, args.anchor)
         body = current[begin:finish]
         newline = "\r\n" if "\r\n" in body else "\n"
         lines = body.split(newline)
@@ -288,6 +302,7 @@ def main() -> int:
     run.add_argument("function")
     run.add_argument("--start", required=True, help="text that opens the region to permute")
     run.add_argument("--end", required=True, help="text that closes it")
+    run.add_argument("--anchor", default="", help="text the start marker is searched after (to pick one #else, say)")
     run.add_argument("--minutes", type=float, default=60)
     run.add_argument("--seed", type=int)
     run.set_defaults(func=start)
