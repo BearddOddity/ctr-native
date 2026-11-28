@@ -18,7 +18,7 @@ let v: View;
 let page: "home" | "settings" = "home";
 let tab = 0;
 let homeSel = 0;
-const tabSel = [1, 1, 1];
+const tabSel = TABS.map(() => 1);
 let rows: Row[] = [];
 let coverKey = "-";
 let lastMouse = "";

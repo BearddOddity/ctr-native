@@ -53,6 +53,21 @@ pub struct Settings {
     pub xbox: bool,
     pub playstation: bool,
     pub vibration: bool,
+    /// Extras, off unless the player turns them on: [extras] in ctr_native.ini (platform/native_extras.c).
+    pub skip_intro: bool,
+    pub unlock_all: bool,
+    pub cheat_wumpa: bool,
+    pub cheat_masks: bool,
+    pub cheat_turbos: bool,
+    pub cheat_bombs: bool,
+    pub cheat_invisible: bool,
+    pub cheat_engine: bool,
+    pub cheat_icy: bool,
+    pub cheat_turbo_pads: bool,
+    pub cheat_turbo_count: bool,
+    pub cheat_one_lap: bool,
+    pub cheat_super_hard: bool,
+    pub cheat_hard_adventure: bool,
 }
 
 /// The biggest windowed size that fits the screen's work area with its title bar, not 21:9 or 4:3.
@@ -92,6 +107,20 @@ impl Settings {
             xbox: ini.get_bool("input", "xbox", true),
             playstation: ini.get_bool("input", "playstation", true),
             vibration: ini.get_bool("input", "vibration", true),
+            skip_intro: ini.get_bool("extras", "skip_intro", false),
+            unlock_all: ini.get_bool("extras", "unlock_all", false),
+            cheat_wumpa: ini.get_bool("extras", "cheat_wumpa", false),
+            cheat_masks: ini.get_bool("extras", "cheat_masks", false),
+            cheat_turbos: ini.get_bool("extras", "cheat_turbos", false),
+            cheat_bombs: ini.get_bool("extras", "cheat_bombs", false),
+            cheat_invisible: ini.get_bool("extras", "cheat_invisible", false),
+            cheat_engine: ini.get_bool("extras", "cheat_engine", false),
+            cheat_icy: ini.get_bool("extras", "cheat_icy", false),
+            cheat_turbo_pads: ini.get_bool("extras", "cheat_turbo_pads", false),
+            cheat_turbo_count: ini.get_bool("extras", "cheat_turbo_count", false),
+            cheat_one_lap: ini.get_bool("extras", "cheat_one_lap", false),
+            cheat_super_hard: ini.get_bool("extras", "cheat_super_hard", false),
+            cheat_hard_adventure: ini.get_bool("extras", "cheat_hard_adventure", false),
         };
         if s.width < 320 || s.height < 240 {
             s.width = default.0;
@@ -148,6 +177,20 @@ impl Settings {
         ini.set("graphics", "texture_filter", b(self.texfilter));
         ini.set("graphics", "integer_scale", b(self.intscale));
         ini.set("graphics", "render_scale", &self.renderscale.to_string());
+        ini.set("extras", "skip_intro", b(self.skip_intro));
+        ini.set("extras", "unlock_all", b(self.unlock_all));
+        ini.set("extras", "cheat_wumpa", b(self.cheat_wumpa));
+        ini.set("extras", "cheat_masks", b(self.cheat_masks));
+        ini.set("extras", "cheat_turbos", b(self.cheat_turbos));
+        ini.set("extras", "cheat_bombs", b(self.cheat_bombs));
+        ini.set("extras", "cheat_invisible", b(self.cheat_invisible));
+        ini.set("extras", "cheat_engine", b(self.cheat_engine));
+        ini.set("extras", "cheat_icy", b(self.cheat_icy));
+        ini.set("extras", "cheat_turbo_pads", b(self.cheat_turbo_pads));
+        ini.set("extras", "cheat_turbo_count", b(self.cheat_turbo_count));
+        ini.set("extras", "cheat_one_lap", b(self.cheat_one_lap));
+        ini.set("extras", "cheat_super_hard", b(self.cheat_super_hard));
+        ini.set("extras", "cheat_hard_adventure", b(self.cheat_hard_adventure));
     }
 }
 
@@ -175,6 +218,12 @@ mod tests {
         assert_eq!(out.get("graphics", "crt").as_deref(), Some("curved"));
         assert_eq!(out.get("graphics", "render_scale").as_deref(), Some("8"));
         assert!(out.text().contains("; kept"));
+        assert_eq!(out.get("extras", "unlock_all").as_deref(), Some("0"));
+        s.skip_intro = true;
+        s.cheat_one_lap = true;
+        s.save(&mut out);
+        assert_eq!(out.get("extras", "skip_intro").as_deref(), Some("1"));
+        assert_eq!(out.get("extras", "cheat_one_lap").as_deref(), Some("1"));
         assert_eq!(Settings::load(&out, (1, 1)), s);
     }
 

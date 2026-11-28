@@ -45,6 +45,20 @@ export function demoBackend(q: URLSearchParams): Backend {
     xbox: true,
     playstation: true,
     vibration: true,
+    skip_intro: false,
+    unlock_all: false,
+    cheat_wumpa: false,
+    cheat_masks: false,
+    cheat_turbos: false,
+    cheat_bombs: false,
+    cheat_invisible: false,
+    cheat_engine: false,
+    cheat_icy: false,
+    cheat_turbo_pads: false,
+    cheat_turbo_count: false,
+    cheat_one_lap: false,
+    cheat_super_hard: false,
+    cheat_hard_adventure: false,
   };
   const hasDisc = q.get("disc") !== "0";
   const v: View = {

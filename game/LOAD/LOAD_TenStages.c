@@ -1,6 +1,10 @@
 #include <common.h>
 
 #ifdef CTR_NATIVE
+#include <platform/native_extras.h>
+#endif
+
+#ifdef CTR_NATIVE
 enum
 {
 	LOAD_NATIVE_NDBOX_INTRO_SONG_SYNC_TIME = 0x11c0,
@@ -95,7 +99,9 @@ int LOAD_TenStages(struct GameTracker *unusedGameTracker, int loadingStage, stru
 			// the point retail normally reaches while loading the ND crate.
 			// Present every wait tick so both host swapchain images are
 			// overwritten with copyright instead of briefly revealing SCEA.
-			while (((sdata->songPool[0].flags & 3) == 1) && (sdata->songPool[0].timeSpentPlaying < LOAD_NATIVE_NDBOX_INTRO_SONG_SYNC_TIME))
+			// Extras' skip intro doesn't hold it.
+			while (!NativeExtras_SkipIntro() && ((sdata->songPool[0].flags & 3) == 1) &&
+				(sdata->songPool[0].timeSpentPlaying < LOAD_NATIVE_NDBOX_INTRO_SONG_SYNC_TIME))
 			{
 				VSync(0);
 				Platform_PresentVRAMDisplay();

@@ -37,7 +37,33 @@ struct NativeConfig
 	int integerScale; // whole-number scaling only (sharp pixels, bars around)
 	// Internal resolution: the 3D is drawn at the PSX display size times this (1 = the PlayStation's own).
 	int renderScale;
+
+	// Extras (the launcher's Extras tab): opt-in changes to how the game plays. All off by default, so the
+	// game plays as the disc does. platform/native_extras.c applies them.
+	int skipIntro; // boot past the Naughty Dog crate and the "Sony Computer Entertainment presents" voice
+	int unlockAll; // every character, track, battle arena and the scrapbook, as the game's own unlock codes do
+	int cheats;    // NATIVE_CHEAT_* bits: the game's own main-menu cheat codes, always on
 };
+
+// The game's main-menu cheat codes, by their ctr_native.ini key (cheat_<name>).
+enum
+{
+	NATIVE_CHEAT_WUMPA,      // 99 Wumpa fruit
+	NATIVE_CHEAT_MASKS,      // infinite Aku Aku / Uka Uka masks
+	NATIVE_CHEAT_TURBOS,     // infinite turbo boosts
+	NATIVE_CHEAT_BOMBS,      // infinite bombs
+	NATIVE_CHEAT_INVISIBLE,  // infinite invisibility
+	NATIVE_CHEAT_ENGINE,     // super engine
+	NATIVE_CHEAT_ICY,        // icy tracks
+	NATIVE_CHEAT_TURBO_PADS, // super turbo pads
+	NATIVE_CHEAT_TURBO_COUNT, // the turbo counter on the HUD
+	NATIVE_CHEAT_ONE_LAP,    // one-lap races
+	NATIVE_CHEAT_SUPER_HARD, // super hard AI
+	NATIVE_CHEAT_HARD_ADV,   // harder adventure AI
+	NATIVE_CHEAT_COUNT
+};
+
+extern const char *const g_nativeCheatKeys[NATIVE_CHEAT_COUNT];
 
 enum
 {

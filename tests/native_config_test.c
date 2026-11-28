@@ -118,6 +118,20 @@ int main(void)
 		EXPECT(c.controller == 0);
 	}
 
+	// Extras: off by default; the launcher's [extras] keys turn them on; a replay turns them all off again.
+	{
+		char *argv[] = {"ctr_native", "--replay", "x.ctrreplay"};
+		NativeConfig_SetDefaults(&c);
+		EXPECT(c.skipIntro == 0 && c.unlockAll == 0 && c.cheats == 0);
+		NativeConfig_ParseText(&c, "[extras]\nskip_intro=1\nunlock_all=yes\ncheat_wumpa=1\ncheat_one_lap=1\n"
+			"cheat_bombs=0\ncheat_icy=maybe\n");
+		EXPECT(c.skipIntro == 1);
+		EXPECT(c.unlockAll == 1);
+		EXPECT(c.cheats == ((1 << NATIVE_CHEAT_WUMPA) | (1 << NATIVE_CHEAT_ONE_LAP)));
+		NativeConfig_ApplyArgs(&c, 3, argv);
+		EXPECT(c.skipIntro == 0 && c.unlockAll == 0 && c.cheats == 0);
+	}
+
 	// A missing file leaves the defaults.
 	NativeConfig_SetDefaults(&c);
 	EXPECT(NativeConfig_LoadFile(&c, "this-file-does-not-exist.ini") == 0);

@@ -6,6 +6,10 @@
 #include <platform/native_savestate.h>
 #endif
 
+#ifdef CTR_NATIVE
+#include <platform/native_extras.h>
+#endif
+
 #if defined(CTR_NATIVE) && defined(CTR_INTERNAL)
 static struct NativePerfFrameInfo MainPerf_FrameInfo(struct GameTracker *gGT)
 {
@@ -237,6 +241,10 @@ MAIN_STATE_ZERO_LINKAGE void StateZero(void)
 	Music_Start(0);
 
 	// "Start your engines, for Sony Computer..."
+#ifdef CTR_NATIVE
+	// Extras' skip intro: no voice, so nothing to wait for.
+	if (!NativeExtras_SkipIntro())
+#endif
 	CDSYS_XAPlay(CDSYS_XA_TYPE_EXTRA, 0x50);
 
 	while (MAIN_XA_STATE != 0)
@@ -290,6 +298,9 @@ u32 main(void)
 	while (MAIN_GAME_STATE != 5)
 #endif
 	{
+#ifdef CTR_NATIVE
+		NativeExtras_Frame();
+#endif
 		LOAD_NextQueuedFile();
 		CDSYS_XAPauseAtEnd();
 
