@@ -3260,10 +3260,15 @@ UpdateTireColorTimer:
 	{
 		int wiggleX;
 		int wiggleZ;
+		int wiggleAngle;
 
-		if (badnessRecieveTimer == 0)
+		if (badnessRecieveTimer != 0)
 		{
-			badnessRecieveTimer = CTR_MipsSll(gGT->timer, 2);
+			wiggleAngle = badnessRecieveTimer;
+		}
+		else
+		{
+			wiggleAngle = CTR_MipsSll(gGT->timer, 2);
 		}
 		{
 			int rotX;
@@ -3271,7 +3276,7 @@ UpdateTireColorTimer:
 			int rotZ;
 
 			// the wiggle vector goes straight into the GTE's V0 (x, 0, z), as retail does
-			badnessRecieveTimer = CTR_MipsMulLo(badnessRecieveTimer, 0xc);
+			badnessRecieveTimer = CTR_MipsMulLo(wiggleAngle, 0xc);
 			wiggleX = CTR_MipsSra(CTR_MipsMulLo(MATH_Sin(badnessRecieveTimer), 50), 10);
 			wiggleZ = CTR_MipsSra(CTR_MipsMulLo(MATH_Cos(badnessRecieveTimer), 50), 10);
 			MTC2(CTR_PackS16Pair(wiggleX, 0), 0);
