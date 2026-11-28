@@ -1,6 +1,10 @@
 #include <common.h>
 #include <ctr_gte_transfer.h>
 
+#ifdef CTR_NATIVE
+#include <platform/native_extras.h>
+#endif
+
 struct CSThreadParentFrameScratch
 {
 	SVec3Slot parentPos;
@@ -308,7 +312,14 @@ int CS_Thread_UseOpcode(struct Instance *instance, struct CutsceneObj *cs)
 			pushBuffer->distanceToScreen_CURR = pushBuffer->distanceToScreen_PREV;
 		}
 
+#ifdef CTR_NATIVE
+		// Extras' skip intro: the Naughty Dog crate goes by as if START were pressed once it can be.
+		if (((GAMEPADS->gamepad[0].buttonsTapped & BTN_START) != 0) ||
+			((GAME_TRACKER->levelID == NAUGHTY_DOG_CRATE) && NativeExtras_SkipIntro() &&
+				((u32)gGT->msInThisLEV >> CS_FRAME32_SHIFT >= CS_ND_CRATE_SKIP_MIN_FRAME32)))
+#else
 		if ((GAMEPADS->gamepad[0].buttonsTapped & BTN_START) != 0)
+#endif
 		{
 			gGT->clockEffectEnabled &= ~CAM_PATH_FLAG_CLOCK_EFFECT;
 			if ((u32)(GAME_TRACKER->levelID - CREDITS_CRASH) < CS_CREDITS_LEVEL_COUNT)

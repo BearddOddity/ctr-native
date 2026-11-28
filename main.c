@@ -38,6 +38,7 @@
 
 #include "platform/native_config.c"
 #include "platform/native_disc_image.c"
+#include "platform/native_extras.c"
 #include "platform/native_assets.c"
 #include "platform/native_audio.c"
 #include "platform/native_memory.c"

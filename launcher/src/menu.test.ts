@@ -28,6 +28,20 @@ function settings(over: Partial<Settings> = {}): Settings {
     xbox: true,
     playstation: true,
     vibration: true,
+    skip_intro: false,
+    unlock_all: false,
+    cheat_wumpa: false,
+    cheat_masks: false,
+    cheat_turbos: false,
+    cheat_bombs: false,
+    cheat_invisible: false,
+    cheat_engine: false,
+    cheat_icy: false,
+    cheat_turbo_pads: false,
+    cheat_turbo_count: false,
+    cheat_one_lap: false,
+    cheat_super_hard: false,
+    cheat_hard_adventure: false,
     ...over,
   };
 }
@@ -90,11 +104,21 @@ describe("moving through a menu", () => {
 
 describe("settings", () => {
   test("each tab starts with the tabs row and ends with Back", () => {
-    for (const tab of [0, 1, 2]) {
+    for (const tab of [0, 1, 2, 3, 4]) {
       const rows = settingsRows(view(), tab);
       expect(rows[0].kind).toBe("tabs");
       expect(rows[rows.length - 1].id).toBe("back");
       for (const r of rows) expect(r.hint.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("every extra and cheat starts off and flips", () => {
+    for (const tab of [3, 4]) {
+      for (const r of settingsRows(view(), tab).filter((r) => r.kind === "toggle")) {
+        expect(r.value).toBe("OFF");
+        const on = change(settings(), r.id, 1, RES);
+        expect((on as unknown as Record<string, boolean>)[r.id]).toBe(true);
+      }
     }
   });
 

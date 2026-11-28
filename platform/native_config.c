@@ -35,7 +35,15 @@ void NativeConfig_SetDefaults(struct NativeConfig *config)
 	config->brightness = 0;
 	config->integerScale = 0;
 	config->renderScale = 1;
+	config->skipIntro = 0;
+	config->unlockAll = 0;
+	config->cheats = 0;
 }
+
+const char *const g_nativeCheatKeys[NATIVE_CHEAT_COUNT] = {
+	"cheat_wumpa", "cheat_masks", "cheat_turbos", "cheat_bombs", "cheat_invisible", "cheat_engine",
+	"cheat_icy", "cheat_turbo_pads", "cheat_turbo_count", "cheat_one_lap", "cheat_super_hard", "cheat_hard_adventure",
+};
 
 static int NativeConfig_EqualsNoCase(const char *a, const char *b)
 {
@@ -219,6 +227,25 @@ static void NativeConfig_SetKey(struct NativeConfig *config, const char *key, co
 		if (NativeConfig_ParseInt(value, &number))
 		{
 			config->renderScale = number;
+		}
+	}
+	else if (NativeConfig_EqualsNoCase(key, "skip_intro"))
+	{
+		NativeConfig_ParseBool(value, &config->skipIntro);
+	}
+	else if (NativeConfig_EqualsNoCase(key, "unlock_all"))
+	{
+		NativeConfig_ParseBool(value, &config->unlockAll);
+	}
+	else
+	{
+		for (int i = 0; i < NATIVE_CHEAT_COUNT; i++)
+		{
+			int on;
+			if (NativeConfig_EqualsNoCase(key, g_nativeCheatKeys[i]) && NativeConfig_ParseBool(value, &on))
+			{
+				config->cheats = on ? (config->cheats | (1 << i)) : (config->cheats & ~(1 << i));
+			}
 		}
 	}
 	// Unknown keys (the launcher's own, newer settings) are left alone.
@@ -411,6 +438,17 @@ void NativeConfig_ApplyArgs(struct NativeConfig *config, int argc, char **argv)
 		{
 			NativeConfig_ParseChoice(next, s_crtWords, 3, &config->crt);
 			i++;
+		}
+		else if (strcmp(arg, "--skip-intro") == 0)
+		{
+			config->skipIntro = 1;
+		}
+		else if ((strcmp(arg, "--no-extras") == 0) || (strcmp(arg, "--record") == 0) || (strcmp(arg, "--replay") == 0))
+		{
+			// A replay plays back the inputs alone: the game must play as the disc does, on both sides.
+			config->skipIntro = 0;
+			config->unlockAll = 0;
+			config->cheats = 0;
 		}
 		else if ((strcmp(arg, "--render-scale") == 0) && (next != NULL))
 		{

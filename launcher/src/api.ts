@@ -28,6 +28,21 @@ export interface Settings {
   xbox: boolean;
   playstation: boolean;
   vibration: boolean;
+  /** Extras: off unless the player turns them on (ctr_native.ini's [extras], platform/native_extras.c) */
+  skip_intro: boolean;
+  unlock_all: boolean;
+  cheat_wumpa: boolean;
+  cheat_masks: boolean;
+  cheat_turbos: boolean;
+  cheat_bombs: boolean;
+  cheat_invisible: boolean;
+  cheat_engine: boolean;
+  cheat_icy: boolean;
+  cheat_turbo_pads: boolean;
+  cheat_turbo_count: boolean;
+  cheat_one_lap: boolean;
+  cheat_super_hard: boolean;
+  cheat_hard_adventure: boolean;
 }
 
 export interface Resolution {

@@ -14,7 +14,7 @@ export interface Row {
   hint: string;
 }
 
-export const TABS = ["DISPLAY", "GRAPHICS", "CONTROLS"];
+export const TABS = ["DISPLAY", "GRAPHICS", "CONTROLS", "EXTRAS", "CHEATS"];
 
 export const UPSCALE = ["SHARP PIXELS", "SMOOTH", "FSR 1"];
 export const SHARPNESS = ["LOW", "MEDIUM", "HIGH"];
@@ -69,7 +69,7 @@ function toggle(id: keyof Settings, label: string, s: Settings, hint: string, en
 export function settingsRows(v: View, tab: number): Row[] {
   const s = v.settings;
   const rows: Row[] = [
-    { id: "tabs", kind: "tabs", label: TABS[tab], enabled: true, hint: "Left and right switch between Display, Graphics and Controls." },
+    { id: "tabs", kind: "tabs", label: TABS[tab], enabled: true, hint: "Left and right switch between Display, Graphics, Controls, Extras and Cheats." },
   ];
   if (tab === 0) {
     rows.push(
@@ -117,7 +117,27 @@ export function settingsRows(v: View, tab: number): Row[] {
       { id: "brightness", kind: "choice", label: "BRIGHTNESS", value: BRIGHTNESS[s.brightness + 2], enabled: true, hint: "Lifts or lowers the whole picture." },
       toggle("texfilter", "TEXTURE FILTER", s, "Smooths the 3D textures (the PlayStation drew them unfiltered)."),
     );
-  } else {
+  } else if (tab === 3) {
+    rows.push(
+      toggle("skip_intro", "SKIP INTRO", s, "Straight to the title screen: no Sony voice, no copyright hold, and the Naughty Dog crate cut short."),
+      toggle("unlock_all", "UNLOCK EVERYTHING", s, "Every hidden character, Turbo Track, the locked battle arenas and the scrapbook, as the game's own unlock codes give them. Saved with your profile, as theirs are."),
+    );
+  } else if (tab === 4) {
+    rows.push(
+      toggle("cheat_wumpa", "99 WUMPA FRUIT", s, "Every kart starts each race with 99 Wumpa fruit, so every weapon is its juiced-up version. The game turns this one off in Adventure and Time Trial."),
+      toggle("cheat_masks", "INFINITE MASKS", s, "An Aku Aku or Uka Uka mask whenever you want one. The game turns this one off in Adventure and Time Trial."),
+      toggle("cheat_turbos", "INFINITE TURBOS", s, "Turbo boosts in your item slot that never run out. The game turns this one off in Adventure and Time Trial."),
+      toggle("cheat_bombs", "INFINITE BOMBS", s, "Bombs in your item slot that never run out. The game turns this one off in Adventure and Time Trial."),
+      toggle("cheat_invisible", "INFINITE INVISIBILITY", s, "The invisibility item that never runs out."),
+      toggle("cheat_engine", "SUPER ENGINE", s, "Every kart gets a faster engine. The game turns this one off in Adventure and Time Trial."),
+      toggle("cheat_icy", "ICY TRACKS", s, "Every track is as slippery as ice."),
+      toggle("cheat_turbo_pads", "SUPER TURBO PADS", s, "Turbo pads boost harder."),
+      toggle("cheat_turbo_count", "TURBO COUNTER", s, "Your turbo boosts are counted on the HUD."),
+      toggle("cheat_one_lap", "ONE LAP RACES", s, "Every race is a single lap."),
+      toggle("cheat_super_hard", "SUPER HARD", s, "The toughest AI the game has."),
+      toggle("cheat_hard_adventure", "HARD ADVENTURE", s, "Harder AI in Adventure mode."),
+    );
+  } else if (tab === 2) {
     rows.push(
       toggle("keyboard", "KEYBOARD", s, "Arrows steer · C gas · X brake · V item · Shift hop · Enter start · Space select."),
       toggle("controller", "CONTROLLERS", s, "Gamepads, up to four players. Plug one in any time."),
